@@ -6,118 +6,134 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.CourseCourseIdTaskPost200Response
-import com.stuf.data.model.CreateCommentRequest
-import com.stuf.data.model.PostIdCommentGet200Response
-import com.stuf.data.model.UpdateCommentRequest
+import com.stuf.data.model.AddCommentRequestDto
+import com.stuf.data.model.CommentDtoListApiResponse
+import com.stuf.data.model.EditCommentRequestDto
+import com.stuf.data.model.IdRequestDtoApiResponse
 
 interface CommentApi {
     /**
-     * DELETE comment/{id}
-     * Удалить комментарий
+     * DELETE api/comment/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Комментарий удален
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @return [IdRequestDtoApiResponse]
      */
-    @DELETE("comment/{id}")
-    suspend fun commentIdDelete(@Path("id") id: java.util.UUID): Response<CourseCourseIdTaskPost200Response>
+    @DELETE("api/comment/{id}")
+    suspend fun apiCommentIdDelete(@Path("id") id: java.util.UUID): Response<IdRequestDtoApiResponse>
 
     /**
-     * PUT comment/{id}
-     * Редактировать комментарий
+     * PUT api/comment/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Комментарий отредактирован
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param updateCommentRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param editCommentRequestDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @PUT("comment/{id}")
-    suspend fun commentIdPut(@Path("id") id: java.util.UUID, @Body updateCommentRequest: UpdateCommentRequest): Response<CourseCourseIdTaskPost200Response>
+    @PUT("api/comment/{id}")
+    suspend fun apiCommentIdPut(@Path("id") id: java.util.UUID, @Body editCommentRequestDto: EditCommentRequestDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
-     * GET comment/{id}/replies
-     * Получить ответы на комментарий
+     * GET api/comment/{id}/replies
+     * 
      * 
      * Responses:
-     *  - 200: Список ответов
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [PostIdCommentGet200Response]
+     * @return [CommentDtoListApiResponse]
      */
-    @GET("comment/{id}/replies")
-    suspend fun commentIdRepliesGet(@Path("id") id: java.util.UUID): Response<PostIdCommentGet200Response>
+    @GET("api/comment/{id}/replies")
+    suspend fun apiCommentIdRepliesGet(@Path("id") id: java.util.UUID): Response<CommentDtoListApiResponse>
 
     /**
-     * POST comment/{id}/reply
-     * Ответить на комментарий
+     * POST api/comment/{id}/reply
+     * 
      * 
      * Responses:
-     *  - 200: Ответ создан
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param createCommentRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param addCommentRequestDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @POST("comment/{id}/reply")
-    suspend fun commentIdReplyPost(@Path("id") id: java.util.UUID, @Body createCommentRequest: CreateCommentRequest): Response<CourseCourseIdTaskPost200Response>
+    @POST("api/comment/{id}/reply")
+    suspend fun apiCommentIdReplyPost(@Path("id") id: java.util.UUID, @Body addCommentRequestDto: AddCommentRequestDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
-     * GET post/{id}/comment
-     * Получить root-комментарии к посту
+     * GET api/post/{id}/comment
+     * 
      * 
      * Responses:
-     *  - 200: Список комментариев
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [PostIdCommentGet200Response]
+     * @return [CommentDtoListApiResponse]
      */
-    @GET("post/{id}/comment")
-    suspend fun postIdCommentGet(@Path("id") id: java.util.UUID): Response<PostIdCommentGet200Response>
+    @GET("api/post/{id}/comment")
+    suspend fun apiPostIdCommentGet(@Path("id") id: java.util.UUID): Response<CommentDtoListApiResponse>
 
     /**
-     * POST post/{id}/comment
-     * Прокомментировать пост
+     * POST api/post/{id}/comment
+     * 
      * 
      * Responses:
-     *  - 200: Комментарий создан
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param createCommentRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param addCommentRequestDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @POST("post/{id}/comment")
-    suspend fun postIdCommentPost(@Path("id") id: java.util.UUID, @Body createCommentRequest: CreateCommentRequest): Response<CourseCourseIdTaskPost200Response>
+    @POST("api/post/{id}/comment")
+    suspend fun apiPostIdCommentPost(@Path("id") id: java.util.UUID, @Body addCommentRequestDto: AddCommentRequestDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
-     * GET solution/{id}/comment
-     * Получить root-комментарии к решению
+     * GET api/solution/{id}/comment
+     * 
      * 
      * Responses:
-     *  - 200: Список комментариев
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [PostIdCommentGet200Response]
+     * @return [CommentDtoListApiResponse]
      */
-    @GET("solution/{id}/comment")
-    suspend fun solutionIdCommentGet(@Path("id") id: java.util.UUID): Response<PostIdCommentGet200Response>
+    @GET("api/solution/{id}/comment")
+    suspend fun apiSolutionIdCommentGet(@Path("id") id: java.util.UUID): Response<CommentDtoListApiResponse>
 
     /**
-     * POST solution/{id}/comment
-     * Прокомментировать решение
+     * POST api/solution/{id}/comment
+     * 
      * 
      * Responses:
-     *  - 200: Комментарий создан
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param createCommentRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param addCommentRequestDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @POST("solution/{id}/comment")
-    suspend fun solutionIdCommentPost(@Path("id") id: java.util.UUID, @Body createCommentRequest: CreateCommentRequest): Response<CourseCourseIdTaskPost200Response>
+    @POST("api/solution/{id}/comment")
+    suspend fun apiSolutionIdCommentPost(@Path("id") id: java.util.UUID, @Body addCommentRequestDto: AddCommentRequestDto? = null): Response<IdRequestDtoApiResponse>
 
 }

@@ -6,60 +6,69 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.ResponseWrapper
-import com.stuf.data.model.UpdateUserRequest
-import com.stuf.data.model.UserCoursesGet200Response
-import com.stuf.data.model.UsersGet200Response
+import com.stuf.data.model.ObjectApiResponse
+import com.stuf.data.model.UserDtoApiResponse
+import com.stuf.data.model.UserDtoListApiResponse
+import com.stuf.data.model.UserUpdateDto
 
 interface UserApi {
     /**
-     * GET user/courses
-     * Получить список курсов пользователя
+     * GET api/users
+     * 
      * 
      * Responses:
-     *  - 200: Список курсов пользователя
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @return [UserCoursesGet200Response]
+     * @return [UserDtoApiResponse]
      */
-    @GET("user/courses")
-    suspend fun userCoursesGet(): Response<UserCoursesGet200Response>
+    @GET("api/users")
+    suspend fun apiUsersGet(): Response<UserDtoApiResponse>
 
     /**
-     * GET users
-     * Получить данные о себе
+     * GET api/users/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Данные пользователя
-     *
-     * @return [UsersGet200Response]
-     */
-    @GET("users")
-    suspend fun usersGet(): Response<UsersGet200Response>
-
-    /**
-     * GET users/{id}
-     * Получить данные о пользователе
-     * 
-     * Responses:
-     *  - 200: Данные пользователя
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [UsersGet200Response]
+     * @return [UserDtoApiResponse]
      */
-    @GET("users/{id}")
-    suspend fun usersIdGet(@Path("id") id: java.util.UUID): Response<UsersGet200Response>
+    @GET("api/users/{id}")
+    suspend fun apiUsersIdGet(@Path("id") id: java.util.UUID): Response<UserDtoApiResponse>
 
     /**
-     * PUT users
-     * Обновить данные о себе
+     * PUT api/users
+     * 
      * 
      * Responses:
-     *  - 200: Данные успешно обновлены
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @param updateUserRequest 
-     * @return [ResponseWrapper]
+     * @param userUpdateDto  (optional)
+     * @return [ObjectApiResponse]
      */
-    @PUT("users")
-    suspend fun usersPut(@Body updateUserRequest: UpdateUserRequest): Response<ResponseWrapper>
+    @PUT("api/users")
+    suspend fun apiUsersPut(@Body userUpdateDto: UserUpdateDto? = null): Response<ObjectApiResponse>
+
+    /**
+     * GET api/users/search
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param query  (optional)
+     * @return [UserDtoListApiResponse]
+     */
+    @GET("api/users/search")
+    suspend fun apiUsersSearchGet(@Query("query") query: kotlin.String? = null): Response<UserDtoListApiResponse>
 
 }
