@@ -4,42 +4,40 @@ import com.stuf.data.infrastructure.CollectionFormats.*
 import retrofit2.http.*
 import retrofit2.Response
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.FilesUploadPost200Response
-import com.stuf.data.model.ResponseWrapper
+import com.stuf.data.model.IdRequestDtoApiResponse
 
 import okhttp3.MultipartBody
 
 interface FilesApi {
     /**
-     * GET files/{id}
-     * Получить файл
+     * GET api/files/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Файл
-     *  - 403: Ошибка доступа
-     *  - 404: Файл не найден
+     *  - 200: OK
      *
      * @param id 
-     * @return [ResponseBody]
+     * @return [Unit]
      */
-    @GET("files/{id}")
-    suspend fun filesIdGet(@Path("id") id: java.util.UUID): Response<ResponseBody>
+    @GET("api/files/{id}")
+    suspend fun apiFilesIdGet(@Path("id") id: java.util.UUID): Response<Unit>
 
     /**
-     * POST files/upload
-     * Загрузить файл
+     * POST api/files/upload
+     * 
      * 
      * Responses:
-     *  - 200: Файл успешно загружен
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @param file Файл для загрузки (optional)
-     * @return [FilesUploadPost200Response]
+     * @param file  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
     @Multipart
-    @POST("files/upload")
-    suspend fun filesUploadPost(@Part file: MultipartBody.Part? = null): Response<FilesUploadPost200Response>
+    @POST("api/files/upload")
+    suspend fun apiFilesUploadPost(@Part file: MultipartBody.Part? = null): Response<IdRequestDtoApiResponse>
 
 }

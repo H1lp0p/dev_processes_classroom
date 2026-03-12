@@ -59,8 +59,8 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api_v2.yaml")
-    // Базой для шаблона будет сам модуль, дальше генератор добавит src/main/kotlin
+    inputSpec.set("$projectDir/classroom_api.json")
+
     outputDir.set("$projectDir")
 
     packageName.set("com.stuf.data")
