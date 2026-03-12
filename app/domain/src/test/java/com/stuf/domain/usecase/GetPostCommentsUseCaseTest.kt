@@ -5,6 +5,7 @@ import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
 import com.stuf.domain.model.PostId
 import com.stuf.domain.repository.CommentRepository
+import com.stuf.domain.usecase.impl.GetPostCommentsUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

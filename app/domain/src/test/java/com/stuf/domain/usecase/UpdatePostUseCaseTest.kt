@@ -6,6 +6,7 @@ import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.PostKind
 import com.stuf.domain.repository.PostRepository
+import com.stuf.domain.usecase.impl.UpdatePostUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

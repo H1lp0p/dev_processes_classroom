@@ -5,10 +5,10 @@ import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.Post
 import com.stuf.domain.repository.PostRepository
+import com.stuf.domain.usecase.impl.GetCourseFeedUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.OffsetDateTime
 import java.util.UUID
 
 private class FakePostRepositoryForFeed : PostRepository {

@@ -7,6 +7,7 @@ import com.stuf.domain.model.Score
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.repository.SolutionRepository
+import com.stuf.domain.usecase.impl.ReviewSolutionUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

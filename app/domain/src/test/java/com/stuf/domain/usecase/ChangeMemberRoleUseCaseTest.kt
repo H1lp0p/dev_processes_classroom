@@ -5,6 +5,7 @@ import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CourseRepository
+import com.stuf.domain.usecase.impl.ChangeMemberRoleUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -4,6 +4,7 @@ import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.*
 import com.stuf.domain.repository.PerformanceRepository
+import com.stuf.domain.usecase.impl.GetPerformanceTableUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -5,10 +5,10 @@ import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Solution
 import com.stuf.domain.model.TaskId
 import com.stuf.domain.repository.SolutionRepository
+import com.stuf.domain.usecase.impl.GetUserSolutionUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.OffsetDateTime
 import java.util.UUID
 
 private class FakeGetUserSolutionRepository : SolutionRepository {

@@ -7,6 +7,8 @@ import com.stuf.domain.model.CommentAuthor
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.repository.CommentRepository
+import com.stuf.domain.usecase.impl.AddPostCommentUseCase
+import com.stuf.domain.usecase.impl.AddSolutionCommentUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

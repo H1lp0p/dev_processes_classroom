@@ -6,8 +6,8 @@ import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CourseRepository
+import com.stuf.domain.usecase.impl.GetCourseMembersUseCase
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.UUID
 
@@ -57,7 +57,7 @@ private class FakeCourseMembersRepository : CourseRepository {
 class GetCourseMembersUseCaseTest {
 
     @Test
-    fun `query with spaces is trimmed and empty string becomes null`() {
+    fun `query with spaces is trimmed`() {
         val repo = FakeCourseMembersRepository()
         val useCase : GetCourseMembers = GetCourseMembersUseCase(repo)
         val courseId = CourseId(UUID.randomUUID())

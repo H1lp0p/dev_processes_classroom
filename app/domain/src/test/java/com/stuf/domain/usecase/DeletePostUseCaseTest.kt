@@ -5,6 +5,7 @@ import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
 import com.stuf.domain.repository.PostRepository
+import com.stuf.domain.usecase.impl.DeletePostUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

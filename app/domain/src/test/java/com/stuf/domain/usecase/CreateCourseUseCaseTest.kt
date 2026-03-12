@@ -5,6 +5,7 @@ import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.repository.CourseRepository
+import com.stuf.domain.usecase.impl.CreateCourseUseCase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
