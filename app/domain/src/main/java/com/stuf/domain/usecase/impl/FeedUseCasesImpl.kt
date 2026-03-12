@@ -11,8 +11,9 @@ import com.stuf.domain.usecase.DeletePost
 import com.stuf.domain.usecase.GetCourseFeed
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.UpdatePost
+import javax.inject.Inject
 
-class GetCourseFeedUseCase(
+class GetCourseFeedUseCase @Inject constructor(
     private val repository: PostRepository,
 ) : GetCourseFeed {
 
@@ -31,7 +32,7 @@ class GetCourseFeedUseCase(
     }
 }
 
-class GetPostUseCase(
+class GetPostUseCase @Inject constructor(
     private val repository: PostRepository,
 ) : GetPost {
 
@@ -40,7 +41,7 @@ class GetPostUseCase(
     }
 }
 
-class CreatePostUseCase(
+class CreatePostUseCase @Inject constructor(
     private val repository: PostRepository,
 ) : CreatePost {
 
@@ -49,7 +50,7 @@ class CreatePostUseCase(
     }
 }
 
-class UpdatePostUseCase(
+class UpdatePostUseCase @Inject constructor(
     private val repository: PostRepository,
 ) : UpdatePost {
 
@@ -58,7 +59,7 @@ class UpdatePostUseCase(
     }
 }
 
-class DeletePostUseCase(
+class DeletePostUseCase @Inject constructor(
     private val repository: PostRepository,
 ) : DeletePost {
 

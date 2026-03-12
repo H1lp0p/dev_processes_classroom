@@ -14,8 +14,9 @@ import com.stuf.domain.usecase.GetCourseMembers
 import com.stuf.domain.usecase.JoinCourse
 import com.stuf.domain.usecase.LeaveCourse
 import com.stuf.domain.usecase.RemoveMember
+import javax.inject.Inject
 
-class CreateCourseUseCase(
+class CreateCourseUseCase @Inject constructor(
     private val repository: CourseRepository,
 ) : CreateCourse {
 
@@ -28,7 +29,7 @@ class CreateCourseUseCase(
     }
 }
 
-class JoinCourseUseCase(
+class JoinCourseUseCase @Inject constructor(
     private val repository: CourseRepository,
 ) : JoinCourse {
 
@@ -40,7 +41,7 @@ class JoinCourseUseCase(
     }
 }
 
-class GetCourseMembersUseCase(
+class GetCourseMembersUseCase @Inject constructor(
     private val repository: CourseRepository,
 ) : GetCourseMembers {
 
@@ -57,7 +58,7 @@ class GetCourseMembersUseCase(
     }
 }
 
-class ChangeMemberRoleUseCase(
+class ChangeMemberRoleUseCase @Inject constructor(
     private val repository: CourseRepository,
 ) : ChangeMemberRole {
 
@@ -70,7 +71,7 @@ class ChangeMemberRoleUseCase(
     }
 }
 
-class RemoveMemberUseCase(
+class RemoveMemberUseCase @Inject constructor(
     private val repository: CourseRepository,
 ) : RemoveMember {
 
@@ -79,7 +80,7 @@ class RemoveMemberUseCase(
     }
 }
 
-class LeaveCourseUseCase(
+class LeaveCourseUseCase @Inject constructor(
     private val repository: CourseRepository,
 ) : LeaveCourse {
 

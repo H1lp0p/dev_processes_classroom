@@ -6,8 +6,9 @@ import com.stuf.domain.model.GradeTable
 import com.stuf.domain.repository.PerformanceRepository
 import com.stuf.domain.usecase.GetPerformanceTable
 import com.stuf.domain.usecase.PerformanceFilters
+import javax.inject.Inject
 
-class GetPerformanceTableUseCase(
+class GetPerformanceTableUseCase @Inject constructor(
     private val repository: PerformanceRepository,
 ) : GetPerformanceTable {
 

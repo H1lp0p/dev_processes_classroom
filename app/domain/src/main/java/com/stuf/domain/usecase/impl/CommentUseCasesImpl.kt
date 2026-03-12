@@ -10,8 +10,9 @@ import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.AddSolutionComment
 import com.stuf.domain.usecase.GetPostComments
 import com.stuf.domain.usecase.GetSolutionComments
+import javax.inject.Inject
 
-class GetPostCommentsUseCase(
+class GetPostCommentsUseCase @Inject constructor(
     private val repository: CommentRepository,
 ) : GetPostComments {
 
@@ -20,7 +21,7 @@ class GetPostCommentsUseCase(
     }
 }
 
-class GetSolutionCommentsUseCase(
+class GetSolutionCommentsUseCase @Inject constructor(
     private val repository: CommentRepository,
 ) : GetSolutionComments {
 
@@ -29,7 +30,7 @@ class GetSolutionCommentsUseCase(
     }
 }
 
-class AddPostCommentUseCase(
+class AddPostCommentUseCase @Inject constructor(
     private val repository: CommentRepository,
 ) : AddPostComment {
 
@@ -42,7 +43,7 @@ class AddPostCommentUseCase(
     }
 }
 
-class AddSolutionCommentUseCase(
+class AddSolutionCommentUseCase @Inject constructor(
     private val repository: CommentRepository,
 ) : AddSolutionComment {
 

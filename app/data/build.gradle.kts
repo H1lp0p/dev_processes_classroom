@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.library)
     kotlin("android")
     id("org.openapi.generator")
+    alias(libs.plugins.hilt.android)
+    id("com.google.devtools.ksp") version "2.2.21-2.0.4"
 }
 
 android {
@@ -17,6 +19,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField("String", "API_BASE_URL", "\"http://localhost\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -44,12 +52,14 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.dagger)
+    implementation(libs.hilt.android)
     implementation(libs.retrofit)
     implementation(libs.retrofit.moshi.converter)
     implementation(libs.retrofit.scalars.converter)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.moshi)
+    ksp(libs.hilt.android.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
