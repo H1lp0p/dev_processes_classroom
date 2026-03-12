@@ -1,4 +1,3 @@
 package com.stuf.domain
 
-class MyClass {
-}
+// В этом модуле будут только доменные модели, интерфейсы репозиториев и use case-ы.
