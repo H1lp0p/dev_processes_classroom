@@ -1,6 +1,8 @@
 package com.stuf.data.repository
 
 import com.stuf.data.api.AuthApi
+import com.stuf.data.auth.AuthSessionStorage
+import com.stuf.data.auth.AuthTokenManager
 import com.stuf.data.model.ApiResponseType
 import com.stuf.data.model.ObjectApiResponse
 import com.stuf.data.model.UserLoginDto
@@ -55,6 +57,33 @@ private class FakeAuthApi : AuthApi {
     }
 }
 
+private class FakeAuthSessionStorage : AuthSessionStorage {
+    var lastSavedSession: AuthSession? = null
+    var cleared: Boolean = false
+
+    override val sessionFlow = kotlinx.coroutines.flow.flow<AuthSession?> {
+        emit(lastSavedSession)
+    }
+
+    override suspend fun saveSession(session: AuthSession) {
+        lastSavedSession = session
+        cleared = false
+    }
+
+    override suspend fun clearSession() {
+        lastSavedSession = null
+        cleared = true
+    }
+}
+
+private class FakeAuthTokenManager : AuthTokenManager(com.stuf.data.auth.BearerTokenApplier { }) {
+    var lastAppliedSession: AuthSession? = null
+
+    override fun applySession(session: AuthSession?) {
+        lastAppliedSession = session
+    }
+}
+
 class AuthRepositoryImplTest {
 
     @Test
@@ -71,7 +100,9 @@ class AuthRepositoryImplTest {
             )
         }
 
-        val repository : AuthRepository = AuthRepositoryImpl(api)
+        val storage = FakeAuthSessionStorage()
+        val tokenManager = FakeAuthTokenManager()
+        val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
         val result = runBlocking {
             repository.login(email = "user@example.com", password = "password123")
@@ -85,6 +116,10 @@ class AuthRepositoryImplTest {
         // проверяем, что DTO для логина собран корректно
         assertEquals("user@example.com", api.lastLoginDto?.email)
         assertEquals("password123", api.lastLoginDto?.password)
+
+        // проверяем, что сессия сохранена и применена
+        assertEquals(session, storage.lastSavedSession)
+        assertEquals(session, tokenManager.lastAppliedSession)
     }
 
     @Test
@@ -98,7 +133,9 @@ class AuthRepositoryImplTest {
                 ),
             )
         }
-        val repository : AuthRepository = AuthRepositoryImpl(api)
+        val storage = FakeAuthSessionStorage()
+        val tokenManager = FakeAuthTokenManager()
+        val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
         val result = runBlocking {
             repository.login(email = "user@example.com", password = "wrong")
@@ -116,7 +153,9 @@ class AuthRepositoryImplTest {
             val body = ResponseBody.create("application/json".toMediaType(), "{}")
             loginResponse = Response.error(401, body)
         }
-        val repository : AuthRepository = AuthRepositoryImpl(api)
+        val storage = FakeAuthSessionStorage()
+        val tokenManager = FakeAuthTokenManager()
+        val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
         val result = runBlocking {
             repository.login(email = "user@example.com", password = "wrong")
@@ -131,7 +170,9 @@ class AuthRepositoryImplTest {
         val api = FakeAuthApi().apply {
             throwOnLogin = IOException("network down")
         }
-        val repository : AuthRepository = AuthRepositoryImpl(api)
+        val storage = FakeAuthSessionStorage()
+        val tokenManager = FakeAuthTokenManager()
+        val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
         val result = runBlocking {
             repository.login(email = "user@example.com", password = "password123")
@@ -155,7 +196,9 @@ class AuthRepositoryImplTest {
                 ),
             )
         }
-        val repository : AuthRepository = AuthRepositoryImpl(api)
+        val storage = FakeAuthSessionStorage()
+        val tokenManager = FakeAuthTokenManager()
+        val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
         val result = runBlocking {
             repository.register(credentials = "User Name", email = "user@example.com", password = "password123")
@@ -169,6 +212,10 @@ class AuthRepositoryImplTest {
         assertEquals("user@example.com", api.lastRegisterDto?.email)
         assertEquals("password123", api.lastRegisterDto?.password)
         assertEquals("User Name", api.lastRegisterDto?.credentials)
+
+        // проверяем, что сессия сохранена и применена
+        assertEquals(session, storage.lastSavedSession)
+        assertEquals(session, tokenManager.lastAppliedSession)
     }
 
     @Test
@@ -184,7 +231,9 @@ class AuthRepositoryImplTest {
                 ),
             )
         }
-        val repository : AuthRepository = AuthRepositoryImpl(api)
+        val storage = FakeAuthSessionStorage()
+        val tokenManager = FakeAuthTokenManager()
+        val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
         val result = runBlocking {
             repository.refresh()
@@ -194,6 +243,10 @@ class AuthRepositoryImplTest {
         val session = (result as DomainResult.Success<AuthSession>).value
         assertEquals("new-access-token", session.accessToken)
         assertEquals("new-refresh-token", session.refreshToken)
+
+        // при успешном refresh новая сессия также сохраняется и применяется
+        assertEquals(session, storage.lastSavedSession)
+        assertEquals(session, tokenManager.lastAppliedSession)
     }
 }
 
