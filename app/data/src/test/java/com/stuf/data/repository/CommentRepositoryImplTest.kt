@@ -12,7 +12,6 @@ import com.stuf.data.model.IdRequestDtoApiResponse
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
-import com.stuf.domain.model.CommentAuthor
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.UserId
@@ -24,7 +23,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Response
-import java.time.OffsetDateTime
 import java.util.UUID
 
 private class FakeCommentApi : CommentApi {
@@ -127,7 +125,7 @@ class CommentRepositoryImplTest {
         val comments = (result as DomainResult.Success<List<Comment>>).value
         assertEquals(1, comments.size)
         val comment = comments.first()
-        assertEquals(commentId, comment.id)
+        assertEquals(commentId.toString(), comment.id)
         assertEquals("Nice post", comment.text)
         assertEquals(UserId(UUID.fromString("00000000-0000-0000-0000-000000000010")), comment.author.id)
         assertEquals("User Name", comment.author.credentials)
@@ -169,7 +167,7 @@ class CommentRepositoryImplTest {
         val comments = (result as DomainResult.Success<List<Comment>>).value
         assertEquals(1, comments.size)
         val comment = comments.first()
-        assertEquals(commentId, comment.id)
+        assertEquals(commentId.toString(), comment.id)
         assertEquals("Looks good", comment.text)
         assertEquals(UserId(UUID.fromString("00000000-0000-0000-0000-000000000020")), comment.author.id)
         assertEquals("Teacher", comment.author.credentials)

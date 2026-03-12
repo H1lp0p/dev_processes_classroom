@@ -13,7 +13,6 @@ import com.stuf.data.model.StudentSolutionDetailsDtoApiResponse
 import com.stuf.data.model.SubmitSolutionRequestDto
 import com.stuf.data.model.UpdateSolutionRequestDto
 import com.stuf.data.model.ApiResponseType
-import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.FileInfo
 import com.stuf.domain.model.Review
@@ -115,11 +114,16 @@ class SolutionRepositoryImplTest {
         }
         val repository: SolutionRepository = SolutionRepositoryImpl(api)
 
+        val fileIds = listOf<UUID>(
+            UUID.randomUUID(),
+            UUID.randomUUID(),
+        )
+
         val result = runBlocking {
             repository.submitSolution(
                 taskId = TaskId(taskId),
                 text = "My solution",
-                fileIds = listOf("file-1", "file-2"),
+                fileIds = fileIds.map { it.toString() },
             )
         }
 
@@ -130,7 +134,7 @@ class SolutionRepositoryImplTest {
 
         assertEquals(taskId, api.lastSubmitTaskId)
         assertEquals("My solution", api.lastSubmitRequest?.text)
-        assertEquals(listOf("file-1", "file-2"), api.lastSubmitRequest?.files)
+        assertEquals(fileIds, api.lastSubmitRequest?.files)
     }
 
     @Test
