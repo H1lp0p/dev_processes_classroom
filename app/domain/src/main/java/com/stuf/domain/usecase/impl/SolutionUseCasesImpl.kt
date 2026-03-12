@@ -15,8 +15,9 @@ import com.stuf.domain.usecase.GetUserSolution
 import com.stuf.domain.usecase.ReviewSolution
 import com.stuf.domain.usecase.SubmitSolution
 import com.stuf.domain.usecase.UpdateSolution
+import javax.inject.Inject
 
-class SubmitSolutionUseCase(
+class SubmitSolutionUseCase @Inject constructor(
     private val repository: SolutionRepository,
 ) : SubmitSolution {
 
@@ -40,7 +41,7 @@ class SubmitSolutionUseCase(
     }
 }
 
-class UpdateSolutionUseCase(
+class UpdateSolutionUseCase @Inject constructor(
     private val repository: SolutionRepository,
 ) : UpdateSolution {
 
@@ -64,7 +65,7 @@ class UpdateSolutionUseCase(
     }
 }
 
-class CancelSolutionUseCase(
+class CancelSolutionUseCase @Inject constructor(
     private val repository: SolutionRepository,
 ) : CancelSolution {
 
@@ -73,7 +74,7 @@ class CancelSolutionUseCase(
     }
 }
 
-class GetSolutionsForTaskUseCase(
+class GetSolutionsForTaskUseCase @Inject constructor(
     private val repository: SolutionRepository,
 ) : GetSolutionsForTask {
 
@@ -86,7 +87,7 @@ class GetSolutionsForTaskUseCase(
     }
 }
 
-class ReviewSolutionUseCase(
+class ReviewSolutionUseCase @Inject constructor(
     private val repository: SolutionRepository,
 ) : ReviewSolution {
 
@@ -98,7 +99,7 @@ class ReviewSolutionUseCase(
     }
 }
 
-class GetUserSolutionUseCase(
+class GetUserSolutionUseCase @Inject constructor(
     private val repository: SolutionRepository,
 ) : GetUserSolution {
 
