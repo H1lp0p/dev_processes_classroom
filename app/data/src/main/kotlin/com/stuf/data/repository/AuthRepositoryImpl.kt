@@ -1,6 +1,8 @@
 package com.stuf.data.repository
 
 import com.stuf.data.api.AuthApi
+import com.stuf.data.auth.AuthSessionStorage
+import com.stuf.data.auth.AuthTokenManager
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
 import com.stuf.data.model.ObjectApiResponse
@@ -10,10 +12,15 @@ import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.repository.AuthRepository
 import com.stuf.domain.repository.AuthSession
+import kotlinx.coroutines.flow.first
 import java.io.IOException
+import javax.inject.Inject
+import android.util.Log
 
-class AuthRepositoryImpl(
+class AuthRepositoryImpl @Inject constructor(
     private val api: AuthApi,
+    private val authSessionStorage: AuthSessionStorage,
+    private val authTokenManager: AuthTokenManager,
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): DomainResult<AuthSession> {
@@ -40,8 +47,9 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun refresh(): DomainResult<AuthSession> {
-        // токен пока не пробрасываем явно, см. контракт тестов
-        return callAuthEndpoint { api.apiAuthRefreshPost(token = null) }
+        val storedSession = authSessionStorage.sessionFlow.first()
+            ?: return DomainResult.Failure(DomainError.Unauthorized)
+        return callAuthEndpoint { api.apiAuthRefreshPost(token = storedSession.refreshToken) }
     }
 
     private suspend fun callAuthEndpoint(
@@ -50,12 +58,20 @@ class AuthRepositoryImpl(
         val response = try {
             block()
         } catch (e: IOException) {
+            Log.e("AuthRepository", "Network error on auth request", e)
             return DomainResult.Failure(DomainError.Network(e))
         } catch (e: Exception) {
+            Log.e("AuthRepository", "Unexpected error on auth request", e)
             return DomainResult.Failure(DomainError.Unknown(e))
         }
 
         if (!response.isSuccessful) {
+            val errorBody = try {
+                response.errorBody()?.string() ?: "(no body)"
+            } catch (e: IOException) {
+                "(failed to read body: ${e.message})"
+            }
+            Log.e("AuthRepository", "Auth request failed: code=${response.code()}, body=$errorBody")
             return DomainResult.Failure(httpCodeToDomainError(response.code()))
         }
 
@@ -70,6 +86,10 @@ class AuthRepositoryImpl(
 
         val session = mapToAuthSession(body)
             ?: return DomainResult.Failure(DomainError.Unknown())
+
+        // успешная аутентификация: сохраняем и применяем токен
+        authSessionStorage.saveSession(session)
+        authTokenManager.applySession(session)
 
         return DomainResult.Success(session)
     }

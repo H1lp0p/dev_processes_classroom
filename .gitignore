@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# DataStore test artifacts (могут создаваться при запуске тестов)
+*.preferences_pb

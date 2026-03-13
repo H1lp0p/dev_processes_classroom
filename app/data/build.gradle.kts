@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "API_BASE_URL", "\"http://localhost\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://37.21.130.4:5000\"")
     }
 
     buildFeatures {
@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.moshi)
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
     ksp(libs.hilt.android.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -105,3 +106,11 @@ tasks.named("preBuild") {
 tasks.named<org.openapitools.generator.gradle.plugin.tasks.GenerateTask>("openApiGenerate") {
     validateSpec.set(false)
 }
+
+// Удаление артефактов DataStore (*.preferences_pb), оставшихся после тестов
+tasks.register("cleanDataStore") {
+    doLast {
+        fileTree(projectDir).matching { include("*.preferences_pb") }.files.forEach { it.delete() }
+    }
+}
+tasks.named("clean") { dependsOn("cleanDataStore") }
