@@ -5,7 +5,12 @@ import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
+import com.stuf.domain.model.UserCourse
 import com.stuf.domain.model.UserId
+
+interface GetUserCourses {
+    suspend operator fun invoke(): DomainResult<List<UserCourse>>
+}
 
 interface CreateCourse {
     suspend operator fun invoke(title: String): DomainResult<Course>

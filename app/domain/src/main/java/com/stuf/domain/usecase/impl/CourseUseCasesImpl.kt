@@ -6,15 +6,26 @@ import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
+import com.stuf.domain.model.UserCourse
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CourseRepository
 import com.stuf.domain.usecase.ChangeMemberRole
 import com.stuf.domain.usecase.CreateCourse
 import com.stuf.domain.usecase.GetCourseMembers
+import com.stuf.domain.usecase.GetUserCourses
 import com.stuf.domain.usecase.JoinCourse
 import com.stuf.domain.usecase.LeaveCourse
 import com.stuf.domain.usecase.RemoveMember
 import javax.inject.Inject
+
+class GetUserCoursesUseCase @Inject constructor(
+    private val repository: CourseRepository,
+) : GetUserCourses {
+
+    override suspend fun invoke(): DomainResult<List<UserCourse>> {
+        error("Not implemented")
+    }
+}
 
 class CreateCourseUseCase @Inject constructor(
     private val repository: CourseRepository,

@@ -11,6 +11,12 @@ enum class CourseRole {
     STUDENT,
 }
 
+data class UserCourse(
+    val id: CourseId,
+    val title: String,
+    val role: CourseRole,
+)
+
 data class CourseMember(
     val id: UserId,
     val credentials: String,

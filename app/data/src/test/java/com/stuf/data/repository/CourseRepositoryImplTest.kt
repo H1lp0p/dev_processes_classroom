@@ -27,6 +27,7 @@ import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
+import com.stuf.domain.model.UserCourse
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CourseRepository
 import kotlinx.coroutines.runBlocking
@@ -162,11 +163,15 @@ class CourseRepositoryImplTest {
             repository.getUserCourses()
         }
 
-        assertTrue(result is DomainResult.Success<List<Course>>)
-        val courses = (result as DomainResult.Success<List<Course>>).value
+        assertTrue(result is DomainResult.Success<List<UserCourse>>)
+        val courses = (result as DomainResult.Success<List<UserCourse>>).value
         assertEquals(2, courses.size)
+        assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000001"), courses[0].id.value)
         assertEquals("Course 1", courses[0].title)
+        assertEquals(CourseRole.TEACHER, courses[0].role)
+        assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000002"), courses[1].id.value)
         assertEquals("Course 2", courses[1].title)
+        assertEquals(CourseRole.STUDENT, courses[1].role)
     }
 
     @Test

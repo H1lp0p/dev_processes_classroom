@@ -16,7 +16,7 @@ data class AuthSession(
 )
 
 interface CourseRepository {
-    suspend fun getUserCourses(): DomainResult<List<Course>>
+    suspend fun getUserCourses(): DomainResult<List<UserCourse>>
     suspend fun createCourse(title: String): DomainResult<Course>
     suspend fun joinCourse(inviteCode: String): DomainResult<Course>
     suspend fun getCourseInfo(courseId: CourseId): DomainResult<Course>
