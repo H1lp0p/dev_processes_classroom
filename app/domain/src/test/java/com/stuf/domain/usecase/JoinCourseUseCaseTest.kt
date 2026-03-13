@@ -28,6 +28,7 @@ private class FakeJoinCourseRepository : CourseRepository {
                 id = CourseId(UUID.randomUUID()),
                 title = "Joined",
                 inviteCode = inviteCode,
+                authorId = null,
             ),
         )
     }

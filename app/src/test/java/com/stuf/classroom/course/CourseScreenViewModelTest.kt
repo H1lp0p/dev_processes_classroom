@@ -168,10 +168,12 @@ class CourseScreenViewModelTest {
 
     @Test
     fun `initial load success fills course posts and members`() = runTest(testDispatcher) {
+        val authorId = UserId(UUID.fromString("00000000-0000-0000-0000-000000000150"))
         val course = Course(
             id = courseId,
             title = "Course Title",
             inviteCode = "INV123",
+            authorId = authorId,
         )
         fakeGetCourseInfo.result = DomainResult.Success(course)
 
@@ -206,6 +208,7 @@ class CourseScreenViewModelTest {
 
         assertEquals("Course Title", state.courseTitle)
         assertEquals("INV123", state.inviteCode)
+        assertEquals(authorId, state.courseAuthorId)
         assertEquals(1, state.posts.size)
         assertEquals(postId, state.posts[0].id)
 

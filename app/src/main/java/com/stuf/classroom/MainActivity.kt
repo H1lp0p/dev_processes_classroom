@@ -129,11 +129,15 @@ class MainActivity : ComponentActivity() {
                             onNewCourse = { navController.navigate("createCourse") },
                             onJoinCourse = { navController.navigate("joinCourse") },
                             onCourseClick = { course: UserCourse ->
-                                navController.navigate("course/${course.id.value}")
+                                val roleSegment = when (course.role) {
+                                    com.stuf.domain.model.CourseRole.TEACHER -> "teacher"
+                                    com.stuf.domain.model.CourseRole.STUDENT -> "student"
+                                }
+                                navController.navigate("course/${course.id.value}/$roleSegment")
                             },
                         )
                     }
-                    composable("course/{courseId}") {
+                    composable("course/{courseId}/{role}") {
                         CourseRoute(
                             onPostClick = { postId ->
                                 // Навигация к деталям поста будет добавлена позже

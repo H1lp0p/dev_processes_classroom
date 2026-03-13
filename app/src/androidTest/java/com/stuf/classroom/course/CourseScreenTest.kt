@@ -87,6 +87,7 @@ class CourseScreenTest {
                     onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
+                    onBackClick = {},
                     onLeaveCourseClick = {},
                 )
             }
@@ -135,6 +136,7 @@ class CourseScreenTest {
                     onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
+                    onBackClick = {},
                     onLeaveCourseClick = {},
                 )
             }
@@ -190,6 +192,7 @@ class CourseScreenTest {
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onLeaveCourseClick = {},
+                    onBackClick = {},
                 )
             }
         }
@@ -251,6 +254,7 @@ class CourseScreenTest {
                     onCreatePostClick = { createPostClicked = true },
                     onMemberRoleToggleClick = { lastMemberRoleToggled = it },
                     onMemberRemoveClick = { lastMemberRemoved = it },
+                    onBackClick = {},
                     onLeaveCourseClick = { leaveClicked = true },
                 )
             }
@@ -317,6 +321,7 @@ class CourseScreenTest {
                     onCreatePostClick = {},
                     onMemberRoleToggleClick = { lastMemberRoleToggled = it },
                     onMemberRemoveClick = { lastMemberRemoved = it },
+                    onBackClick = {},
                     onLeaveCourseClick = { leaveClicked = true },
                 )
             }
@@ -363,6 +368,7 @@ class CourseScreenTest {
                     onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
+                    onBackClick = {},
                     onLeaveCourseClick = {},
                 )
             }

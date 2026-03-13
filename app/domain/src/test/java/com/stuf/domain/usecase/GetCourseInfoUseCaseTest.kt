@@ -19,6 +19,7 @@ private class FakeGetCourseInfoRepository : CourseRepository {
         id = CourseId(UUID.randomUUID()),
         title = "Sample Course",
         inviteCode = "INV123",
+        authorId = null,
     )
 
     override suspend fun getUserCourses(): DomainResult<List<com.stuf.domain.model.UserCourse>> {

@@ -24,6 +24,7 @@ private class FakeCourseRepository : CourseRepository {
                 id = CourseId(UUID.randomUUID()),
                 title = title,
                 inviteCode = null,
+                authorId = null,
             ),
         )
     }
