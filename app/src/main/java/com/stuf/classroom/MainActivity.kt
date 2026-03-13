@@ -29,6 +29,10 @@ import com.stuf.classroom.course.CourseRoute
 import com.stuf.classroom.post.PostRoute
 import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
+import com.stuf.classroom.courses.CreateCourseRoute
+import com.stuf.classroom.courses.JoinCourseRoute
+import com.stuf.domain.model.CourseId
+import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.UserCourse
 import com.stuf.classroom.ui.theme.ClassroomTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -162,26 +166,42 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("createCourse") {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            Text("Новый курс (заглушка)")
-                            Button(onClick = { navController.popBackStack() }) {
-                                Text("Назад")
-                            }
-                        }
+                        CreateCourseRoute(
+                            onBack = {
+                                navController.popBackStack()
+                            },
+                            onNavigateToCourse = { courseId: CourseId, role: CourseRole ->
+                                val roleSegment = when (role) {
+                                    CourseRole.TEACHER -> "teacher"
+                                    CourseRole.STUDENT -> "student"
+                                }
+                                navController.navigate("course/${courseId.value}/$roleSegment") {
+                                    // Убираем экран создания из back stack, чтобы back вёл на home.
+                                    popUpTo("home") {
+                                        inclusive = false
+                                    }
+                                }
+                            },
+                        )
                     }
                     composable("joinCourse") {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            Text("Присоединиться (заглушка)")
-                            Button(onClick = { navController.popBackStack() }) {
-                                Text("Назад")
-                            }
-                        }
+                        JoinCourseRoute(
+                            onBack = {
+                                navController.popBackStack()
+                            },
+                            onNavigateToCourse = { courseId: CourseId, role: CourseRole ->
+                                val roleSegment = when (role) {
+                                    CourseRole.TEACHER -> "teacher"
+                                    CourseRole.STUDENT -> "student"
+                                }
+                                navController.navigate("course/${courseId.value}/$roleSegment") {
+                                    // Убираем экран присоединения из back stack, чтобы back вёл на home.
+                                    popUpTo("home") {
+                                        inclusive = false
+                                    }
+                                }
+                            },
+                        )
                     }
                 }
             }
