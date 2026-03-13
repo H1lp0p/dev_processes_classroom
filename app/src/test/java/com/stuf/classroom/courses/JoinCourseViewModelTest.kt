@@ -6,12 +6,8 @@ import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.usecase.JoinCourse
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,7 +25,6 @@ import java.util.UUID
  *
  * Реализация JoinCourseViewModel должна удовлетворять этим тестам.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class JoinCourseViewModelTest {
 
     private class FakeJoinCourse : JoinCourse {
@@ -53,7 +48,6 @@ class JoinCourseViewModelTest {
     }
 
     private lateinit var fakeJoinCourse: FakeJoinCourse
-    private val testDispatcher: StandardTestDispatcher = StandardTestDispatcher()
 
     // Реализация JoinCourseViewModel должна иметь такой конструктор:
     // JoinCourseViewModel(
@@ -64,21 +58,15 @@ class JoinCourseViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         fakeJoinCourse = FakeJoinCourse()
         joinCourseViewModel = JoinCourseViewModel(
             joinCourse = fakeJoinCourse,
-            dispatcher = testDispatcher,
+            dispatcher = Dispatchers.Unconfined,
         )
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
-    fun `initial state is empty and not loading`() = runTest(testDispatcher) {
+    fun `initial state is empty and not loading`() = runTest {
         val state: JoinCourseUiState = joinCourseViewModel.uiState.value
 
         assertEquals("", state.inviteCode)
@@ -89,7 +77,7 @@ class JoinCourseViewModelTest {
     }
 
     @Test
-    fun `invite code is updated on input`() = runTest(testDispatcher) {
+    fun `invite code is updated on input`() = runTest {
         joinCourseViewModel.onInviteCodeChanged("ABC123")
 
         val state: JoinCourseUiState = joinCourseViewModel.uiState.value
@@ -97,11 +85,11 @@ class JoinCourseViewModelTest {
     }
 
     @Test
-    fun `join with empty invite code shows validation error and does not call use case`() = runTest(testDispatcher) {
+    fun `join with empty invite code shows validation error and does not call use case`() = runTest {
         joinCourseViewModel.onInviteCodeChanged("")
 
         joinCourseViewModel.onJoinClick()
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         val state: JoinCourseUiState = joinCourseViewModel.uiState.value
         assertTrue(!state.inviteCodeError.isNullOrEmpty())
@@ -110,7 +98,7 @@ class JoinCourseViewModelTest {
     }
 
     @Test
-    fun `successful join calls use case, clears errors, sets isJoined and toggles loading`() = runTest(testDispatcher) {
+    fun `successful join calls use case, clears errors, sets isJoined and toggles loading`() = runTest {
         val expectedCode: String = "INVITE123"
         fakeJoinCourse.result =
             DomainResult.Success(
@@ -125,7 +113,7 @@ class JoinCourseViewModelTest {
         joinCourseViewModel.onInviteCodeChanged("  $expectedCode  ")
         joinCourseViewModel.onJoinClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         val state: JoinCourseUiState = joinCourseViewModel.uiState.value
         assertEquals(1, fakeJoinCourse.invokeCount)
@@ -137,13 +125,13 @@ class JoinCourseViewModelTest {
     }
 
     @Test
-    fun `failed join shows general error and does not mark as joined`() = runTest(testDispatcher) {
+    fun `failed join shows general error and does not mark as joined`() = runTest {
         fakeJoinCourse.result = DomainResult.Failure(DomainError.Unknown())
 
         joinCourseViewModel.onInviteCodeChanged("CODE")
         joinCourseViewModel.onJoinClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         val state: JoinCourseUiState = joinCourseViewModel.uiState.value
         assertEquals(1, fakeJoinCourse.invokeCount)

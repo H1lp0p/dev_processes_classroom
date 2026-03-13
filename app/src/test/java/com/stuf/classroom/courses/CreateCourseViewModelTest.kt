@@ -6,12 +6,8 @@ import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.usecase.CreateCourse
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,7 +25,6 @@ import java.util.UUID
  *
  * Реализация CreateCourseViewModel должна удовлетворять этим тестам.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class CreateCourseViewModelTest {
 
     private class FakeCreateCourse : CreateCourse {
@@ -53,7 +48,6 @@ class CreateCourseViewModelTest {
     }
 
     private lateinit var fakeCreateCourse: FakeCreateCourse
-    private val testDispatcher: StandardTestDispatcher = StandardTestDispatcher()
 
     // Реализация CreateCourseViewModel должна иметь такой конструктор:
     // CreateCourseViewModel(
@@ -64,21 +58,15 @@ class CreateCourseViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         fakeCreateCourse = FakeCreateCourse()
         createCourseViewModel = CreateCourseViewModel(
             createCourse = fakeCreateCourse,
-            dispatcher = testDispatcher,
+            dispatcher = Dispatchers.Unconfined,
         )
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
     @Test
-    fun `initial state is empty and not loading`() = runTest(testDispatcher) {
+    fun `initial state is empty and not loading`() = runTest {
         val state: CreateCourseUiState = createCourseViewModel.uiState.value
 
         assertEquals("", state.title)
@@ -89,7 +77,7 @@ class CreateCourseViewModelTest {
     }
 
     @Test
-    fun `title is updated on input`() = runTest(testDispatcher) {
+    fun `title is updated on input`() = runTest {
         createCourseViewModel.onTitleChanged("Kotlin course")
 
         val state: CreateCourseUiState = createCourseViewModel.uiState.value
@@ -97,11 +85,11 @@ class CreateCourseViewModelTest {
     }
 
     @Test
-    fun `create with empty title shows validation error and does not call use case`() = runTest(testDispatcher) {
+    fun `create with empty title shows validation error and does not call use case`() = runTest {
         createCourseViewModel.onTitleChanged("")
 
         createCourseViewModel.onCreateClick()
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         val state: CreateCourseUiState = createCourseViewModel.uiState.value
         assertTrue(!state.titleError.isNullOrEmpty())
@@ -110,7 +98,7 @@ class CreateCourseViewModelTest {
     }
 
     @Test
-    fun `successful create calls use case, clears errors, sets isCreated and toggles loading`() = runTest(testDispatcher) {
+    fun `successful create calls use case, clears errors, sets isCreated and toggles loading`() = runTest {
         val expectedTitle: String = "Kotlin course"
         fakeCreateCourse.result =
             DomainResult.Success(
@@ -125,7 +113,7 @@ class CreateCourseViewModelTest {
         createCourseViewModel.onTitleChanged("  $expectedTitle  ")
         createCourseViewModel.onCreateClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         val state: CreateCourseUiState = createCourseViewModel.uiState.value
         assertEquals(1, fakeCreateCourse.invokeCount)
@@ -137,13 +125,13 @@ class CreateCourseViewModelTest {
     }
 
     @Test
-    fun `failed create shows general error and does not mark as created`() = runTest(testDispatcher) {
+    fun `failed create shows general error and does not mark as created`() = runTest {
         fakeCreateCourse.result = DomainResult.Failure(DomainError.Unknown())
 
         createCourseViewModel.onTitleChanged("Some title")
         createCourseViewModel.onCreateClick()
 
-        testDispatcher.scheduler.advanceUntilIdle()
+        advanceUntilIdle()
 
         val state: CreateCourseUiState = createCourseViewModel.uiState.value
         assertEquals(1, fakeCreateCourse.invokeCount)
