@@ -23,7 +23,7 @@ class GetUserCoursesUseCase @Inject constructor(
 ) : GetUserCourses {
 
     override suspend fun invoke(): DomainResult<List<UserCourse>> {
-        error("Not implemented")
+        return repository.getUserCourses()
     }
 }
 

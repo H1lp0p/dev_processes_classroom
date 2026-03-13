@@ -29,7 +29,10 @@ object NetworkModule {
     @Singleton
     fun provideApiClient(
         baseUrl: String,
-    ): ApiClient = ApiClient(baseUrl = baseUrl)
+    ): ApiClient = ApiClient(
+        baseUrl = baseUrl,
+        authNames = arrayOf("bearerAuth"),
+    )
 
     @Provides
     @Singleton

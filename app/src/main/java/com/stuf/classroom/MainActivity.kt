@@ -4,21 +4,30 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.stuf.classroom.auth.AuthManager
 import com.stuf.classroom.auth.AuthState
-import com.stuf.classroom.auth.HomeDebugScreen
 import com.stuf.classroom.auth.LoadingScreen
 import com.stuf.classroom.auth.LoginRoute
 import com.stuf.classroom.auth.LoginViewModel
 import com.stuf.classroom.auth.RegisterRoute
 import com.stuf.classroom.auth.RegisterViewModel
+import com.stuf.classroom.courses.UserCoursesRoute
+import com.stuf.classroom.courses.UserCoursesViewModel
+import com.stuf.domain.model.UserCourse
 import com.stuf.classroom.ui.theme.ClassroomTheme
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -105,8 +114,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("home") {
-                        HomeDebugScreen(
-                            state = authState,
+                        val viewModel: UserCoursesViewModel = hiltViewModel()
+                        UserCoursesRoute(
+                            viewModel = viewModel,
                             onLogout = {
                                 scope.launch {
                                     authManager.logout()
@@ -115,7 +125,45 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             },
+                            onNewCourse = { navController.navigate("createCourse") },
+                            onJoinCourse = { navController.navigate("joinCourse") },
+                            onCourseClick = { course: UserCourse ->
+                                navController.navigate("course/${course.id.value}")
+                            },
                         )
+                    }
+                    composable("course/{courseId}") {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Text("Курс (заглушка)")
+                            Button(onClick = { navController.popBackStack() }) {
+                                Text("Назад")
+                            }
+                        }
+                    }
+                    composable("createCourse") {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Text("Новый курс (заглушка)")
+                            Button(onClick = { navController.popBackStack() }) {
+                                Text("Назад")
+                            }
+                        }
+                    }
+                    composable("joinCourse") {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Text("Присоединиться (заглушка)")
+                            Button(onClick = { navController.popBackStack() }) {
+                                Text("Назад")
+                            }
+                        }
                     }
                 }
             }

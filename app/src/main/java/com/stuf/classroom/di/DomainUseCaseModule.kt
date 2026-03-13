@@ -9,6 +9,7 @@ import com.stuf.domain.usecase.CreatePost
 import com.stuf.domain.usecase.DeletePost
 import com.stuf.domain.usecase.GetCourseFeed
 import com.stuf.domain.usecase.GetCourseMembers
+import com.stuf.domain.usecase.GetUserCourses
 import com.stuf.domain.usecase.GetPerformanceTable
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
@@ -31,6 +32,7 @@ import com.stuf.domain.usecase.impl.CreatePostUseCase
 import com.stuf.domain.usecase.impl.DeletePostUseCase
 import com.stuf.domain.usecase.impl.GetCourseFeedUseCase
 import com.stuf.domain.usecase.impl.GetCourseMembersUseCase
+import com.stuf.domain.usecase.impl.GetUserCoursesUseCase
 import com.stuf.domain.usecase.impl.GetPerformanceTableUseCase
 import com.stuf.domain.usecase.impl.GetPostCommentsUseCase
 import com.stuf.domain.usecase.impl.GetPostUseCase
@@ -89,6 +91,12 @@ abstract class DomainUseCaseModule {
     abstract fun bindLeaveCourseUseCase(
         impl: LeaveCourseUseCase,
     ): LeaveCourse
+
+    @Binds
+    @Singleton
+    abstract fun bindGetUserCoursesUseCase(
+        impl: GetUserCoursesUseCase,
+    ): GetUserCourses
 
     @Binds
     @Singleton
