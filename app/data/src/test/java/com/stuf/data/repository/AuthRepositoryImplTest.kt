@@ -231,7 +231,12 @@ class AuthRepositoryImplTest {
                 ),
             )
         }
-        val storage = FakeAuthSessionStorage()
+        val storage = FakeAuthSessionStorage().apply {
+            lastSavedSession = AuthSession(
+                accessToken = "old-access-token",
+                refreshToken = "old-refresh-token",
+            )
+        }
         val tokenManager = FakeAuthTokenManager()
         val repository : AuthRepository = AuthRepositoryImpl(api, storage, tokenManager)
 
@@ -243,6 +248,8 @@ class AuthRepositoryImplTest {
         val session = (result as DomainResult.Success<AuthSession>).value
         assertEquals("new-access-token", session.accessToken)
         assertEquals("new-refresh-token", session.refreshToken)
+
+        assertEquals("old-refresh-token", api.lastRefreshToken)
 
         // при успешном refresh новая сессия также сохраняется и применяется
         assertEquals(session, storage.lastSavedSession)

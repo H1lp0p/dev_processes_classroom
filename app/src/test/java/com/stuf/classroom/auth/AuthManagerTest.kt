@@ -17,8 +17,8 @@ import org.junit.Test
  *
  * Задаёт контракт:
  * - sealed-класс AuthState (Unauthenticated, Loading, Authenticated(AuthSession))
- * - класс AuthManager с конструктором:
- *     AuthManager(
+ * - реализация DefaultAuthManager с конструктором:
+ *     DefaultAuthManager(
  *         authRepository: AuthRepository,
  *         authSessionStorage: AuthSessionStorage,
  *     )
@@ -81,7 +81,7 @@ class AuthManagerTest {
         val repository = FakeAuthRepository()
         val storage = FakeAuthSessionStorage(initialSession = null)
 
-        val manager = AuthManager(
+        val manager = DefaultAuthManager(
             authRepository = repository,
             authSessionStorage = storage,
         )
@@ -109,7 +109,7 @@ class AuthManagerTest {
         }
         val storage = FakeAuthSessionStorage(initialSession = initialSession)
 
-        val manager = AuthManager(
+        val manager = DefaultAuthManager(
             authRepository = repository,
             authSessionStorage = storage,
         )
@@ -137,7 +137,7 @@ class AuthManagerTest {
         }
         val storage = FakeAuthSessionStorage(initialSession = initialSession)
 
-        val manager = AuthManager(
+        val manager = DefaultAuthManager(
             authRepository = repository,
             authSessionStorage = storage,
         )
@@ -159,7 +159,7 @@ class AuthManagerTest {
         val repository = FakeAuthRepository()
         val storage = FakeAuthSessionStorage(initialSession = initialSession)
 
-        val manager = AuthManager(
+        val manager = DefaultAuthManager(
             authRepository = repository,
             authSessionStorage = storage,
         )

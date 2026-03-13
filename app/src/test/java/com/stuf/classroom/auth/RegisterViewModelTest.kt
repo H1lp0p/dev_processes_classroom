@@ -7,7 +7,9 @@ import com.stuf.domain.repository.AuthSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -30,7 +32,7 @@ class RegisterViewModelTest {
         var lastEmail: String? = null
         var lastPassword: String? = null
         var registerResult: DomainResult<com.stuf.domain.repository.AuthSession> =
-            DomainResult.Failure(DomainError.Unknown)
+            DomainResult.Failure(DomainError.Unknown())
 
         override suspend fun login(
             email: String,
@@ -96,6 +98,11 @@ class RegisterViewModelTest {
             authManager = fakeAuthManager,
             dispatcher = testDispatcher,
         )
+    }
+
+    @org.junit.After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -225,7 +232,7 @@ class RegisterViewModelTest {
 
     @Test
     fun `failed registration shows general error and does not mark user as registered`(): Unit = runTest(testDispatcher) {
-        fakeAuthRepository.registerResult = DomainResult.Failure(DomainError.EmailAlreadyInUse)
+        fakeAuthRepository.registerResult = DomainResult.Failure(DomainError.Validation("Email already in use"))
         viewModel.onCredentialsChanged("User Name")
         viewModel.onEmailChanged("user@example.com")
         viewModel.onPasswordChanged("123456")

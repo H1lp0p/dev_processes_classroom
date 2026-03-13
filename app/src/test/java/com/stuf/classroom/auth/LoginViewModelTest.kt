@@ -7,7 +7,9 @@ import com.stuf.domain.repository.AuthSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -31,7 +33,7 @@ class LoginViewModelTest {
         var lastLoginEmail: String? = null
         var lastLoginPassword: String? = null
         var loginResult: DomainResult<com.stuf.domain.repository.AuthSession> =
-            DomainResult.Failure(DomainError.Unknown)
+            DomainResult.Failure(DomainError.Unknown())
 
         override suspend fun login(
             email: String,
@@ -96,6 +98,11 @@ class LoginViewModelTest {
             authManager = fakeAuthManager,
             dispatcher = testDispatcher,
         )
+    }
+
+    @org.junit.After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -194,7 +201,7 @@ class LoginViewModelTest {
 
     @Test
     fun `failed login shows general error and does not mark user as logged in`(): Unit = runTest(testDispatcher) {
-        fakeAuthRepository.loginResult = DomainResult.Failure(DomainError.InvalidCredentials)
+        fakeAuthRepository.loginResult = DomainResult.Failure(DomainError.Validation("Invalid credentials"))
         viewModel.onEmailChanged("user@example.com")
         viewModel.onPasswordChanged("123456")
 

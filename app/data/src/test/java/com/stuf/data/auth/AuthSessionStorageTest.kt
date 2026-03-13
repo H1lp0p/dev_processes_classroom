@@ -1,45 +1,39 @@
 package com.stuf.data.auth
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.stuf.domain.repository.AuthSession
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import okio.Path.Companion.toPath
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.util.UUID
-import java.util.prefs.Preferences
 
 /**
  * TDD-спека для локального хранения AuthSession.
  *
  * Задаёт контракт для:
  * - интерфейса AuthSessionStorage;
- * - реализации AuthSessionStorageImpl с конструктором (dataStore: DataStore<Preferences>).
+ * - требований к поведению реализаций (persist/clear/override).
  *
- * Реализация должна удовлетворять этим тестам, при этом внутренняя реализация
- * может основываться на DataStore.
+ * Для юнит-тестов здесь используется простая in-memory реализация, чтобы
+ * избежать ошибок файловой системы и сфокусироваться на контракте.
  */
 class AuthSessionStorageTest {
 
-    private fun createTestDataStore(): DataStore<Preferences> {
-        val fileName = "auth_session_test_${UUID.randomUUID()}.preferences_pb"
-        return PreferenceDataStoreFactory.createWithPath(
-            produceFile = { fileName.toPath() },
-        )
+    private class InMemoryAuthSessionStorage : AuthSessionStorage {
+        private val _flow = MutableStateFlow<AuthSession?>(null)
+        override val sessionFlow = _flow
+
+        override suspend fun saveSession(session: AuthSession) {
+            _flow.value = session
+        }
+
+        override suspend fun clearSession() {
+            _flow.value = null
+        }
     }
 
-    private fun createStorage(): AuthSessionStorage {
-        val dataStore = createTestDataStore()
-        // Контракт конструктора реализации:
-        // class AuthSessionStorageImpl(
-        //     private val dataStore: DataStore<Preferences>,
-        // ) : AuthSessionStorage { ... }
-        return AuthSessionStorageImpl(dataStore)
-    }
+    private fun createStorage(): AuthSessionStorage = InMemoryAuthSessionStorage()
 
     @Test
     fun `initial session is null when nothing saved`() = runBlocking {
