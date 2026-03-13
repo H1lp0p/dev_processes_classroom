@@ -61,6 +61,8 @@ interface CommentRepository {
     suspend fun getSolutionComments(solutionId: SolutionId): DomainResult<List<Comment>>
     suspend fun addPostComment(postId: PostId, text: String): DomainResult<Comment>
     suspend fun addSolutionComment(solutionId: SolutionId, text: String): DomainResult<Comment>
+    suspend fun getCommentReplies(commentId: CommentId): DomainResult<List<Comment>>
+    suspend fun addCommentReply(commentId: CommentId, text: String): DomainResult<Comment>
 }
 
 interface FileRepository {

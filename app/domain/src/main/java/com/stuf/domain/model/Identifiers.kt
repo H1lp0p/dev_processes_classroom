@@ -17,3 +17,6 @@ value class TaskId(val value: UUID)
 @JvmInline
 value class SolutionId(val value: UUID)
 
+@JvmInline
+value class CommentId(val value: String)
+

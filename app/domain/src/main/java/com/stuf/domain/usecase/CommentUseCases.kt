@@ -2,6 +2,7 @@ package com.stuf.domain.usecase
 
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
+import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.SolutionId
 
@@ -19,4 +20,12 @@ interface GetPostComments {
 
 interface GetSolutionComments {
     suspend operator fun invoke(solutionId: SolutionId): DomainResult<List<Comment>>
+}
+
+interface GetCommentReplies {
+    suspend operator fun invoke(commentId: CommentId): DomainResult<List<Comment>>
+}
+
+interface AddCommentReply {
+    suspend operator fun invoke(commentId: CommentId, text: String): DomainResult<Comment>
 }

@@ -31,6 +31,7 @@ private class FakeCommentApi : CommentApi {
     var lastPostIdForAdd: UUID? = null
     var lastSolutionIdForAdd: UUID? = null
     var lastAddedText: String? = null
+    var lastRepliesCommentId: UUID? = null
 
     var postCommentsResponse: Response<CommentDtoListApiResponse>? = null
     var solutionCommentsResponse: Response<CommentDtoListApiResponse>? = null
@@ -49,14 +50,17 @@ private class FakeCommentApi : CommentApi {
     }
 
     override suspend fun apiCommentIdRepliesGet(id: UUID): Response<CommentDtoListApiResponse> {
-        error("Not needed in these tests")
+        lastRepliesCommentId = id
+        return requireNotNull(postCommentsResponse)
     }
 
     override suspend fun apiCommentIdReplyPost(
         id: UUID,
         addCommentRequestDto: AddCommentRequestDto?,
     ): Response<IdRequestDtoApiResponse> {
-        error("Not needed in these tests")
+        lastRepliesCommentId = id
+        lastAddedText = addCommentRequestDto?.text
+        return requireNotNull(addPostCommentResponse)
     }
 
     override suspend fun apiPostIdCommentGet(id: UUID): Response<CommentDtoListApiResponse> {
@@ -243,6 +247,81 @@ class CommentRepositoryImplTest {
 
         assertTrue(result is DomainResult.Failure)
         assertEquals(DomainError.Unauthorized, (result as DomainResult.Failure).error)
+    }
+
+    @Test
+    fun `getCommentReplies success maps list of replies`() {
+        val commentId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000050")
+        val replyId: UUID = UUID.randomUUID()
+
+        val api: FakeCommentApi = FakeCommentApi().apply {
+            postCommentsResponse = Response.success(
+                CommentDtoListApiResponse(
+                    type = ApiResponseType.success,
+                    message = null,
+                    data = listOf(
+                        CommentDto(
+                            id = replyId,
+                            text = "Nested reply",
+                            isDeleted = false,
+                            author = CommentAuthorDto(
+                                id = UUID.fromString("00000000-0000-0000-0000-000000000051"),
+                                credentials = "Nested Author",
+                            ),
+                            nestedCount = 0,
+                        ),
+                    ),
+                ),
+            )
+        }
+        val repository: CommentRepository = CommentRepositoryImpl(api)
+
+        val result: DomainResult<List<Comment>> = runBlocking {
+            repository.getCommentReplies(com.stuf.domain.model.CommentId(commentId.toString()))
+        }
+
+        assertTrue(result is DomainResult.Success<List<Comment>>)
+        val replies: List<Comment> = (result as DomainResult.Success<List<Comment>>).value
+        assertEquals(1, replies.size)
+        val reply: Comment = replies.first()
+        assertEquals(replyId.toString(), reply.id)
+        assertEquals("Nested reply", reply.text)
+        assertEquals(
+            UserId(UUID.fromString("00000000-0000-0000-0000-000000000051")),
+            reply.author.id,
+        )
+        assertEquals("Nested Author", reply.author.credentials)
+        assertEquals(commentId, api.lastRepliesCommentId)
+    }
+
+    @Test
+    fun `addCommentReply success returns created reply`() {
+        val commentId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000060")
+        val api: FakeCommentApi = FakeCommentApi().apply {
+            addPostCommentResponse = Response.success(
+                IdRequestDtoApiResponse(
+                    type = ApiResponseType.success,
+                    message = null,
+                    data = IdRequestDto(
+                        id = UUID.fromString("00000000-0000-0000-0000-000000000061"),
+                    ),
+                ),
+            )
+        }
+        val repository: CommentRepository = CommentRepositoryImpl(api)
+
+        val result: DomainResult<Comment> = runBlocking {
+            repository.addCommentReply(
+                commentId = com.stuf.domain.model.CommentId(commentId.toString()),
+                text = "Reply text",
+            )
+        }
+
+        assertTrue(result is DomainResult.Success<Comment>)
+        val reply: Comment = (result as DomainResult.Success<Comment>).value
+        assertEquals("00000000-0000-0000-0000-000000000061", reply.id)
+        assertEquals("Reply text", api.lastAddedText)
+        assertEquals(commentId, api.lastRepliesCommentId)
     }
 }
 
