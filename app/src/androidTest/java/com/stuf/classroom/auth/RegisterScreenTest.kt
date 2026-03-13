@@ -72,15 +72,25 @@ class RegisterScreenTest {
             }
         }
 
+        composeRule.onNodeWithTag("register_credentials_field").performClick()
         composeRule.onNodeWithTag("register_credentials_field").performTextInput("User Name")
-        composeRule.onNodeWithTag("register_email_field").performTextInput("user@example.com")
-        composeRule.onNodeWithTag("register_password_field").performTextInput("123456")
-        composeRule.onNodeWithTag("register_repeat_password_field").performTextInput("123456")
+        composeRule.waitForIdle()
+        assert(lastCredentials == "User Name") { "Expected lastCredentials \"User Name\", got: $lastCredentials" }
 
-        assert(lastCredentials == "User Name")
-        assert(lastEmail == "user@example.com")
-        assert(lastPassword == "123456")
-        assert(lastRepeatPassword == "123456")
+        composeRule.onNodeWithTag("register_email_field").performClick()
+        composeRule.onNodeWithTag("register_email_field").performTextInput("user@example.com")
+        composeRule.waitForIdle()
+        assert(lastEmail == "user@example.com") { "Expected lastEmail \"user@example.com\", got: $lastEmail" }
+
+        composeRule.onNodeWithTag("register_password_field").performClick()
+        composeRule.onNodeWithTag("register_password_field").performTextInput("123456")
+        composeRule.waitForIdle()
+        assert(lastPassword == "123456") { "Expected lastPassword \"123456\", got: $lastPassword" }
+
+        composeRule.onNodeWithTag("register_repeat_password_field").performClick()
+        composeRule.onNodeWithTag("register_repeat_password_field").performTextInput("123456")
+        composeRule.waitForIdle()
+        assert(lastRepeatPassword == "123456") { "Expected lastRepeatPassword \"123456\", got: $lastRepeatPassword" }
     }
 
     @Test

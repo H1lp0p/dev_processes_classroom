@@ -68,12 +68,15 @@ class LoginScreenTest {
             }
         }
 
+        composeRule.onNodeWithTag("login_email_field").performClick()
         composeRule.onNodeWithTag("login_email_field").performTextInput("user@example.com")
-        composeRule.onNodeWithTag("login_password_field").performTextInput("123456")
+        composeRule.waitForIdle()
+        assert(lastEmail == "user@example.com") { "Expected lastEmail \"user@example.com\", got: $lastEmail" }
 
-        // Проверяем, что callbacks были вызваны с нужными значениями
-        assert(lastEmail == "user@example.com")
-        assert(lastPassword == "123456")
+        composeRule.onNodeWithTag("login_password_field").performClick()
+        composeRule.onNodeWithTag("login_password_field").performTextInput("123456")
+        composeRule.waitForIdle()
+        assert(lastPassword == "123456") { "Expected lastPassword \"123456\", got: $lastPassword" }
     }
 
     @Test
