@@ -12,8 +12,10 @@ import com.stuf.domain.model.PostId
 import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.Solution
 import com.stuf.domain.model.SolutionId
+import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
+import com.stuf.domain.model.User
 import com.stuf.domain.model.UserId
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
@@ -21,13 +23,11 @@ import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
 import com.stuf.domain.usecase.GetSolutionsForTask
+import java.time.OffsetDateTime
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,10 +35,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.OffsetDateTime
-import java.util.UUID
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class PostScreenViewModelTest {
 
     private class FakeGetPost : GetPost {
@@ -99,7 +96,11 @@ class PostScreenViewModelTest {
         var result: DomainResult<List<Solution>> = DomainResult.Success(emptyList())
         var lastTaskId: TaskId? = null
 
-        override suspend fun invoke(taskId: TaskId): DomainResult<List<Solution>> {
+        override suspend fun invoke(
+            taskId: TaskId,
+            status: SolutionStatus?,
+            studentId: UserId?,
+        ): DomainResult<List<Solution>> {
             lastTaskId = taskId
             return result
         }
@@ -112,15 +113,12 @@ class PostScreenViewModelTest {
     private lateinit var fakeAddCommentReply: FakeAddCommentReply
     private lateinit var fakeGetSolutionsForTask: FakeGetSolutionsForTask
 
-    private val testDispatcher: StandardTestDispatcher = StandardTestDispatcher()
-
     private lateinit var viewModel: PostScreenViewModel
 
     private val postId: PostId = PostId(UUID.fromString("00000000-0000-0000-0000-000000000900"))
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
         fakeGetPost = FakeGetPost()
         fakeGetPostComments = FakeGetPostComments()
         fakeGetCommentReplies = FakeGetCommentReplies()
@@ -130,7 +128,10 @@ class PostScreenViewModelTest {
 
         viewModel = PostScreenViewModel(
             savedStateHandle = SavedStateHandle(
-                mapOf("postId" to postId.value.toString()),
+                mapOf(
+                    "postId" to postId.value.toString(),
+                    "role" to "student",
+                ),
             ),
             getPost = fakeGetPost,
             getPostComments = fakeGetPostComments,
@@ -138,18 +139,16 @@ class PostScreenViewModelTest {
             addPostComment = fakeAddPostComment,
             addCommentReply = fakeAddCommentReply,
             getSolutionsForTask = fakeGetSolutionsForTask,
-            dispatcher = testDispatcher,
-            currentUserRole = CourseRole.STUDENT,
+            dispatcher = Dispatchers.Unconfined,
         )
     }
 
     @After
     fun tearDown() {
-        Dispatchers.resetMain()
     }
 
     @Test
-    fun `initial load success populates post and comments for student`() = runTest(testDispatcher) {
+    fun `initial load success populates post and comments for student`() = runTest {
         val courseId: com.stuf.domain.model.CourseId =
             com.stuf.domain.model.CourseId(UUID.fromString("00000000-0000-0000-0000-000000000901"))
         val taskDetails: TaskDetails? = null
@@ -190,7 +189,7 @@ class PostScreenViewModelTest {
     }
 
     @Test
-    fun `initial load failure sets error`() = runTest(testDispatcher) {
+    fun `initial load failure sets error`() = runTest {
         fakeGetPost.result = DomainResult.Failure(DomainError.Network())
 
         viewModel.onRetry()
@@ -202,7 +201,7 @@ class PostScreenViewModelTest {
     }
 
     @Test
-    fun `onCommentSubmit_adds_public_comment_on_success`() = runTest(testDispatcher) {
+    fun `onCommentSubmit_adds_public_comment_on_success`() = runTest {
         val courseId: com.stuf.domain.model.CourseId =
             com.stuf.domain.model.CourseId(UUID.randomUUID())
         val post: Post = Post(
@@ -242,7 +241,7 @@ class PostScreenViewModelTest {
     }
 
     @Test
-    fun `onLoadRepliesClick_loads_and_merges_replies`() = runTest(testDispatcher) {
+    fun `onLoadRepliesClick_loads_and_merges_replies`() = runTest {
         val courseId: com.stuf.domain.model.CourseId =
             com.stuf.domain.model.CourseId(UUID.randomUUID())
         val post: Post = Post(
@@ -295,7 +294,7 @@ class PostScreenViewModelTest {
     }
 
     @Test
-    fun `initial load as_teacher_for_task_populates_solutions`() = runTest(testDispatcher) {
+    fun `initial load as_teacher_for_task_populates_solutions`() = runTest {
         val courseId: com.stuf.domain.model.CourseId =
             com.stuf.domain.model.CourseId(UUID.randomUUID())
         val taskDetails: TaskDetails = TaskDetails(
@@ -319,22 +318,22 @@ class PostScreenViewModelTest {
         val solution: Solution = Solution(
             id = SolutionId(UUID.randomUUID()),
             taskId = taskId,
-            author = com.stuf.domain.model.User(
-                id = UserId(UUID.randomUUID()),
-                credentials = "Student",
-                email = "student@example.com",
-            ),
+            authorId = UserId(UUID.randomUUID()),
             text = "Answer",
-            createdAt = OffsetDateTime.now(),
+            files = emptyList(),
             score = null,
-            status = com.stuf.domain.model.SolutionStatus.PENDING,
+            status = SolutionStatus.PENDING,
+            updatedAt = OffsetDateTime.now(),
         )
         fakeGetSolutionsForTask.result = DomainResult.Success(listOf(solution))
 
         // пересоздадим VM как учителя
         viewModel = PostScreenViewModel(
             savedStateHandle = SavedStateHandle(
-                mapOf("postId" to postId.value.toString()),
+                mapOf(
+                    "postId" to postId.value.toString(),
+                    "role" to "teacher",
+                ),
             ),
             getPost = fakeGetPost,
             getPostComments = fakeGetPostComments,
@@ -342,8 +341,7 @@ class PostScreenViewModelTest {
             addPostComment = fakeAddPostComment,
             addCommentReply = fakeAddCommentReply,
             getSolutionsForTask = fakeGetSolutionsForTask,
-            dispatcher = testDispatcher,
-            currentUserRole = CourseRole.TEACHER,
+            dispatcher = Dispatchers.Unconfined,
         )
 
         viewModel.onRetry()

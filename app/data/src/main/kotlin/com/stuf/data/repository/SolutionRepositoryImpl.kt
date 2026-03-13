@@ -24,8 +24,9 @@ import retrofit2.Response
 import java.io.IOException
 import java.time.OffsetDateTime
 import java.util.UUID
+import javax.inject.Inject
 
-class SolutionRepositoryImpl(
+class SolutionRepositoryImpl @Inject constructor(
     private val api: SolutionApi,
 ) : SolutionRepository {
 

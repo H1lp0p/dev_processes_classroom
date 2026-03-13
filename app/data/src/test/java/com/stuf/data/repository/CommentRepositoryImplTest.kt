@@ -12,6 +12,7 @@ import com.stuf.data.model.IdRequestDtoApiResponse
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
+import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.UserId
@@ -19,11 +20,11 @@ import com.stuf.domain.repository.CommentRepository
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody
+import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Response
-import java.util.UUID
 
 private class FakeCommentApi : CommentApi {
     var lastPostIdForGet: UUID? = null

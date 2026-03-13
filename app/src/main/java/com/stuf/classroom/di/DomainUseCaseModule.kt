@@ -1,5 +1,6 @@
 package com.stuf.classroom.di
 
+import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.AddSolutionComment
 import com.stuf.domain.usecase.CancelSolution
@@ -10,6 +11,7 @@ import com.stuf.domain.usecase.DeletePost
 import com.stuf.domain.usecase.GetCourseFeed
 import com.stuf.domain.usecase.GetCourseInfo
 import com.stuf.domain.usecase.GetCourseMembers
+import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetUserCourses
 import com.stuf.domain.usecase.GetPerformanceTable
 import com.stuf.domain.usecase.GetPost
@@ -24,6 +26,7 @@ import com.stuf.domain.usecase.ReviewSolution
 import com.stuf.domain.usecase.SubmitSolution
 import com.stuf.domain.usecase.UpdatePost
 import com.stuf.domain.usecase.UpdateSolution
+import com.stuf.domain.usecase.impl.AddCommentReplyUseCase
 import com.stuf.domain.usecase.impl.AddPostCommentUseCase
 import com.stuf.domain.usecase.impl.AddSolutionCommentUseCase
 import com.stuf.domain.usecase.impl.CancelSolutionUseCase
@@ -34,6 +37,7 @@ import com.stuf.domain.usecase.impl.DeletePostUseCase
 import com.stuf.domain.usecase.impl.GetCourseFeedUseCase
 import com.stuf.domain.usecase.impl.GetCourseInfoUseCase
 import com.stuf.domain.usecase.impl.GetCourseMembersUseCase
+import com.stuf.domain.usecase.impl.GetCommentRepliesUseCase
 import com.stuf.domain.usecase.impl.GetUserCoursesUseCase
 import com.stuf.domain.usecase.impl.GetPerformanceTableUseCase
 import com.stuf.domain.usecase.impl.GetPostCommentsUseCase
@@ -195,6 +199,18 @@ abstract class DomainUseCaseModule {
     abstract fun bindAddSolutionCommentUseCase(
         impl: AddSolutionCommentUseCase,
     ): AddSolutionComment
+
+    @Binds
+    @Singleton
+    abstract fun bindAddCommentReplyUseCase(
+        impl: AddCommentReplyUseCase,
+    ): AddCommentReply
+
+    @Binds
+    @Singleton
+    abstract fun bindGetCommentRepliesUseCase(
+        impl: GetCommentRepliesUseCase,
+    ): GetCommentReplies
 
     @Binds
     @Singleton

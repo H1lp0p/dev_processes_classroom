@@ -1,9 +1,9 @@
 package com.stuf.classroom.post
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -67,7 +67,6 @@ class PostScreenTest {
             isTask = true,
             currentUserRole = CourseRole.STUDENT,
         )
-        val stateTeacher: PostUiState = stateStudent.copy(currentUserRole = CourseRole.TEACHER)
 
         composeRule.setContent {
             ClassroomTheme {
@@ -85,6 +84,16 @@ class PostScreenTest {
         }
 
         composeRule.onNodeWithTag("post_attach_solution_button").assertIsDisplayed()
+    }
+
+    @Test
+    fun postScreen_hides_attach_solution_button_for_task_and_teacher() {
+        val stateTeacher: PostUiState = PostUiState(
+            postTitle = "Task title",
+            postText = "Task body",
+            isTask = true,
+            currentUserRole = CourseRole.TEACHER,
+        )
 
         composeRule.setContent {
             ClassroomTheme {

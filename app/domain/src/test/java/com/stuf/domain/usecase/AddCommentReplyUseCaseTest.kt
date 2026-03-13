@@ -8,11 +8,11 @@ import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CommentRepository
 import com.stuf.domain.usecase.impl.AddCommentReplyUseCase
+import java.time.OffsetDateTime
+import java.util.UUID
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.OffsetDateTime
-import java.util.UUID
 
 private class FakeAddCommentReplyRepository : CommentRepository {
     var lastReplyCommentId: CommentId? = null
