@@ -13,7 +13,7 @@ import java.util.UUID
 private class FakeRemoveMemberRepository : CourseRepository {
     var lastRemoveMemberArgs: Pair<CourseId, UserId>? = null
 
-    override suspend fun getUserCourses(): DomainResult<List<com.stuf.domain.model.Course>> =
+    override suspend fun getUserCourses(): DomainResult<List<com.stuf.domain.model.UserCourse>> =
         DomainResult.Success(emptyList())
 
     override suspend fun createCourse(title: String): DomainResult<com.stuf.domain.model.Course> {

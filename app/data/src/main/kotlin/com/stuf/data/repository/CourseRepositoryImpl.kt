@@ -1,5 +1,6 @@
 package com.stuf.data.repository
 
+import android.util.Log
 import com.stuf.data.api.CourseApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ChangeRoleRequestDto
@@ -15,20 +16,22 @@ import com.stuf.domain.model.Course
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
+import com.stuf.domain.model.UserCourse
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CourseRepository
 import retrofit2.Response
 import java.io.IOException
+import javax.inject.Inject
 
-class CourseRepositoryImpl(
+class CourseRepositoryImpl @Inject constructor(
     private val api: CourseApi,
 ) : CourseRepository {
 
-    override suspend fun getUserCourses(): DomainResult<List<Course>> {
+    override suspend fun getUserCourses(): DomainResult<List<UserCourse>> {
         val response = safeCall { api.apiUserCoursesGet() }
         return when (response) {
             is DomainResult.Success -> DomainResult.Success(
-                response.value.data?.records.orEmpty().map { it.toDomain() },
+                response.value.data?.records.orEmpty().map { it.toUserCourseDomain() },
             )
             is DomainResult.Failure -> response
         }
@@ -136,13 +139,35 @@ class CourseRepositoryImpl(
         val response = try {
             block()
         } catch (e: IOException) {
+            Log.e("CourseRepository", "Network error on request", e)
             return DomainResult.Failure(DomainError.Network(e))
         } catch (e: Exception) {
+            Log.e("CourseRepository", "Unexpected error on request", e)
             return DomainResult.Failure(DomainError.Unknown(e))
         }
 
-        if (!response.isSuccessful) {
-            return DomainResult.Failure(httpCodeToDomainError(response.code()))
+        // Логируем URL, Authorization и код ответа
+        try {
+            val rawRequest = response.raw().request
+            val url = rawRequest.url.toString()
+            val authHeader = rawRequest.header("Authorization")
+            Log.d(
+                "CourseRepository",
+                "HTTP ${response.code()} ${if (response.isSuccessful) "OK" else "ERROR"} " +
+                    "url=$url, Authorization=$authHeader",
+            )
+
+            if (!response.isSuccessful) {
+                val errorBody = try {
+                    response.errorBody()?.string() ?: "(no error body)"
+                } catch (e: IOException) {
+                    "(failed to read error body: ${e.message})"
+                }
+                Log.d("CourseRepository", "Error body: $errorBody")
+                return DomainResult.Failure(httpCodeToDomainError(response.code()))
+            }
+        } catch (e: Exception) {
+            Log.w("CourseRepository", "Failed to log HTTP request/response", e)
         }
 
         val body = response.body()
@@ -151,11 +176,15 @@ class CourseRepositoryImpl(
         return DomainResult.Success(body)
     }
 
-    private fun UserCourseDto.toDomain(): Course =
-        Course(
+    private fun UserCourseDto.toUserCourseDomain(): UserCourse =
+        UserCourse(
             id = CourseId(requireNotNull(id)),
             title = title ?: "",
-            inviteCode = null,
+            role = when (role) {
+                UserRoleType.student -> CourseRole.STUDENT
+                UserRoleType.teacher -> CourseRole.TEACHER
+                null -> CourseRole.STUDENT
+            },
         )
 
     private fun CourseDetailsDto.toDomain(): Course =
