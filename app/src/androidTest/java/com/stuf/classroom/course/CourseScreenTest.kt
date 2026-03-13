@@ -41,7 +41,7 @@ class CourseScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun courseScreen_shows_basic_elements_on_course_tab() {
+    fun courseScreen_shows_basic_elements_on_course_tab_for_teacher() {
         val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000500"))
         val posts = listOf(
             Post(
@@ -92,6 +92,7 @@ class CourseScreenTest {
             }
         }
 
+        composeRule.onNodeWithTag("course_header_card").assertIsDisplayed()
         composeRule.onNodeWithTag("course_title").assertIsDisplayed()
         composeRule.onNodeWithTag("course_invite_code").assertIsDisplayed()
         composeRule.onNodeWithTag("course_user_role").assertIsDisplayed()
@@ -104,6 +105,45 @@ class CourseScreenTest {
             .assertCountEquals(1)
 
         composeRule.onNodeWithTag("course_create_post_button").assertIsDisplayed()
+    }
+
+    @Test
+    fun courseScreen_hides_members_tab_for_student() {
+        val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000505"))
+
+        val state = CourseScreenUiState(
+            courseId = courseId,
+            courseTitle = "Course Title",
+            inviteCode = "INV123",
+            currentUserRole = CourseRole.STUDENT,
+            courseAuthorId = null,
+            selectedTab = CourseTab.COURSE,
+            posts = emptyList(),
+            members = emptyList(),
+            isLoadingCourse = false,
+            isLoadingFeed = false,
+            isLoadingMembers = false,
+            error = null,
+        )
+
+        composeRule.setContent {
+            ClassroomTheme {
+                CourseScreen(
+                    state = state,
+                    onTabSelected = {},
+                    onPostClick = {},
+                    onCreatePostClick = {},
+                    onMemberRoleToggleClick = {},
+                    onMemberRemoveClick = {},
+                    onLeaveCourseClick = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("course_tab_course").assertIsDisplayed()
+        // Вкладка пользователей недоступна для студента
+        composeRule.onNodeWithTag("course_tab_members")
+            .assertDoesNotExist()
     }
 
     @Test
@@ -159,9 +199,8 @@ class CourseScreenTest {
             .assertCountEquals(2)
 
         // Действия для преподавателя доступны для не-владельца
-        composeRule.onAllNodes(hasTestTag("course_member_toggle_role_button"))
-            .assertCountEquals(1)
-        composeRule.onAllNodes(hasTestTag("course_member_remove_button"))
+        // Меню с действиями доступно только для не-владельца
+        composeRule.onAllNodes(hasTestTag("course_member_menu_button"))
             .assertCountEquals(1)
     }
 
@@ -283,8 +322,12 @@ class CourseScreenTest {
             }
         }
 
-        composeRule.onAllNodes(hasTestTag("course_member_toggle_role_button"))[0].performClick()
-        composeRule.onAllNodes(hasTestTag("course_member_remove_button"))[0].performClick()
+        // Открываем меню действий для участника и выбираем пункты меню
+        composeRule.onAllNodes(hasTestTag("course_member_menu_button"))[0].performClick()
+        composeRule.onNodeWithTag("course_member_toggle_role_menu_item").performClick()
+
+        composeRule.onAllNodes(hasTestTag("course_member_menu_button"))[0].performClick()
+        composeRule.onNodeWithTag("course_member_remove_menu_item").performClick()
         composeRule.onNodeWithTag("course_leave_button").performClick()
 
         assertEquals(memberId, lastMemberRoleToggled)
