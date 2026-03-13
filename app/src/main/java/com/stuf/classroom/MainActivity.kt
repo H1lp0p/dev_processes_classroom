@@ -26,6 +26,7 @@ import com.stuf.classroom.auth.LoginViewModel
 import com.stuf.classroom.auth.RegisterRoute
 import com.stuf.classroom.auth.RegisterViewModel
 import com.stuf.classroom.course.CourseRoute
+import com.stuf.classroom.post.PostRoute
 import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
 import com.stuf.domain.model.UserCourse
@@ -140,7 +141,11 @@ class MainActivity : ComponentActivity() {
                     composable("course/{courseId}/{role}") {
                         CourseRoute(
                             onPostClick = { postId ->
-                                // Навигация к деталям поста будет добавлена позже
+                                val roleArg = navController.currentBackStackEntry
+                                    ?.arguments
+                                    ?.getString("role")
+                                    ?: "student"
+                                navController.navigate("post/${postId.value}/$roleArg")
                             },
                             onCreatePostClick = {
                                 // Навигация к созданию поста будет добавлена позже
@@ -148,6 +153,12 @@ class MainActivity : ComponentActivity() {
                             onLeaveCourse = {
                                 navController.popBackStack()
                             },
+                        )
+                    }
+                    composable("post/{postId}/{role}") { backStackEntry ->
+                        PostRoute(
+                            navController = navController,
+                            backStackEntry = backStackEntry,
                         )
                     }
                     composable("createCourse") {
