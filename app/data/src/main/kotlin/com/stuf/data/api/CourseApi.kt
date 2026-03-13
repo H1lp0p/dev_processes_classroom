@@ -6,143 +6,159 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.CourseIdFeedGet200Response
-import com.stuf.data.model.CourseIdGet200Response
-import com.stuf.data.model.CourseIdLeaveDelete200Response
-import com.stuf.data.model.CourseIdMembersGet200Response
-import com.stuf.data.model.CourseIdMembersUserIdRolePut200Response
-import com.stuf.data.model.CourseJoinPost200Response
-import com.stuf.data.model.CoursePost200Response
-import com.stuf.data.model.CreateCourseRequest
-import com.stuf.data.model.JoinCourseRequest
-import com.stuf.data.model.UpdateCourseRequest
-import com.stuf.data.model.UpdateRoleRequest
+import com.stuf.data.model.ChangeRoleRequestDto
+import com.stuf.data.model.ChangeRoleResponseDtoApiResponse
+import com.stuf.data.model.CourseDetailsDtoApiResponse
+import com.stuf.data.model.CourseMemberDtoPagedResponseApiResponse
+import com.stuf.data.model.CreateUpdateCourseRequestDto
+import com.stuf.data.model.CreateUpdateCourseResponseDtoApiResponse
+import com.stuf.data.model.JoinCourseRequestDto
+import com.stuf.data.model.JoinCourseResponseDtoApiResponse
+import com.stuf.data.model.ObjectApiResponse
+import com.stuf.data.model.UserCourseDtoPagedResponseApiResponse
 
 interface CourseApi {
     /**
-     * GET course/{id}/feed
-     * Получить посты курса
+     * GET api/course/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Список постов курса
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param skip Сколько записей пропустить (optional, default to 0)
-     * @param take Сколько записей взять после пропуска (optional, default to 10)
-     * @return [CourseIdFeedGet200Response]
+     * @return [CourseDetailsDtoApiResponse]
      */
-    @GET("course/{id}/feed")
-    suspend fun courseIdFeedGet(@Path("id") id: java.util.UUID, @Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 10): Response<CourseIdFeedGet200Response>
+    @GET("api/course/{id}")
+    suspend fun apiCourseIdGet(@Path("id") id: java.util.UUID): Response<CourseDetailsDtoApiResponse>
 
     /**
-     * GET course/{id}
-     * Получить информацию о курсе
+     * DELETE api/course/{id}/leave
+     * 
      * 
      * Responses:
-     *  - 200: Информация о курсе
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [CourseIdGet200Response]
+     * @return [ObjectApiResponse]
      */
-    @GET("course/{id}")
-    suspend fun courseIdGet(@Path("id") id: java.util.UUID): Response<CourseIdGet200Response>
+    @DELETE("api/course/{id}/leave")
+    suspend fun apiCourseIdLeaveDelete(@Path("id") id: java.util.UUID): Response<ObjectApiResponse>
 
     /**
-     * DELETE course/{id}/leave
-     * Покинуть курс
+     * GET api/course/{id}/members
+     * 
      * 
      * Responses:
-     *  - 200: Курс покинут
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [CourseIdLeaveDelete200Response]
+     * @param skip  (optional, default to 0)
+     * @param take  (optional, default to 10)
+     * @param query  (optional)
+     * @return [CourseMemberDtoPagedResponseApiResponse]
      */
-    @DELETE("course/{id}/leave")
-    suspend fun courseIdLeaveDelete(@Path("id") id: java.util.UUID): Response<CourseIdLeaveDelete200Response>
+    @GET("api/course/{id}/members")
+    suspend fun apiCourseIdMembersGet(@Path("id") id: java.util.UUID, @Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 10, @Query("query") query: kotlin.String? = null): Response<CourseMemberDtoPagedResponseApiResponse>
 
     /**
-     * GET course/{id}/members
-     * Получить список участников курса
+     * DELETE api/course/{id}/members/{userId}
+     * 
      * 
      * Responses:
-     *  - 200: Список участников курса
-     *
-     * @param id 
-     * @param skip Сколько записей пропустить (optional, default to 0)
-     * @param take Сколько записей взять после пропуска (optional, default to 10)
-     * @param query Поисковый запрос для фильтрации (optional)
-     * @return [CourseIdMembersGet200Response]
-     */
-    @GET("course/{id}/members")
-    suspend fun courseIdMembersGet(@Path("id") id: java.util.UUID, @Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 10, @Query("query") query: kotlin.String? = null): Response<CourseIdMembersGet200Response>
-
-    /**
-     * DELETE course/{id}/members/{userId}
-     * Удалить участника из курса
-     * 
-     * Responses:
-     *  - 200: Участник удален
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
      * @param userId 
-     * @return [CourseIdLeaveDelete200Response]
+     * @return [ObjectApiResponse]
      */
-    @DELETE("course/{id}/members/{userId}")
-    suspend fun courseIdMembersUserIdDelete(@Path("id") id: java.util.UUID, @Path("userId") userId: java.util.UUID): Response<CourseIdLeaveDelete200Response>
+    @DELETE("api/course/{id}/members/{userId}")
+    suspend fun apiCourseIdMembersUserIdDelete(@Path("id") id: java.util.UUID, @Path("userId") userId: java.util.UUID): Response<ObjectApiResponse>
 
     /**
-     * PUT course/{id}/members/{userId}/role
-     * Изменить роль участника
+     * PUT api/course/{id}/members/{userId}/role
+     * 
      * 
      * Responses:
-     *  - 200: Роль изменена
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
      * @param userId 
-     * @param updateRoleRequest 
-     * @return [CourseIdMembersUserIdRolePut200Response]
+     * @param changeRoleRequestDto  (optional)
+     * @return [ChangeRoleResponseDtoApiResponse]
      */
-    @PUT("course/{id}/members/{userId}/role")
-    suspend fun courseIdMembersUserIdRolePut(@Path("id") id: java.util.UUID, @Path("userId") userId: java.util.UUID, @Body updateRoleRequest: UpdateRoleRequest): Response<CourseIdMembersUserIdRolePut200Response>
+    @PUT("api/course/{id}/members/{userId}/role")
+    suspend fun apiCourseIdMembersUserIdRolePut(@Path("id") id: java.util.UUID, @Path("userId") userId: java.util.UUID, @Body changeRoleRequestDto: ChangeRoleRequestDto? = null): Response<ChangeRoleResponseDtoApiResponse>
 
     /**
-     * PUT course/{id}
-     * Изменить курс
+     * PUT api/course/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Курс изменен
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param updateCourseRequest 
-     * @return [CoursePost200Response]
+     * @param createUpdateCourseRequestDto  (optional)
+     * @return [CreateUpdateCourseResponseDtoApiResponse]
      */
-    @PUT("course/{id}")
-    suspend fun courseIdPut(@Path("id") id: java.util.UUID, @Body updateCourseRequest: UpdateCourseRequest): Response<CoursePost200Response>
+    @PUT("api/course/{id}")
+    suspend fun apiCourseIdPut(@Path("id") id: java.util.UUID, @Body createUpdateCourseRequestDto: CreateUpdateCourseRequestDto? = null): Response<CreateUpdateCourseResponseDtoApiResponse>
 
     /**
-     * POST course/join
-     * Присоединиться к курсу по коду
+     * POST api/course/join
+     * 
      * 
      * Responses:
-     *  - 200: Успешное присоединение к курсу
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @param joinCourseRequest 
-     * @return [CourseJoinPost200Response]
+     * @param joinCourseRequestDto  (optional)
+     * @return [JoinCourseResponseDtoApiResponse]
      */
-    @POST("course/join")
-    suspend fun courseJoinPost(@Body joinCourseRequest: JoinCourseRequest): Response<CourseJoinPost200Response>
+    @POST("api/course/join")
+    suspend fun apiCourseJoinPost(@Body joinCourseRequestDto: JoinCourseRequestDto? = null): Response<JoinCourseResponseDtoApiResponse>
 
     /**
-     * POST course
-     * Создать курс
+     * POST api/course
+     * 
      * 
      * Responses:
-     *  - 200: Курс создан
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @param createCourseRequest 
-     * @return [CoursePost200Response]
+     * @param createUpdateCourseRequestDto  (optional)
+     * @return [CreateUpdateCourseResponseDtoApiResponse]
      */
-    @POST("course")
-    suspend fun coursePost(@Body createCourseRequest: CreateCourseRequest): Response<CoursePost200Response>
+    @POST("api/course")
+    suspend fun apiCoursePost(@Body createUpdateCourseRequestDto: CreateUpdateCourseRequestDto? = null): Response<CreateUpdateCourseResponseDtoApiResponse>
+
+    /**
+     * GET api/user/courses
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param skip  (optional, default to 0)
+     * @param take  (optional, default to 20)
+     * @return [UserCourseDtoPagedResponseApiResponse]
+     */
+    @GET("api/user/courses")
+    suspend fun apiUserCoursesGet(@Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 20): Response<UserCourseDtoPagedResponseApiResponse>
 
 }

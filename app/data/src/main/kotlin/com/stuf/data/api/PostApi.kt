@@ -6,63 +6,89 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.CourseCourseIdTaskPost200Response
-import com.stuf.data.model.CreatePostRequest
-import com.stuf.data.model.PostIdGet200Response
+import com.stuf.data.model.CreateUpdatePostDto
+import com.stuf.data.model.FeedResponseDtoApiResponse
+import com.stuf.data.model.IdRequestDtoApiResponse
+import com.stuf.data.model.PostDetailsDtoApiResponse
 
 interface PostApi {
     /**
-     * POST course/{courseId}/task
-     * Создать пост в курсе
+     * GET api/course/{courseId}/feed
+     * 
      * 
      * Responses:
-     *  - 200: Пост создан
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param courseId 
-     * @param createPostRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param skip  (optional, default to 0)
+     * @param take  (optional, default to 20)
+     * @return [FeedResponseDtoApiResponse]
      */
-    @POST("course/{courseId}/task")
-    suspend fun courseCourseIdTaskPost(@Path("courseId") courseId: java.util.UUID, @Body createPostRequest: CreatePostRequest): Response<CourseCourseIdTaskPost200Response>
+    @GET("api/course/{courseId}/feed")
+    suspend fun apiCourseCourseIdFeedGet(@Path("courseId") courseId: java.util.UUID, @Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 20): Response<FeedResponseDtoApiResponse>
 
     /**
-     * DELETE post/{id}
-     * Удалить пост
+     * POST api/course/{courseId}/task
+     * 
      * 
      * Responses:
-     *  - 200: Пост удален
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @param id 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param courseId 
+     * @param createUpdatePostDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @DELETE("post/{id}")
-    suspend fun postIdDelete(@Path("id") id: java.util.UUID): Response<CourseCourseIdTaskPost200Response>
+    @POST("api/course/{courseId}/task")
+    suspend fun apiCourseCourseIdTaskPost(@Path("courseId") courseId: java.util.UUID, @Body createUpdatePostDto: CreateUpdatePostDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
-     * GET post/{id}
-     * Получить пост
+     * DELETE api/post/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Информация о посте
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [PostIdGet200Response]
+     * @return [IdRequestDtoApiResponse]
      */
-    @GET("post/{id}")
-    suspend fun postIdGet(@Path("id") id: java.util.UUID): Response<PostIdGet200Response>
+    @DELETE("api/post/{id}")
+    suspend fun apiPostIdDelete(@Path("id") id: java.util.UUID): Response<IdRequestDtoApiResponse>
 
     /**
-     * PUT post/{id}
-     * Редактировать пост
+     * GET api/post/{id}
+     * 
      * 
      * Responses:
-     *  - 200: Пост отредактирован
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param createPostRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @return [PostDetailsDtoApiResponse]
      */
-    @PUT("post/{id}")
-    suspend fun postIdPut(@Path("id") id: java.util.UUID, @Body createPostRequest: CreatePostRequest): Response<CourseCourseIdTaskPost200Response>
+    @GET("api/post/{id}")
+    suspend fun apiPostIdGet(@Path("id") id: java.util.UUID): Response<PostDetailsDtoApiResponse>
+
+    /**
+     * PUT api/post/{id}
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param id 
+     * @param createUpdatePostDto  (optional)
+     * @return [IdRequestDtoApiResponse]
+     */
+    @PUT("api/post/{id}")
+    suspend fun apiPostIdPut(@Path("id") id: java.util.UUID, @Body createUpdatePostDto: CreateUpdatePostDto? = null): Response<IdRequestDtoApiResponse>
 
 }

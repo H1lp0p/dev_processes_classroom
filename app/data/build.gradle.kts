@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.library)
     kotlin("android")
     id("org.openapi.generator")
+    alias(libs.plugins.hilt.android)
+    id("com.google.devtools.ksp") version "2.2.21-2.0.4"
 }
 
 android {
@@ -17,6 +19,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField("String", "API_BASE_URL", "\"http://37.21.130.4:5000\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -44,12 +52,15 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.dagger)
+    implementation(libs.hilt.android)
     implementation(libs.retrofit)
     implementation(libs.retrofit.moshi.converter)
     implementation(libs.retrofit.scalars.converter)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.moshi)
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    ksp(libs.hilt.android.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,8 +70,8 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api_v2.yaml")
-    // Базой для шаблона будет сам модуль, дальше генератор добавит src/main/kotlin
+    inputSpec.set("$projectDir/classroom_api.json")
+
     outputDir.set("$projectDir")
 
     packageName.set("com.stuf.data")
@@ -95,3 +106,11 @@ tasks.named("preBuild") {
 tasks.named<org.openapitools.generator.gradle.plugin.tasks.GenerateTask>("openApiGenerate") {
     validateSpec.set(false)
 }
+
+// Удаление артефактов DataStore (*.preferences_pb), оставшихся после тестов
+tasks.register("cleanDataStore") {
+    doLast {
+        fileTree(projectDir).matching { include("*.preferences_pb") }.files.forEach { it.delete() }
+    }
+}
+tasks.named("clean") { dependsOn("cleanDataStore") }

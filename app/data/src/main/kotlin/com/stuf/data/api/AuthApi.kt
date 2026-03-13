@@ -6,60 +6,78 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.AuthRegisterPost200Response
-import com.stuf.data.model.LoginRequest
-import com.stuf.data.model.RegisterRequest
-import com.stuf.data.model.ResponseWrapper
+import com.stuf.data.model.ObjectApiResponse
+import com.stuf.data.model.UserChangePassword
+import com.stuf.data.model.UserLoginDto
+import com.stuf.data.model.UserRegisterDto
 
 interface AuthApi {
     /**
-     * POST auth/login
-     * Вход в систему
+     * POST api/auth/change-password
+     * 
      * 
      * Responses:
-     *  - 200: Успешный вход
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @param loginRequest 
-     * @return [AuthRegisterPost200Response]
+     * @param userChangePassword  (optional)
+     * @return [ObjectApiResponse]
      */
-    @POST("auth/login")
-    suspend fun authLoginPost(@Body loginRequest: LoginRequest): Response<AuthRegisterPost200Response>
+    @POST("api/auth/change-password")
+    suspend fun apiAuthChangePasswordPost(@Body userChangePassword: UserChangePassword? = null): Response<ObjectApiResponse>
 
     /**
-     * POST auth/logout
-     * Выход из системы
+     * POST api/auth/login
+     * 
      * 
      * Responses:
-     *  - 200: Успешный выход
+     *  - 200: OK
      *
-     * @return [ResponseWrapper]
+     * @param userLoginDto  (optional)
+     * @return [ObjectApiResponse]
      */
-    @POST("auth/logout")
-    suspend fun authLogoutPost(): Response<ResponseWrapper>
+    @POST("api/auth/login")
+    suspend fun apiAuthLoginPost(@Body userLoginDto: UserLoginDto? = null): Response<ObjectApiResponse>
 
     /**
-     * POST auth/refresh
-     * Обновление токена
+     * POST api/auth/logout
+     * 
      * 
      * Responses:
-     *  - 200: Токен успешно обновлен
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
-     * @return [AuthRegisterPost200Response]
+     * @return [ObjectApiResponse]
      */
-    @POST("auth/refresh")
-    suspend fun authRefreshPost(): Response<AuthRegisterPost200Response>
+    @POST("api/auth/logout")
+    suspend fun apiAuthLogoutPost(): Response<ObjectApiResponse>
 
     /**
-     * POST auth/register
-     * Регистрация нового пользователя
+     * POST api/auth/refresh
+     * 
      * 
      * Responses:
-     *  - 200: Успешная регистрация
+     *  - 200: OK
      *
-     * @param registerRequest 
-     * @return [AuthRegisterPost200Response]
+     * @param token  (optional)
+     * @return [ObjectApiResponse]
      */
-    @POST("auth/register")
-    suspend fun authRegisterPost(@Body registerRequest: RegisterRequest): Response<AuthRegisterPost200Response>
+    @POST("api/auth/refresh")
+    suspend fun apiAuthRefreshPost(@Query("token") token: kotlin.String? = null): Response<ObjectApiResponse>
+
+    /**
+     * POST api/auth/register
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *
+     * @param userRegisterDto  (optional)
+     * @return [ObjectApiResponse]
+     */
+    @POST("api/auth/register")
+    suspend fun apiAuthRegisterPost(@Body userRegisterDto: UserRegisterDto? = null): Response<ObjectApiResponse>
 
 }

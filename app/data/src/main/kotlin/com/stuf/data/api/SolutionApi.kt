@@ -6,92 +6,93 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
-import com.stuf.data.model.CourseCourseIdTaskPost200Response
-import com.stuf.data.model.ReviewRequest
-import com.stuf.data.model.SubmitSolutionRequest
-import com.stuf.data.model.TaskIdSolutionGet200Response
-import com.stuf.data.model.TaskIdSolutionsGet200Response
+import com.stuf.data.model.IdRequestDtoApiResponse
+import com.stuf.data.model.SolutionListDtoApiResponse
+import com.stuf.data.model.SolutionStatus
+import com.stuf.data.model.StudentSolutionDetailsDtoApiResponse
+import com.stuf.data.model.SubmitSolutionRequestDto
+import com.stuf.data.model.UpdateSolutionRequestDto
 
 interface SolutionApi {
     /**
-     * POST solution/{solutionId}/review
-     * Проверить решение
+     * POST api/solution/{solutionId}/review
+     * 
      * 
      * Responses:
-     *  - 200: Решение проверено
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param solutionId 
-     * @param reviewRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param updateSolutionRequestDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @POST("solution/{solutionId}/review")
-    suspend fun solutionSolutionIdReviewPost(@Path("solutionId") solutionId: java.util.UUID, @Body reviewRequest: ReviewRequest): Response<CourseCourseIdTaskPost200Response>
+    @POST("api/solution/{solutionId}/review")
+    suspend fun apiSolutionSolutionIdReviewPost(@Path("solutionId") solutionId: java.util.UUID, @Body updateSolutionRequestDto: UpdateSolutionRequestDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
-     * DELETE task/{id}/solution
-     * Удалить решение
+     * DELETE api/task/{id}/solution
+     * 
      * 
      * Responses:
-     *  - 200: Решение удалено
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @return [IdRequestDtoApiResponse]
      */
-    @DELETE("task/{id}/solution")
-    suspend fun taskIdSolutionDelete(@Path("id") id: java.util.UUID): Response<CourseCourseIdTaskPost200Response>
+    @DELETE("api/task/{id}/solution")
+    suspend fun apiTaskIdSolutionDelete(@Path("id") id: java.util.UUID): Response<IdRequestDtoApiResponse>
 
     /**
-     * GET task/{id}/solution
-     * Получить своё решение по заданию
+     * GET api/task/{id}/solution
+     * 
      * 
      * Responses:
-     *  - 200: Решение пользователя
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @return [TaskIdSolutionGet200Response]
+     * @return [StudentSolutionDetailsDtoApiResponse]
      */
-    @GET("task/{id}/solution")
-    suspend fun taskIdSolutionGet(@Path("id") id: java.util.UUID): Response<TaskIdSolutionGet200Response>
+    @GET("api/task/{id}/solution")
+    suspend fun apiTaskIdSolutionGet(@Path("id") id: java.util.UUID): Response<StudentSolutionDetailsDtoApiResponse>
 
     /**
-     * PUT task/{id}/solution
-     * Отправить или отредактировать решение
+     * PUT api/task/{id}/solution
+     * 
      * 
      * Responses:
-     *  - 200: Решение отправлено
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param submitSolutionRequest 
-     * @return [CourseCourseIdTaskPost200Response]
+     * @param submitSolutionRequestDto  (optional)
+     * @return [IdRequestDtoApiResponse]
      */
-    @PUT("task/{id}/solution")
-    suspend fun taskIdSolutionPut(@Path("id") id: java.util.UUID, @Body submitSolutionRequest: SubmitSolutionRequest): Response<CourseCourseIdTaskPost200Response>
-
-
-    /**
-    * enum for parameter status
-    */
-    enum class StatusTaskIdSolutionsGet(val value: kotlin.String) {
-        @Json(name = "pending") pending("pending"),
-        @Json(name = "checked") checked("checked"),
-        @Json(name = "returned") returned("returned")
-    }
+    @PUT("api/task/{id}/solution")
+    suspend fun apiTaskIdSolutionPut(@Path("id") id: java.util.UUID, @Body submitSolutionRequestDto: SubmitSolutionRequestDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
-     * GET task/{id}/solutions
-     * Получить список решений по заданию
+     * GET api/task/{id}/solutions
+     * 
      * 
      * Responses:
-     *  - 200: Список решений
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param id 
-     * @param skip Сколько записей пропустить (optional, default to 0)
-     * @param take Сколько записей взять после пропуска (optional, default to 10)
-     * @param status Фильтр по статусу решения (optional)
-     * @param studentId Фильтр по конкретному ученику (optional)
-     * @return [TaskIdSolutionsGet200Response]
+     * @param skip  (optional, default to 0)
+     * @param take  (optional, default to 20)
+     * @param status  (optional)
+     * @param studentId  (optional)
+     * @return [SolutionListDtoApiResponse]
      */
-    @GET("task/{id}/solutions")
-    suspend fun taskIdSolutionsGet(@Path("id") id: java.util.UUID, @Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 10, @Query("status") status: StatusTaskIdSolutionsGet? = null, @Query("studentId") studentId: java.util.UUID? = null): Response<TaskIdSolutionsGet200Response>
+    @GET("api/task/{id}/solutions")
+    suspend fun apiTaskIdSolutionsGet(@Path("id") id: java.util.UUID, @Query("skip") skip: kotlin.Int? = 0, @Query("take") take: kotlin.Int? = 20, @Query("status") status: SolutionStatus? = null, @Query("studentId") studentId: java.util.UUID? = null): Response<SolutionListDtoApiResponse>
 
 }
