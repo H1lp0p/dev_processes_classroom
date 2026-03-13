@@ -192,6 +192,7 @@ class CourseRepositoryImpl @Inject constructor(
             id = CourseId(id),
             title = title,
             inviteCode = inviteCode,
+            authorId = UserId(authorId),
         )
 
     private fun CourseMemberDto.toDomain(): CourseMember =

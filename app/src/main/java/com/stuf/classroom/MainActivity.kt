@@ -25,6 +25,7 @@ import com.stuf.classroom.auth.LoginRoute
 import com.stuf.classroom.auth.LoginViewModel
 import com.stuf.classroom.auth.RegisterRoute
 import com.stuf.classroom.auth.RegisterViewModel
+import com.stuf.classroom.course.CourseRoute
 import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
 import com.stuf.domain.model.UserCourse
@@ -128,20 +129,26 @@ class MainActivity : ComponentActivity() {
                             onNewCourse = { navController.navigate("createCourse") },
                             onJoinCourse = { navController.navigate("joinCourse") },
                             onCourseClick = { course: UserCourse ->
-                                navController.navigate("course/${course.id.value}")
+                                val roleSegment = when (course.role) {
+                                    com.stuf.domain.model.CourseRole.TEACHER -> "teacher"
+                                    com.stuf.domain.model.CourseRole.STUDENT -> "student"
+                                }
+                                navController.navigate("course/${course.id.value}/$roleSegment")
                             },
                         )
                     }
-                    composable("course/{courseId}") {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            Text("Курс (заглушка)")
-                            Button(onClick = { navController.popBackStack() }) {
-                                Text("Назад")
-                            }
-                        }
+                    composable("course/{courseId}/{role}") {
+                        CourseRoute(
+                            onPostClick = { postId ->
+                                // Навигация к деталям поста будет добавлена позже
+                            },
+                            onCreatePostClick = {
+                                // Навигация к созданию поста будет добавлена позже
+                            },
+                            onLeaveCourse = {
+                                navController.popBackStack()
+                            },
+                        )
                     }
                     composable("createCourse") {
                         Column(

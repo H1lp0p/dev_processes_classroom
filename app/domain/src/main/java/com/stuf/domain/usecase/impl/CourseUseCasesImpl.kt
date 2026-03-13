@@ -11,6 +11,7 @@ import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CourseRepository
 import com.stuf.domain.usecase.ChangeMemberRole
 import com.stuf.domain.usecase.CreateCourse
+import com.stuf.domain.usecase.GetCourseInfo
 import com.stuf.domain.usecase.GetCourseMembers
 import com.stuf.domain.usecase.GetUserCourses
 import com.stuf.domain.usecase.JoinCourse
@@ -99,4 +100,14 @@ class LeaveCourseUseCase @Inject constructor(
         return repository.leaveCourse(courseId)
     }
 }
+
+class GetCourseInfoUseCase @Inject constructor(
+    private val repository: CourseRepository,
+) : GetCourseInfo {
+
+    override suspend fun invoke(courseId: CourseId): DomainResult<Course> {
+        return repository.getCourseInfo(courseId)
+    }
+}
+
 

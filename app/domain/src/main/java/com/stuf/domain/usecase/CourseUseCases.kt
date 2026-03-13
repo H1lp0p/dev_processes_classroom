@@ -35,3 +35,7 @@ interface RemoveMember {
 interface LeaveCourse {
     suspend operator fun invoke(courseId: CourseId): DomainResult<Unit>
 }
+
+interface GetCourseInfo {
+    suspend operator fun invoke(courseId: CourseId): DomainResult<Course>
+}

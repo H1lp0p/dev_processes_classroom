@@ -14,10 +14,11 @@ import com.stuf.domain.model.PostId
 import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.repository.PostRepository
+import javax.inject.Inject
 import retrofit2.Response
 import java.io.IOException
 
-class PostRepositoryImpl(
+class PostRepositoryImpl @Inject constructor(
     private val api: PostApi,
 ) : PostRepository {
 
