@@ -25,6 +25,7 @@ import com.stuf.classroom.auth.LoginRoute
 import com.stuf.classroom.auth.LoginViewModel
 import com.stuf.classroom.auth.RegisterRoute
 import com.stuf.classroom.auth.RegisterViewModel
+import com.stuf.classroom.course.CourseRoute
 import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
 import com.stuf.domain.model.UserCourse
@@ -133,15 +134,17 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("course/{courseId}") {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            Text("Курс (заглушка)")
-                            Button(onClick = { navController.popBackStack() }) {
-                                Text("Назад")
-                            }
-                        }
+                        CourseRoute(
+                            onPostClick = { postId ->
+                                // Навигация к деталям поста будет добавлена позже
+                            },
+                            onCreatePostClick = {
+                                // Навигация к созданию поста будет добавлена позже
+                            },
+                            onLeaveCourse = {
+                                navController.popBackStack()
+                            },
+                        )
                     }
                     composable("createCourse") {
                         Column(

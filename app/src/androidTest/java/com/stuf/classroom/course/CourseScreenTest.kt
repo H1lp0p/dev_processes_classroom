@@ -1,10 +1,9 @@
 package com.stuf.classroom.course
 
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -17,6 +16,7 @@ import com.stuf.domain.model.PostId
 import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.UserId
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -166,10 +166,9 @@ class CourseScreenTest {
     }
 
     @Test
-    fun courseScreen_calls_callbacks_on_clicks() {
+    fun courseScreen_calls_course_tab_callbacks() {
         val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000700"))
         val postId = PostId(UUID.fromString("00000000-0000-0000-0000-000000000701"))
-        val memberId = UserId(UUID.fromString("00000000-0000-0000-0000-000000000702"))
 
         val posts = listOf(
             Post(
@@ -182,24 +181,15 @@ class CourseScreenTest {
                 taskDetails = null,
             ),
         )
-        val members = listOf(
-            CourseMember(
-                id = memberId,
-                credentials = "Student",
-                email = "student@example.com",
-                role = CourseRole.STUDENT,
-            ),
-        )
-
         val state = CourseScreenUiState(
             courseId = courseId,
             courseTitle = "Course Title",
             inviteCode = "INV123",
             currentUserRole = CourseRole.TEACHER,
-            courseAuthorId = memberId,
+            courseAuthorId = null,
             selectedTab = CourseTab.COURSE,
             posts = posts,
-            members = members,
+            members = emptyList(),
             isLoadingCourse = false,
             isLoadingFeed = false,
             isLoadingMembers = false,
@@ -231,15 +221,72 @@ class CourseScreenTest {
         composeRule.onNodeWithTag("course_create_post_button").performClick()
         composeRule.onAllNodes(hasTestTag("course_post_item"))[0].performClick()
 
-        // Переключаемся на вкладку участников для проверок кликов по ним
-        composeRule.onNodeWithTag("course_tab_members").performClick()
+        assertEquals(CourseTab.MEMBERS, lastSelectedTab)
+        assertEquals(postId, lastPostClicked)
+        assertTrue(createPostClicked)
+        assertEquals(null, lastMemberRoleToggled)
+        assertEquals(null, lastMemberRemoved)
+        assertFalse(leaveClicked)
+    }
+
+    @Test
+    fun courseScreen_calls_member_callbacks_on_clicks() {
+        val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000710"))
+        val authorId = UserId(UUID.fromString("00000000-0000-0000-0000-000000000711"))
+        val memberId = UserId(UUID.fromString("00000000-0000-0000-0000-000000000712"))
+
+        val members = listOf(
+            CourseMember(
+                id = authorId,
+                credentials = "Owner",
+                email = "owner@example.com",
+                role = CourseRole.TEACHER,
+            ),
+            CourseMember(
+                id = memberId,
+                credentials = "Student",
+                email = "student@example.com",
+                role = CourseRole.STUDENT,
+            ),
+        )
+
+        val state = CourseScreenUiState(
+            courseId = courseId,
+            courseTitle = "Course Title",
+            inviteCode = "INV123",
+            currentUserRole = CourseRole.TEACHER,
+            courseAuthorId = authorId,
+            selectedTab = CourseTab.MEMBERS,
+            posts = emptyList(),
+            members = members,
+            isLoadingCourse = false,
+            isLoadingFeed = false,
+            isLoadingMembers = false,
+            error = null,
+        )
+
+        var lastMemberRoleToggled: UserId? = null
+        var lastMemberRemoved: UserId? = null
+        var leaveClicked = false
+
+        composeRule.setContent {
+            ClassroomTheme {
+                CourseScreen(
+                    state = state,
+                    onTabSelected = {},
+                    onPostClick = {},
+                    onCreatePostClick = {},
+                    onMemberRoleToggleClick = { lastMemberRoleToggled = it },
+                    onMemberRemoveClick = { lastMemberRemoved = it },
+                    onLeaveCourseClick = { leaveClicked = true },
+                )
+            }
+        }
+
         composeRule.onAllNodes(hasTestTag("course_member_toggle_role_button"))[0].performClick()
         composeRule.onAllNodes(hasTestTag("course_member_remove_button"))[0].performClick()
         composeRule.onNodeWithTag("course_leave_button").performClick()
 
-        assertEquals(CourseTab.MEMBERS, lastSelectedTab)
-        assertEquals(postId, lastPostClicked)
-        assertTrue(createPostClicked)
         assertEquals(memberId, lastMemberRoleToggled)
         assertEquals(memberId, lastMemberRemoved)
         assertTrue(leaveClicked)

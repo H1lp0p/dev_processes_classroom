@@ -16,6 +16,7 @@ import com.stuf.domain.usecase.GetCourseMembers
 import com.stuf.domain.usecase.GetCourseFeed
 import com.stuf.domain.usecase.LeaveCourse
 import com.stuf.domain.usecase.RemoveMember
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -147,7 +148,9 @@ class CourseScreenViewModelTest {
         fakeLeaveCourse = FakeLeaveCourse()
 
         viewModel = CourseScreenViewModel(
-            courseId = courseId,
+            savedStateHandle = SavedStateHandle(
+                mapOf("courseId" to courseId.value.toString()),
+            ),
             getCourseInfo = fakeGetCourseInfo,
             getCourseFeed = fakeGetCourseFeed,
             getCourseMembers = fakeGetCourseMembers,
