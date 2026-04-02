@@ -12,8 +12,9 @@ import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
-import com.stuf.domain.model.PostId
+import com.stuf.domain.model.User
 import com.stuf.domain.model.UserId
+import com.stuf.domain.repository.CurrentUserRepository
 import com.stuf.domain.usecase.ChangeMemberRole
 import com.stuf.domain.usecase.GetCourseFeed
 import com.stuf.domain.usecase.GetCourseInfo
@@ -30,26 +31,6 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
-enum class CourseTab {
-    COURSE,
-    MEMBERS,
-}
-
-data class CourseScreenUiState(
-    val courseId: CourseId,
-    val courseTitle: String = "",
-    val inviteCode: String? = null,
-    val currentUserRole: CourseRole? = null,
-    val courseAuthorId: UserId? = null,
-    val selectedTab: CourseTab = CourseTab.COURSE,
-    val posts: List<Post> = emptyList(),
-    val members: List<CourseMember> = emptyList(),
-    val isLoadingCourse: Boolean = false,
-    val isLoadingFeed: Boolean = false,
-    val isLoadingMembers: Boolean = false,
-    val error: String? = null,
-)
-
 @HiltViewModel
 class CourseScreenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -59,6 +40,7 @@ class CourseScreenViewModel @Inject constructor(
     private val changeMemberRole: ChangeMemberRole,
     private val removeMember: RemoveMember,
     private val leaveCourse: LeaveCourse,
+    private val currentUserRepository: CurrentUserRepository,
     @MainDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -91,7 +73,9 @@ class CourseScreenViewModel @Inject constructor(
 
             val courseResult: DomainResult<Course> = getCourseInfo(courseId)
             val feedResult: DomainResult<List<Post>> = getCourseFeed(courseId)
-            val membersResult: DomainResult<List<CourseMember>> = getCourseMembers(courseId, null)
+            val membersResult: DomainResult<List<CourseMember>> =
+                getCourseMembers(courseId, null)
+            val userResult: DomainResult<User> = currentUserRepository.getCurrentUser()
 
             var newState = _uiState.value.copy(
                 isLoadingCourse = false,
@@ -125,6 +109,13 @@ class CourseScreenViewModel @Inject constructor(
                     null
                 }
                 is DomainResult.Failure -> mapError(membersResult.error)
+            }
+
+            when (userResult) {
+                is DomainResult.Success -> {
+                    newState = newState.copy(currentUserId = userResult.value.id)
+                }
+                is DomainResult.Failure -> { }
             }
 
             _uiState.value = newState.copy(
@@ -209,4 +200,3 @@ class CourseScreenViewModel @Inject constructor(
             }
         }
 }
-

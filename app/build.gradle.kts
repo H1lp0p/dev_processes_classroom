@@ -24,6 +24,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "backend"
+    productFlavors {
+        create("api") {
+            dimension = "backend"
+        }
+        create("offline") {
+            dimension = "backend"
+            isDefault = true
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
