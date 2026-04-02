@@ -4,4 +4,5 @@ enum class PostKind {
     ANNOUNCEMENT,
     MATERIAL,
     TASK,
+    TEAM_TASK,
 }

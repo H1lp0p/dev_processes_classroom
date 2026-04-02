@@ -115,6 +115,28 @@ class DemoDataStore @Inject constructor() {
                 maxScore = 5,
             ),
         )
+        val materialAlgebra = Post(
+            id = DemoIds.postMaterialAlgebra,
+            courseId = DemoIds.courseAlgebra,
+            kind = PostKind.MATERIAL,
+            title = "Шпаргалка: квадратные уравнения",
+            text = "Формула дискриминанта и примеры — в приложенном PDF (демо).",
+            createdAt = t.minusHours(12),
+            taskDetails = null,
+        )
+        val teamAlgebra = Post(
+            id = DemoIds.postTeamAlgebra,
+            courseId = DemoIds.courseAlgebra,
+            kind = PostKind.TEAM_TASK,
+            title = "Командный проект: мини-исследование",
+            text = "Сформируйте команды по 3 человека и подготовьте краткий отчёт.",
+            createdAt = t.minusHours(6),
+            taskDetails = TaskDetails(
+                deadline = t.plusDays(10),
+                isMandatory = false,
+                maxScore = 10,
+            ),
+        )
         val webLab = Post(
             id = DemoIds.postWebLab,
             courseId = DemoIds.courseWeb,
@@ -134,10 +156,10 @@ class DemoDataStore @Inject constructor() {
             taskDetails = null,
         )
 
-        postsByCourse[DemoIds.courseAlgebra] = mutableListOf(welcome, homework)
+        postsByCourse[DemoIds.courseAlgebra] = mutableListOf(welcome, homework, materialAlgebra, teamAlgebra)
         postsByCourse[DemoIds.courseWeb] = mutableListOf(webLab)
         postsByCourse[DemoIds.courseTeacherClub] = mutableListOf(clubWelcome)
-        listOf(welcome, homework, webLab, clubWelcome).forEach { postsById[it.id] = it }
+        listOf(welcome, homework, materialAlgebra, teamAlgebra, webLab, clubWelcome).forEach { postsById[it.id] = it }
 
         val taskHomework = TaskId(DemoIds.postHomework.value)
         solutionsByTask[taskHomework] = Solution(
@@ -279,7 +301,7 @@ class DemoDataStore @Inject constructor() {
         val old = postsById.remove(postId) ?: return@withLock false
         postsByCourse[old.courseId]?.removeAll { it.id == postId }
         commentsByPost.remove(postId)
-        if (old.kind == PostKind.TASK) {
+        if (old.kind == PostKind.TASK || old.kind == PostKind.TEAM_TASK) {
             solutionsByTask.remove(TaskId(postId.value))
         }
         true
@@ -385,7 +407,7 @@ class DemoDataStore @Inject constructor() {
 
     suspend fun getPerformanceTable(courseId: CourseId): GradeTable = mutex.withLock {
         val taskPosts = postsByCourse[courseId].orEmpty()
-            .filter { it.kind == PostKind.TASK }
+            .filter { it.kind == PostKind.TASK || it.kind == PostKind.TEAM_TASK }
             .map { TaskId(it.id.value) }
         val students = members[courseId].orEmpty().filter { it.role == CourseRole.STUDENT }
         val rows = students.map { m ->
