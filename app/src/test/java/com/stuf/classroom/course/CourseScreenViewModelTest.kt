@@ -9,7 +9,9 @@ import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.PostKind
+import com.stuf.domain.model.User
 import com.stuf.domain.model.UserId
+import com.stuf.domain.repository.CurrentUserRepository
 import com.stuf.domain.usecase.ChangeMemberRole
 import com.stuf.domain.usecase.GetCourseInfo
 import com.stuf.domain.usecase.GetCourseMembers
@@ -124,12 +126,25 @@ class CourseScreenViewModelTest {
         }
     }
 
+    private class FakeCurrentUserRepository : CurrentUserRepository {
+        var result: DomainResult<User> = DomainResult.Success(
+            User(
+                id = UserId(UUID.fromString("00000000-0000-0000-0000-000000000199")),
+                credentials = "Test User",
+                email = "test@example.com",
+            ),
+        )
+
+        override suspend fun getCurrentUser(): DomainResult<User> = result
+    }
+
     private lateinit var fakeGetCourseInfo: FakeGetCourseInfo
     private lateinit var fakeGetCourseFeed: FakeGetCourseFeed
     private lateinit var fakeGetCourseMembers: FakeGetCourseMembers
     private lateinit var fakeChangeMemberRole: FakeChangeMemberRole
     private lateinit var fakeRemoveMember: FakeRemoveMember
     private lateinit var fakeLeaveCourse: FakeLeaveCourse
+    private lateinit var fakeCurrentUserRepository: FakeCurrentUserRepository
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -146,6 +161,7 @@ class CourseScreenViewModelTest {
         fakeChangeMemberRole = FakeChangeMemberRole()
         fakeRemoveMember = FakeRemoveMember()
         fakeLeaveCourse = FakeLeaveCourse()
+        fakeCurrentUserRepository = FakeCurrentUserRepository()
 
         viewModel = CourseScreenViewModel(
             savedStateHandle = SavedStateHandle(
@@ -157,6 +173,7 @@ class CourseScreenViewModelTest {
             changeMemberRole = fakeChangeMemberRole,
             removeMember = fakeRemoveMember,
             leaveCourse = fakeLeaveCourse,
+            currentUserRepository = fakeCurrentUserRepository,
             dispatcher = testDispatcher,
         )
     }
@@ -214,6 +231,11 @@ class CourseScreenViewModelTest {
 
         assertEquals(1, state.members.size)
         assertEquals(memberId, state.members[0].id)
+
+        assertEquals(
+            UserId(UUID.fromString("00000000-0000-0000-0000-000000000199")),
+            state.currentUserId,
+        )
     }
 
     @Test

@@ -84,7 +84,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onBackClick = {},
@@ -104,8 +103,6 @@ class CourseScreenTest {
         composeRule.onNodeWithTag("course_posts_list").assertIsDisplayed()
         composeRule.onAllNodes(hasTestTag("course_post_item"))
             .assertCountEquals(1)
-
-        composeRule.onNodeWithTag("course_create_post_button").assertIsDisplayed()
     }
 
     @Test
@@ -133,7 +130,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onBackClick = {},
@@ -188,7 +184,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onLeaveCourseClick = {},
@@ -240,7 +235,6 @@ class CourseScreenTest {
 
         var lastSelectedTab: CourseTab? = null
         var lastPostClicked: PostId? = null
-        var createPostClicked = false
         var lastMemberRoleToggled: UserId? = null
         var lastMemberRemoved: UserId? = null
         var leaveClicked = false
@@ -251,7 +245,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = { lastSelectedTab = it },
                     onPostClick = { lastPostClicked = it },
-                    onCreatePostClick = { createPostClicked = true },
                     onMemberRoleToggleClick = { lastMemberRoleToggled = it },
                     onMemberRemoveClick = { lastMemberRemoved = it },
                     onBackClick = {},
@@ -261,12 +254,10 @@ class CourseScreenTest {
         }
 
         composeRule.onNodeWithTag("course_tab_members").performClick()
-        composeRule.onNodeWithTag("course_create_post_button").performClick()
         composeRule.onAllNodes(hasTestTag("course_post_item"))[0].performClick()
 
         assertEquals(CourseTab.MEMBERS, lastSelectedTab)
         assertEquals(postId, lastPostClicked)
-        assertTrue(createPostClicked)
         assertEquals(null, lastMemberRoleToggled)
         assertEquals(null, lastMemberRemoved)
         assertFalse(leaveClicked)
@@ -318,7 +309,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = { lastMemberRoleToggled = it },
                     onMemberRemoveClick = { lastMemberRemoved = it },
                     onBackClick = {},
@@ -365,7 +355,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onBackClick = {},
