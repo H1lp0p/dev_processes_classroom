@@ -13,12 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.stuf.classroom.post.components.PostCommentInput
-import com.stuf.classroom.post.components.PostScreenBackRow
 import com.stuf.classroom.post.components.PostScreenCommentsList
 import com.stuf.classroom.post.components.PostScreenErrorBlock
 import com.stuf.classroom.post.components.PostScreenLoadingIndicator
 import com.stuf.classroom.post.components.PostScreenPostHeaderCard
 import com.stuf.classroom.post.components.PostScreenTeacherSolutionsSection
+import com.stuf.classroom.post.components.PostScreenTopBar
 import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.SolutionId
@@ -40,7 +40,7 @@ fun PostScreen(
                 .fillMaxSize()
                 .padding(16.dp),
     ) {
-        PostScreenBackRow(onBackClick = onBackClick)
+        PostScreenTopBar(onBackClick = onBackClick)
 
         Spacer(modifier = Modifier.height(8.dp))
 

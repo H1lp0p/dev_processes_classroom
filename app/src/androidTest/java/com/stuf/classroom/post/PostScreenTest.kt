@@ -30,6 +30,7 @@ class PostScreenTest {
         val state: PostUiState = PostUiState(
             postTitle = "Post title",
             postText = "Post body",
+            postTypeLabel = "Пост",
             isTask = false,
             currentUserRole = CourseRole.STUDENT,
         )
@@ -64,6 +65,7 @@ class PostScreenTest {
         val stateStudent: PostUiState = PostUiState(
             postTitle = "Task title",
             postText = "Task body",
+            postTypeLabel = "Задание",
             isTask = true,
             currentUserRole = CourseRole.STUDENT,
         )
@@ -91,6 +93,7 @@ class PostScreenTest {
         val stateTeacher: PostUiState = PostUiState(
             postTitle = "Task title",
             postText = "Task body",
+            postTypeLabel = "Задание",
             isTask = true,
             currentUserRole = CourseRole.TEACHER,
         )
@@ -123,6 +126,7 @@ class PostScreenTest {
         val state: PostUiState = PostUiState(
             postTitle = "Post",
             postText = "Body",
+            postTypeLabel = "Пост",
             isTask = false,
             currentUserRole = CourseRole.STUDENT,
             comments = comments,
@@ -157,6 +161,7 @@ class PostScreenTest {
         val state: PostUiState = PostUiState(
             postTitle = "Post",
             postText = "Body",
+            postTypeLabel = "Пост",
             isTask = false,
             currentUserRole = CourseRole.STUDENT,
         )
@@ -193,6 +198,7 @@ class PostScreenTest {
         val state: PostUiState = PostUiState(
             postTitle = "Task",
             postText = "Body",
+            postTypeLabel = "Задание",
             isTask = true,
             currentUserRole = CourseRole.TEACHER,
             comments = listOf(
@@ -237,6 +243,7 @@ class PostScreenTest {
         val state: PostUiState = PostUiState(
             postTitle = "Task",
             postText = "Body",
+            postTypeLabel = "Задание",
             isTask = true,
             currentUserRole = CourseRole.TEACHER,
             solutions = listOf(
@@ -274,6 +281,7 @@ class PostScreenTest {
         val state: PostUiState = PostUiState(
             postTitle = "Post",
             postText = "Body",
+            postTypeLabel = "Пост",
             isTask = false,
             currentUserRole = CourseRole.STUDENT,
             isLoading = true,

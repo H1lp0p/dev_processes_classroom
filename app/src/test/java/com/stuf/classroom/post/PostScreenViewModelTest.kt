@@ -6,7 +6,6 @@ import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
 import com.stuf.domain.model.CommentAuthor
 import com.stuf.domain.model.CommentId
-import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.PostKind
@@ -15,7 +14,6 @@ import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
-import com.stuf.domain.model.User
 import com.stuf.domain.model.UserId
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
@@ -183,9 +181,58 @@ class PostScreenViewModelTest {
         assertFalse(state.isLoading)
         assertEquals("Post title", state.postTitle)
         assertEquals("Post body", state.postText)
+        assertEquals("Пост", state.postTypeLabel)
         assertEquals(false, state.isTask)
         assertEquals(1, state.comments.size)
         assertEquals("Comment", state.comments[0].text)
+    }
+
+    @Test
+    fun `initial load sets material post type label`() = runTest {
+        val courseId: com.stuf.domain.model.CourseId =
+            com.stuf.domain.model.CourseId(UUID.randomUUID())
+        val post: Post = Post(
+            id = postId,
+            courseId = courseId,
+            kind = PostKind.MATERIAL,
+            title = "PDF",
+            text = "Текст",
+            createdAt = OffsetDateTime.now(),
+            taskDetails = null,
+        )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        assertEquals("Материал", viewModel.uiState.value.postTypeLabel)
+        assertFalse(viewModel.uiState.value.isTask)
+    }
+
+    @Test
+    fun `initial load sets team task post type label`() = runTest {
+        val courseId: com.stuf.domain.model.CourseId =
+            com.stuf.domain.model.CourseId(UUID.randomUUID())
+        val details = TaskDetails(OffsetDateTime.now(), true, 10)
+        val post: Post = Post(
+            id = postId,
+            courseId = courseId,
+            kind = PostKind.TEAM_TASK,
+            title = "Команда",
+            text = "Описание",
+            createdAt = OffsetDateTime.now(),
+            taskDetails = details,
+        )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        val state: PostUiState = viewModel.uiState.value
+        assertEquals("Командное задание", state.postTypeLabel)
+        assertTrue(state.isTask)
     }
 
     @Test
@@ -349,6 +396,7 @@ class PostScreenViewModelTest {
 
         val state: PostUiState = viewModel.uiState.value
         assertTrue(state.isTask)
+        assertEquals("Задание", state.postTypeLabel)
         assertEquals(1, state.solutions.size)
         assertEquals("Student", state.solutions[0].studentName)
     }

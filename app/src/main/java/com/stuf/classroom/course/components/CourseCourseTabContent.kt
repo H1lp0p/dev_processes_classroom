@@ -1,6 +1,5 @@
 package com.stuf.classroom.course.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,9 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.stuf.classroom.course.CourseScreenUiState
+import com.stuf.classroom.course.components.feed.CourseFeedPostItem
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.CourseRole
 
 @Composable
@@ -75,34 +74,10 @@ internal fun CourseCourseTabContent(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(state.posts) { post: Post ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onPostClick(post.id) }
-                        .testTag("course_post_item"),
-                    colors = CardDefaults.cardColors(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = post.title,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        val typeLabel: String = when (post.kind) {
-                            PostKind.ANNOUNCEMENT -> "Пост"
-                            PostKind.MATERIAL -> "Материал"
-                            PostKind.TASK -> "Задача"
-                        }
-                        Text(
-                            text = typeLabel,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary,
-                        )
-                    }
-                }
+                CourseFeedPostItem(
+                    post = post,
+                    onPostClick = onPostClick,
+                )
             }
         }
     }

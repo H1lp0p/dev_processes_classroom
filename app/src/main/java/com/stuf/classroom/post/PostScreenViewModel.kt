@@ -74,7 +74,8 @@ class PostScreenViewModel @Inject constructor(
                         }
 
                     val taskDetails: TaskDetails? = post.taskDetails
-                    val isTask: Boolean = post.kind == PostKind.TASK && taskDetails != null
+                    val isTask: Boolean =
+                        (post.kind == PostKind.TASK || post.kind == PostKind.TEAM_TASK) && taskDetails != null
 
                     val solutionsUi: List<SolutionUi> =
                         if (isTask && currentUserRole == CourseRole.TEACHER) {
@@ -105,6 +106,7 @@ class PostScreenViewModel @Inject constructor(
                             error = null,
                             postTitle = post.title,
                             postText = post.text,
+                            postTypeLabel = post.kind.toPostScreenTypeLabel(),
                             isTask = isTask,
                             comments = commentsUi,
                             solutions = solutionsUi,

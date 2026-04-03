@@ -7,6 +7,8 @@ data class PostUiState(
     val error: String? = null,
     val postTitle: String = "",
     val postText: String = "",
+    /** Подпись типа поста на экране (Пост / Материал / Задание / Командное задание). */
+    val postTypeLabel: String = "",
     val isTask: Boolean = false,
     val currentUserRole: CourseRole = CourseRole.STUDENT,
     val comments: List<CommentUi> = emptyList(),

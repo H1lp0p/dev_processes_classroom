@@ -7,13 +7,15 @@ import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostKind
 
 internal fun Post.toCreateUpdateDto(): CreateUpdatePostDto {
-    val taskType = if (kind == PostKind.TASK) TaskType.mandatory else TaskType.mandatory
+    val taskType = if (kind == PostKind.TASK || kind == PostKind.TEAM_TASK) TaskType.mandatory else TaskType.mandatory
     return CreateUpdatePostDto(
         type = when (kind) {
             PostKind.ANNOUNCEMENT,
             PostKind.MATERIAL,
             -> PostType.post
-            PostKind.TASK -> PostType.task
+            PostKind.TASK,
+            PostKind.TEAM_TASK,
+            -> PostType.task
         },
         title = title,
         text = text,

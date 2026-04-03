@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -39,10 +40,14 @@ internal fun PostScreenPostHeaderCard(
                 modifier = Modifier.testTag("post_text"),
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = if (state.isTask) "Задание" else "Объявление",
-                modifier = Modifier.testTag("post_type_label"),
-            )
+            if (state.postTypeLabel.isNotEmpty()) {
+                Text(
+                    text = state.postTypeLabel,
+                    modifier = Modifier.testTag("post_type_label"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+            }
 
             if (state.isTask && state.currentUserRole == CourseRole.STUDENT) {
                 Spacer(modifier = Modifier.height(8.dp))

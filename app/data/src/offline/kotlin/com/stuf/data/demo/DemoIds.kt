@@ -17,6 +17,8 @@ internal object DemoIds {
 
     val postWelcome: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333301"))
     val postHomework: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333302"))
+    val postMaterialAlgebra: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333303"))
+    val postTeamAlgebra: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333304"))
     val postWebLab: PostId = PostId(UUID.fromString("44444444-4444-4444-4444-444444444403"))
     val postClubWelcome: PostId = PostId(UUID.fromString("77777777-7777-7777-7777-777777777701"))
 
