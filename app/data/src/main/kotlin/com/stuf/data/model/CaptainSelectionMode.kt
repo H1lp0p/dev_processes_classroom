@@ -22,20 +22,20 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * Values: post,task,team_task
+ * Values: firstMember,teacherFixed,votingAndLottery
  */
 
 @JsonClass(generateAdapter = false)
-enum class PostType(val value: kotlin.String) {
+enum class CaptainSelectionMode(val value: kotlin.String) {
 
-    @Json(name = "post")
-    post("post"),
+    @Json(name = "firstMember")
+    firstMember("firstMember"),
 
-    @Json(name = "task")
-    task("task"),
+    @Json(name = "teacherFixed")
+    teacherFixed("teacherFixed"),
 
-    @Json(name = "team_task")
-    team_task("team_task");
+    @Json(name = "votingAndLottery")
+    votingAndLottery("votingAndLottery");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use
@@ -50,12 +50,12 @@ enum class PostType(val value: kotlin.String) {
         /**
          * Converts the provided [data] to a [String] on success, null otherwise.
          */
-        fun encode(data: kotlin.Any?): kotlin.String? = if (data is PostType) "$data" else null
+        fun encode(data: kotlin.Any?): kotlin.String? = if (data is CaptainSelectionMode) "$data" else null
 
         /**
-         * Returns a valid [PostType] for [data], null otherwise.
+         * Returns a valid [CaptainSelectionMode] for [data], null otherwise.
          */
-        fun decode(data: kotlin.Any?): PostType? = data?.let {
+        fun decode(data: kotlin.Any?): CaptainSelectionMode? = data?.let {
           val normalizedData = "$it".lowercase()
           entries.firstOrNull { value ->
             it == value || normalizedData == "$value".lowercase()

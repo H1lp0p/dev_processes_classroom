@@ -13,7 +13,7 @@ import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.UserId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,14 +44,12 @@ class CourseScreenTest {
     fun courseScreen_shows_basic_elements_on_course_tab_for_teacher() {
         val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000500"))
         val posts = listOf(
-            Post(
+            AnnouncementPost(
                 id = PostId(UUID.fromString("00000000-0000-0000-0000-000000000501")),
                 courseId = courseId,
-                kind = PostKind.ANNOUNCEMENT,
                 title = "Post 1",
                 text = "Text",
                 createdAt = OffsetDateTime.now(),
-                taskDetails = null,
             ),
         )
         val members = listOf(
@@ -208,14 +206,12 @@ class CourseScreenTest {
         val postId = PostId(UUID.fromString("00000000-0000-0000-0000-000000000701"))
 
         val posts = listOf(
-            Post(
+            AnnouncementPost(
                 id = postId,
                 courseId = courseId,
-                kind = PostKind.ANNOUNCEMENT,
                 title = "Post 1",
                 text = "Text",
                 createdAt = OffsetDateTime.now(),
-                taskDetails = null,
             ),
         )
         val state = CourseScreenUiState(

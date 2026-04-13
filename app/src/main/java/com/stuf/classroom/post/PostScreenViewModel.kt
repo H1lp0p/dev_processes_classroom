@@ -10,16 +10,11 @@ import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
-import com.stuf.domain.model.TaskDetails
-import com.stuf.domain.model.TaskId
-import com.stuf.domain.model.User
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
-import com.stuf.domain.usecase.GetSolutionsForTask
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,7 +31,6 @@ class PostScreenViewModel @Inject constructor(
     private val getCommentReplies: GetCommentReplies,
     private val addPostComment: AddPostComment,
     private val addCommentReply: AddCommentReply,
-    private val getSolutionsForTask: GetSolutionsForTask,
     @MainDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -59,61 +53,53 @@ class PostScreenViewModel @Inject constructor(
         val postIdValue: String = savedStateHandle.get<String>("postId") ?: return
         val postId: PostId = PostId(java.util.UUID.fromString(postIdValue))
 
-        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+        _uiState.value =
+            _uiState.value.copy(
+                isLoadingPost = true,
+                postLoadError = null,
+                isLoadingComments = true,
+                commentsLoadError = null,
+                content = null,
+            )
 
         viewModelScope.launch(dispatcher) {
             val postResult: DomainResult<Post> = getPost(postId)
             when (postResult) {
                 is DomainResult.Success -> {
                     val post: Post = postResult.value
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoadingPost = false,
+                            content = post.toPostScreenContent(),
+                        )
+
                     val commentsResult: DomainResult<List<Comment>> = getPostComments(postId)
                     val comments: List<Comment> =
                         when (commentsResult) {
                             is DomainResult.Success -> commentsResult.value
                             is DomainResult.Failure -> emptyList()
                         }
-
-                    val taskDetails: TaskDetails? = post.taskDetails
-                    val isTask: Boolean =
-                        (post.kind == PostKind.TASK || post.kind == PostKind.TEAM_TASK) && taskDetails != null
-
-                    val solutionsUi: List<SolutionUi> =
-                        if (isTask && currentUserRole == CourseRole.TEACHER) {
-                            val taskId: TaskId = TaskId(post.id.value)
-                            when (val solutionsResult = getSolutionsForTask(taskId)) {
-                                is DomainResult.Success -> {
-                                    solutionsResult.value.map { solution ->
-                                        val student: User? = null
-                                        val studentName: String = student?.credentials ?: "Student"
-                                        SolutionUi(
-                                            id = solution.id,
-                                            studentName = studentName,
-                                            status = solution.status.name,
-                                        )
-                                    }
-                                }
-                                is DomainResult.Failure -> emptyList()
-                            }
-                        } else {
-                            emptyList()
-                        }
-
                     val commentsUi: List<CommentUi> = comments.map { it.toUi() }
-
                     _uiState.value =
                         _uiState.value.copy(
-                            isLoading = false,
-                            error = null,
-                            postTitle = post.title,
-                            postText = post.text,
-                            postTypeLabel = post.kind.toPostScreenTypeLabel(),
-                            isTask = isTask,
+                            isLoadingComments = false,
                             comments = commentsUi,
-                            solutions = solutionsUi,
+                            commentsLoadError =
+                                if (commentsResult is DomainResult.Failure) {
+                                    "Не удалось загрузить комментарии"
+                                } else {
+                                    null
+                                },
                         )
                 }
                 is DomainResult.Failure -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = "Failed to load post")
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoadingPost = false,
+                            isLoadingComments = false,
+                            postLoadError = "Failed to load post",
+                            content = null,
+                        )
                 }
             }
         }
@@ -146,7 +132,10 @@ class PostScreenViewModel @Inject constructor(
                         } else {
                             current.comments.map { existing ->
                                 if (existing.id == parentCommentId.value) {
-                                    existing.copy(replies = existing.replies + createdUi)
+                                    existing.copy(
+                                        replies = existing.replies + createdUi,
+                                        repliesLoaded = true,
+                                    )
                                 } else {
                                     existing
                                 }
@@ -163,6 +152,7 @@ class PostScreenViewModel @Inject constructor(
 
     fun onLoadRepliesClick(commentId: CommentId) {
         viewModelScope.launch(dispatcher) {
+            _uiState.value = _uiState.value.copy(loadingRepliesForCommentId = commentId.value)
             val result: DomainResult<List<Comment>> = getCommentReplies(commentId)
             if (result is DomainResult.Success) {
                 val repliesUi: List<CommentUi> = result.value.map { it.toUi() }
@@ -170,20 +160,20 @@ class PostScreenViewModel @Inject constructor(
                 val updated: List<CommentUi> =
                     current.comments.map { commentUi ->
                         if (commentUi.id == commentId.value) {
-                            commentUi.copy(replies = repliesUi)
+                            commentUi.copy(replies = repliesUi, repliesLoaded = true)
                         } else {
                             commentUi
                         }
                     }
-                _uiState.value = current.copy(comments = updated)
+                _uiState.value =
+                    current.copy(
+                        comments = updated,
+                        loadingRepliesForCommentId = null,
+                    )
+            } else {
+                _uiState.value = _uiState.value.copy(loadingRepliesForCommentId = null)
             }
         }
-    }
-
-    fun onToggleCommentsVisibility() {
-        val current: PostUiState = _uiState.value
-        _uiState.value =
-            current.copy(areCommentsCollapsedForTeacher = !current.areCommentsCollapsedForTeacher)
     }
 
     private fun Comment.toUi(): CommentUi =
@@ -191,7 +181,9 @@ class PostScreenViewModel @Inject constructor(
             id = id,
             authorName = author.credentials,
             text = text,
+            createdAtLabel = formatCommentDate(createdAt),
             isPrivate = isPrivate,
+            replies = emptyList(),
+            repliesLoaded = false,
         )
 }
-

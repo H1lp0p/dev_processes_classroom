@@ -14,11 +14,12 @@ import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.TaskDetails
+import com.stuf.domain.model.TaskPost
 import com.stuf.domain.repository.PostRepository
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
@@ -130,7 +131,7 @@ class PostRepositoryImplTest {
         val post = posts.first()
         assertEquals(PostId(UUID.fromString("00000000-0000-0000-0000-000000000010")), post.id)
         assertEquals(CourseId(courseId), post.courseId)
-        assertEquals(PostKind.ANNOUNCEMENT, post.kind)
+        assertTrue(post is AnnouncementPost)
         assertEquals("Announcement", post.title)
         assertEquals(5, api.lastFeedSkip)
         assertEquals(10, api.lastFeedTake)
@@ -173,7 +174,7 @@ class PostRepositoryImplTest {
                         solvableAfterDeadline = true,
                         files = listOf(
                             FileDto(
-                                id = "file-id-1",
+                                id = "00000000-0000-0000-0000-000000000099",
                                 name = "file.txt",
                             ),
                         ),
@@ -190,14 +191,14 @@ class PostRepositoryImplTest {
 
         assertTrue(result is DomainResult.Success<Post>)
         val post = (result as DomainResult.Success<Post>).value
-        assertEquals(PostId(postId), post.id)
-        assertEquals(PostKind.TASK, post.kind)
-        assertEquals("Task title", post.title)
-        assertEquals("Solve this", post.text)
-        val taskDetails: TaskDetails? = post.taskDetails
-        assertEquals(OffsetDateTime.parse("2024-01-10T12:00:00Z"), taskDetails?.deadline)
-        assertEquals(true, taskDetails?.isMandatory)
-        assertEquals(10, taskDetails?.maxScore)
+        assertTrue(post is TaskPost)
+        val taskPost = post as TaskPost
+        assertEquals(PostId(postId), taskPost.id)
+        assertEquals("Task title", taskPost.title)
+        assertEquals("Solve this", taskPost.text)
+        assertEquals(OffsetDateTime.parse("2024-01-10T12:00:00Z"), taskPost.taskDetails.deadline)
+        assertEquals(true, taskPost.taskDetails.isMandatory)
+        assertEquals(10, taskPost.taskDetails.maxScore)
     }
 
     @Test
@@ -216,19 +217,20 @@ class PostRepositoryImplTest {
         }
         val repository: PostRepository = PostRepositoryImpl(api)
 
-        val domainPost = Post(
-            id = PostId(UUID.fromString("00000000-0000-0000-0000-000000000000")),
-            courseId = CourseId(courseId),
-            kind = PostKind.TASK,
-            title = "New Task",
-            text = "Do it",
-            createdAt = OffsetDateTime.parse("2024-01-01T00:00:00Z"),
-            taskDetails = TaskDetails(
-                deadline = OffsetDateTime.parse("2024-01-05T00:00:00Z"),
-                isMandatory = true,
-                maxScore = 5,
-            ),
-        )
+        val domainPost =
+            TaskPost(
+                id = PostId(UUID.fromString("00000000-0000-0000-0000-000000000000")),
+                courseId = CourseId(courseId),
+                title = "New Task",
+                text = "Do it",
+                createdAt = OffsetDateTime.parse("2024-01-01T00:00:00Z"),
+                taskDetails =
+                    TaskDetails(
+                        deadline = OffsetDateTime.parse("2024-01-05T00:00:00Z"),
+                        isMandatory = true,
+                        maxScore = 5,
+                    ),
+            )
 
         val result = runBlocking {
             repository.createPost(CourseId(courseId), domainPost)
@@ -262,15 +264,14 @@ class PostRepositoryImplTest {
         }
         val repository: PostRepository = PostRepositoryImpl(api)
 
-        val originalPost = Post(
-            id = PostId(postId),
-            courseId = CourseId(UUID.randomUUID()),
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Old title",
-            text = "Old text",
-            createdAt = OffsetDateTime.parse("2024-01-01T00:00:00Z"),
-            taskDetails = null,
-        )
+        val originalPost =
+            AnnouncementPost(
+                id = PostId(postId),
+                courseId = CourseId(UUID.randomUUID()),
+                title = "Old title",
+                text = "Old text",
+                createdAt = OffsetDateTime.parse("2024-01-01T00:00:00Z"),
+            )
 
         val result = runBlocking {
             repository.updatePost(PostId(postId), originalPost.copy(title = "New title"))
@@ -307,4 +308,3 @@ class PostRepositoryImplTest {
         assertEquals(postId, api.lastDeletedPostId)
     }
 }
-

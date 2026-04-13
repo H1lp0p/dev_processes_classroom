@@ -2,9 +2,12 @@ package com.stuf.classroom.course.components.feed
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.stuf.domain.model.AnnouncementPost
+import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
+import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.TeamTaskPost
 
 @Composable
 internal fun CourseFeedPostItem(
@@ -12,14 +15,14 @@ internal fun CourseFeedPostItem(
     onPostClick: (PostId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (post.kind) {
-        PostKind.ANNOUNCEMENT ->
+    when (post) {
+        is AnnouncementPost ->
             CourseAnnouncementPostCard(post = post, onClick = { onPostClick(post.id) }, modifier = modifier)
-        PostKind.MATERIAL ->
+        is MaterialPost ->
             CourseMaterialPostCard(post = post, onClick = { onPostClick(post.id) }, modifier = modifier)
-        PostKind.TASK ->
+        is TaskPost ->
             CourseTaskPostCard(post = post, onClick = { onPostClick(post.id) }, modifier = modifier)
-        PostKind.TEAM_TASK ->
+        is TeamTaskPost ->
             CourseTeamTaskPostCard(post = post, onClick = { onPostClick(post.id) }, modifier = modifier)
     }
 }

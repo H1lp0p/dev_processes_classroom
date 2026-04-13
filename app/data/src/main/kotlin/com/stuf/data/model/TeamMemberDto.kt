@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.TeamMemberRole
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -22,22 +23,22 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param email 
- * @param password 
+ * @param userId 
  * @param credentials 
+ * @param role 
  */
 
 
-data class UserRegisterDto (
+data class TeamMemberDto (
 
-    @Json(name = "email")
-    val email: kotlin.String,
-
-    @Json(name = "password")
-    val password: kotlin.String,
+    @Json(name = "userId")
+    val userId: java.util.UUID,
 
     @Json(name = "credentials")
-    val credentials: kotlin.String? = null
+    val credentials: kotlin.String,
+
+    @Json(name = "role")
+    val role: TeamMemberRole
 
 ) {
 

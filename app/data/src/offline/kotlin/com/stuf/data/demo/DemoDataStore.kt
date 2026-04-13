@@ -11,9 +11,14 @@ import com.stuf.domain.model.GradeCell
 import com.stuf.domain.model.GradeRow
 import com.stuf.domain.model.GradeStatus
 import com.stuf.domain.model.GradeTable
+import com.stuf.domain.model.AnnouncementPost
+import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
+import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
+import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.TeamTaskPost
+import com.stuf.domain.model.isTask
 import com.stuf.domain.model.Review
 import com.stuf.domain.model.Solution
 import com.stuf.domain.model.SolutionId
@@ -93,68 +98,71 @@ class DemoDataStore @Inject constructor() {
             member(DemoIds.userTeacher, "Ученик для демо", "teacher@demo.local", CourseRole.STUDENT),
         )
 
-        val welcome = Post(
-            id = DemoIds.postWelcome,
-            courseId = DemoIds.courseAlgebra,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Добро пожаловать на курс",
-            text = "Здесь будут объявления и материалы. Это офлайн-режим с демо-данными.",
-            createdAt = t.minusDays(2),
-            taskDetails = null,
-        )
-        val homework = Post(
-            id = DemoIds.postHomework,
-            courseId = DemoIds.courseAlgebra,
-            kind = PostKind.TASK,
-            title = "Домашняя работа №1",
-            text = "Решите уравнения 1–5 из учебника. Срок — неделя.",
-            createdAt = t.minusDays(1),
-            taskDetails = TaskDetails(
-                deadline = t.plusDays(7),
-                isMandatory = true,
-                maxScore = 5,
-            ),
-        )
-        val materialAlgebra = Post(
-            id = DemoIds.postMaterialAlgebra,
-            courseId = DemoIds.courseAlgebra,
-            kind = PostKind.MATERIAL,
-            title = "Шпаргалка: квадратные уравнения",
-            text = "Формула дискриминанта и примеры — в приложенном PDF (демо).",
-            createdAt = t.minusHours(12),
-            taskDetails = null,
-        )
-        val teamAlgebra = Post(
-            id = DemoIds.postTeamAlgebra,
-            courseId = DemoIds.courseAlgebra,
-            kind = PostKind.TEAM_TASK,
-            title = "Командный проект: мини-исследование",
-            text = "Сформируйте команды по 3 человека и подготовьте краткий отчёт.",
-            createdAt = t.minusHours(6),
-            taskDetails = TaskDetails(
-                deadline = t.plusDays(10),
-                isMandatory = false,
-                maxScore = 10,
-            ),
-        )
-        val webLab = Post(
-            id = DemoIds.postWebLab,
-            courseId = DemoIds.courseWeb,
-            kind = PostKind.TASK,
-            title = "Лабораторная: форма входа",
-            text = "Сверстайте страницу входа на HTML/CSS.",
-            createdAt = t,
-            taskDetails = TaskDetails(deadline = t.plusDays(14), isMandatory = false, maxScore = 10),
-        )
-        val clubWelcome = Post(
-            id = DemoIds.postClubWelcome,
-            courseId = DemoIds.courseTeacherClub,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Правила кружка",
-            text = "Вы ведёте этот курс в демо-режиме. Ученик «Ученик для демо» — для проверки вкладки участников.",
-            createdAt = t.minusHours(1),
-            taskDetails = null,
-        )
+        val welcome =
+            AnnouncementPost(
+                id = DemoIds.postWelcome,
+                courseId = DemoIds.courseAlgebra,
+                title = "Добро пожаловать на курс",
+                text = "Здесь будут объявления и материалы. Это офлайн-режим с демо-данными.",
+                createdAt = t.minusDays(2),
+            )
+        val homework =
+            TaskPost(
+                id = DemoIds.postHomework,
+                courseId = DemoIds.courseAlgebra,
+                title = "Домашняя работа №1",
+                text = "Решите уравнения 1–5 из учебника. Срок — неделя.",
+                createdAt = t.minusDays(1),
+                taskDetails =
+                    TaskDetails(
+                        deadline = t.plusDays(7),
+                        isMandatory = true,
+                        maxScore = 5,
+                    ),
+            )
+        val materialAlgebra =
+            MaterialPost(
+                id = DemoIds.postMaterialAlgebra,
+                courseId = DemoIds.courseAlgebra,
+                title = "Шпаргалка: квадратные уравнения",
+                text = "Формула дискриминанта и примеры — в приложенном PDF (демо).",
+                createdAt = t.minusHours(12),
+                files =
+                    listOf(
+                        PostAttachment(id = UUID.randomUUID(), name = "demo-material.pdf"),
+                    ),
+            )
+        val teamAlgebra =
+            TeamTaskPost(
+                id = DemoIds.postTeamAlgebra,
+                courseId = DemoIds.courseAlgebra,
+                title = "Командный проект: мини-исследование",
+                text = "Сформируйте команды по 3 человека и подготовьте краткий отчёт.",
+                createdAt = t.minusHours(6),
+                taskDetails =
+                    TaskDetails(
+                        deadline = t.plusDays(10),
+                        isMandatory = false,
+                        maxScore = 10,
+                    ),
+            )
+        val webLab =
+            TaskPost(
+                id = DemoIds.postWebLab,
+                courseId = DemoIds.courseWeb,
+                title = "Лабораторная: форма входа",
+                text = "Сверстайте страницу входа на HTML/CSS.",
+                createdAt = t,
+                taskDetails = TaskDetails(deadline = t.plusDays(14), isMandatory = false, maxScore = 10),
+            )
+        val clubWelcome =
+            AnnouncementPost(
+                id = DemoIds.postClubWelcome,
+                courseId = DemoIds.courseTeacherClub,
+                title = "Правила кружка",
+                text = "Вы ведёте этот курс в демо-режиме. Ученик «Ученик для демо» — для проверки вкладки участников.",
+                createdAt = t.minusHours(1),
+            )
 
         postsByCourse[DemoIds.courseAlgebra] = mutableListOf(welcome, homework, materialAlgebra, teamAlgebra)
         postsByCourse[DemoIds.courseWeb] = mutableListOf(webLab)
@@ -279,29 +287,43 @@ class DemoDataStore @Inject constructor() {
 
     suspend fun getPost(postId: PostId): Post? = mutex.withLock { postsById[postId] }
 
-    suspend fun createPost(courseId: CourseId, post: Post): Post = mutex.withLock {
-        val newId = PostId(UUID.randomUUID())
-        val created = post.copy(id = newId, courseId = courseId)
-        postsById[newId] = created
-        postsByCourse.getOrPut(courseId) { mutableListOf() }.add(0, created)
-        created
-    }
+    suspend fun createPost(courseId: CourseId, post: Post): Post =
+        mutex.withLock {
+            val newId = PostId(UUID.randomUUID())
+            val created =
+                when (post) {
+                    is AnnouncementPost -> post.copy(id = newId, courseId = courseId)
+                    is MaterialPost -> post.copy(id = newId, courseId = courseId)
+                    is TaskPost -> post.copy(id = newId, courseId = courseId)
+                    is TeamTaskPost -> post.copy(id = newId, courseId = courseId)
+                }
+            postsById[newId] = created
+            postsByCourse.getOrPut(courseId) { mutableListOf() }.add(0, created)
+            created
+        }
 
-    suspend fun updatePost(postId: PostId, post: Post): Post? = mutex.withLock {
-        val old = postsById[postId] ?: return@withLock null
-        val updated = post.copy(id = postId, courseId = old.courseId)
-        postsById[postId] = updated
-        val list = postsByCourse[old.courseId]
-        val idx = list?.indexOfFirst { it.id == postId } ?: -1
-        if (idx >= 0) list!![idx] = updated
-        updated
-    }
+    suspend fun updatePost(postId: PostId, post: Post): Post? =
+        mutex.withLock {
+            val old = postsById[postId] ?: return@withLock null
+            val updated =
+                when (post) {
+                    is AnnouncementPost -> post.copy(id = postId, courseId = old.courseId)
+                    is MaterialPost -> post.copy(id = postId, courseId = old.courseId)
+                    is TaskPost -> post.copy(id = postId, courseId = old.courseId)
+                    is TeamTaskPost -> post.copy(id = postId, courseId = old.courseId)
+                }
+            postsById[postId] = updated
+            val list = postsByCourse[old.courseId]
+            val idx = list?.indexOfFirst { it.id == postId } ?: -1
+            if (idx >= 0) list!![idx] = updated
+            updated
+        }
 
     suspend fun deletePost(postId: PostId): Boolean = mutex.withLock {
         val old = postsById.remove(postId) ?: return@withLock false
         postsByCourse[old.courseId]?.removeAll { it.id == postId }
         commentsByPost.remove(postId)
-        if (old.kind == PostKind.TASK || old.kind == PostKind.TEAM_TASK) {
+        if (old.isTask()) {
             solutionsByTask.remove(TaskId(postId.value))
         }
         true
@@ -407,7 +429,7 @@ class DemoDataStore @Inject constructor() {
 
     suspend fun getPerformanceTable(courseId: CourseId): GradeTable = mutex.withLock {
         val taskPosts = postsByCourse[courseId].orEmpty()
-            .filter { it.kind == PostKind.TASK || it.kind == PostKind.TEAM_TASK }
+            .filter { it.isTask() }
             .map { TaskId(it.id.value) }
         val students = members[courseId].orEmpty().filter { it.role == CourseRole.STUDENT }
         val rows = students.map { m ->

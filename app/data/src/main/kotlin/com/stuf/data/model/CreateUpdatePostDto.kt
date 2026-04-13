@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.CaptainSelectionMode
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
 
@@ -32,6 +33,17 @@ import com.squareup.moshi.JsonClass
  * @param taskType 
  * @param solvableAfterDeadline 
  * @param files 
+ * @param minTeamSize 
+ * @param maxTeamSize 
+ * @param captainMode 
+ * @param votingDurationHours 
+ * @param teacherCreatesTeams 
+ * @param predefinedTeamsCount 
+ * @param allowJoinTeam 
+ * @param allowLeaveTeam 
+ * @param allowStudentTransferCaptain 
+ * @param copyGroupsFromPreviousAssignment 
+ * @param sourceAssignmentId 
  */
 
 
@@ -59,7 +71,40 @@ data class CreateUpdatePostDto (
     val solvableAfterDeadline: kotlin.Boolean? = null,
 
     @Json(name = "files")
-    val files: kotlin.collections.List<java.util.UUID>? = null
+    val files: kotlin.collections.List<java.util.UUID>? = null,
+
+    @Json(name = "minTeamSize")
+    val minTeamSize: kotlin.Int? = null,
+
+    @Json(name = "maxTeamSize")
+    val maxTeamSize: kotlin.Int? = null,
+
+    @Json(name = "captainMode")
+    val captainMode: CaptainSelectionMode? = null,
+
+    @Json(name = "votingDurationHours")
+    val votingDurationHours: kotlin.Int? = null,
+
+    @Json(name = "teacherCreatesTeams")
+    val teacherCreatesTeams: kotlin.Boolean? = null,
+
+    @Json(name = "predefinedTeamsCount")
+    val predefinedTeamsCount: kotlin.Int? = null,
+
+    @Json(name = "allowJoinTeam")
+    val allowJoinTeam: kotlin.Boolean? = null,
+
+    @Json(name = "allowLeaveTeam")
+    val allowLeaveTeam: kotlin.Boolean? = null,
+
+    @Json(name = "allowStudentTransferCaptain")
+    val allowStudentTransferCaptain: kotlin.Boolean? = null,
+
+    @Json(name = "copyGroupsFromPreviousAssignment")
+    val copyGroupsFromPreviousAssignment: kotlin.Boolean? = null,
+
+    @Json(name = "sourceAssignmentId")
+    val sourceAssignmentId: java.util.UUID? = null
 
 ) {
 

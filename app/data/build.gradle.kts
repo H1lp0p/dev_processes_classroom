@@ -83,7 +83,7 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api.json")
+    inputSpec.set("$projectDir/classroom_api_v2.json")
 
     outputDir.set("$projectDir")
 

@@ -22,22 +22,18 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param email 
- * @param password 
- * @param credentials 
+ * @param text 
+ * @param files 
  */
 
 
-data class UserRegisterDto (
+data class SubmitTeamSolutionRequestDto (
 
-    @Json(name = "email")
-    val email: kotlin.String,
+    @Json(name = "text")
+    val text: kotlin.String? = null,
 
-    @Json(name = "password")
-    val password: kotlin.String,
-
-    @Json(name = "credentials")
-    val credentials: kotlin.String? = null
+    @Json(name = "files")
+    val files: kotlin.collections.List<java.util.UUID>? = null
 
 ) {
 

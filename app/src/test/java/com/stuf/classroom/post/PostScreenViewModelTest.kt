@@ -3,30 +3,29 @@ package com.stuf.classroom.post
 import androidx.lifecycle.SavedStateHandle
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.Comment
 import com.stuf.domain.model.CommentAuthor
 import com.stuf.domain.model.CommentId
+import com.stuf.domain.model.CourseId
+import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
+import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
-import com.stuf.domain.model.Solution
-import com.stuf.domain.model.SolutionId
-import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskDetails
-import com.stuf.domain.model.TaskId
+import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.TeamTaskPost
 import com.stuf.domain.model.UserId
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
-import com.stuf.domain.usecase.GetSolutionsForTask
 import java.time.OffsetDateTime
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -90,26 +89,11 @@ class PostScreenViewModelTest {
         }
     }
 
-    private class FakeGetSolutionsForTask : GetSolutionsForTask {
-        var result: DomainResult<List<Solution>> = DomainResult.Success(emptyList())
-        var lastTaskId: TaskId? = null
-
-        override suspend fun invoke(
-            taskId: TaskId,
-            status: SolutionStatus?,
-            studentId: UserId?,
-        ): DomainResult<List<Solution>> {
-            lastTaskId = taskId
-            return result
-        }
-    }
-
     private lateinit var fakeGetPost: FakeGetPost
     private lateinit var fakeGetPostComments: FakeGetPostComments
     private lateinit var fakeGetCommentReplies: FakeGetCommentReplies
     private lateinit var fakeAddPostComment: FakeAddPostComment
     private lateinit var fakeAddCommentReply: FakeAddCommentReply
-    private lateinit var fakeGetSolutionsForTask: FakeGetSolutionsForTask
 
     private lateinit var viewModel: PostScreenViewModel
 
@@ -122,117 +106,106 @@ class PostScreenViewModelTest {
         fakeGetCommentReplies = FakeGetCommentReplies()
         fakeAddPostComment = FakeAddPostComment()
         fakeAddCommentReply = FakeAddCommentReply()
-        fakeGetSolutionsForTask = FakeGetSolutionsForTask()
 
-        viewModel = PostScreenViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "postId" to postId.value.toString(),
-                    "role" to "student",
-                ),
-            ),
-            getPost = fakeGetPost,
-            getPostComments = fakeGetPostComments,
-            getCommentReplies = fakeGetCommentReplies,
-            addPostComment = fakeAddPostComment,
-            addCommentReply = fakeAddCommentReply,
-            getSolutionsForTask = fakeGetSolutionsForTask,
-            dispatcher = Dispatchers.Unconfined,
-        )
-    }
-
-    @After
-    fun tearDown() {
+        viewModel =
+            PostScreenViewModel(
+                savedStateHandle =
+                    SavedStateHandle(
+                        mapOf(
+                            "postId" to postId.value.toString(),
+                            "role" to "student",
+                        ),
+                    ),
+                getPost = fakeGetPost,
+                getPostComments = fakeGetPostComments,
+                getCommentReplies = fakeGetCommentReplies,
+                addPostComment = fakeAddPostComment,
+                addCommentReply = fakeAddCommentReply,
+                dispatcher = Dispatchers.Unconfined,
+            )
     }
 
     @Test
     fun `initial load success populates post and comments for student`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.fromString("00000000-0000-0000-0000-000000000901"))
-        val taskDetails: TaskDetails? = null
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post title",
-            text = "Post body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = taskDetails,
-        )
+        val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000901"))
+        val post: Post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post title",
+                text = "Post body",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetPost.result = DomainResult.Success(post)
 
         val authorId: UserId = UserId(UUID.randomUUID())
-        val comment: Comment = Comment(
-            id = "c1",
-            author = CommentAuthor(
-                id = authorId,
-                credentials = "User",
-            ),
-            text = "Comment",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val comment: Comment =
+            Comment(
+                id = "c1",
+                author =
+                    CommentAuthor(
+                        id = authorId,
+                        credentials = "User",
+                    ),
+                text = "Comment",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeGetPostComments.result = DomainResult.Success(listOf(comment))
 
         viewModel.onRetry()
         advanceUntilIdle()
 
         val state: PostUiState = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertEquals("Post title", state.postTitle)
-        assertEquals("Post body", state.postText)
-        assertEquals("Пост", state.postTypeLabel)
-        assertEquals(false, state.isTask)
+        assertFalse(state.isLoadingPost)
+        val content = state.content as PostScreenContent.Announcement
+        assertEquals("Post title", content.post.title)
+        assertEquals("Post body", content.post.text)
         assertEquals(1, state.comments.size)
         assertEquals("Comment", state.comments[0].text)
     }
 
     @Test
-    fun `initial load sets material post type label`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.MATERIAL,
-            title = "PDF",
-            text = "Текст",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = null,
-        )
+    fun `initial load sets material post content`() = runTest {
+        val courseId = CourseId(UUID.randomUUID())
+        val post: Post =
+            MaterialPost(
+                id = postId,
+                courseId = courseId,
+                title = "PDF",
+                text = "Текст",
+                createdAt = OffsetDateTime.now(),
+                files = listOf(PostAttachment(id = UUID.randomUUID(), name = "a.pdf")),
+            )
         fakeGetPost.result = DomainResult.Success(post)
         fakeGetPostComments.result = DomainResult.Success(emptyList())
 
         viewModel.onRetry()
         advanceUntilIdle()
 
-        assertEquals("Материал", viewModel.uiState.value.postTypeLabel)
-        assertFalse(viewModel.uiState.value.isTask)
+        assertTrue(viewModel.uiState.value.content is PostScreenContent.Material)
     }
 
     @Test
-    fun `initial load sets team task post type label`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
+    fun `initial load sets team task content`() = runTest {
+        val courseId = CourseId(UUID.randomUUID())
         val details = TaskDetails(OffsetDateTime.now(), true, 10)
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.TEAM_TASK,
-            title = "Команда",
-            text = "Описание",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = details,
-        )
+        val post: Post =
+            TeamTaskPost(
+                id = postId,
+                courseId = courseId,
+                title = "Команда",
+                text = "Описание",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = details,
+            )
         fakeGetPost.result = DomainResult.Success(post)
         fakeGetPostComments.result = DomainResult.Success(emptyList())
 
         viewModel.onRetry()
         advanceUntilIdle()
 
-        val state: PostUiState = viewModel.uiState.value
-        assertEquals("Командное задание", state.postTypeLabel)
-        assertTrue(state.isTask)
+        assertTrue(viewModel.uiState.value.content is PostScreenContent.TeamTask)
     }
 
     @Test
@@ -243,36 +216,36 @@ class PostScreenViewModelTest {
         advanceUntilIdle()
 
         val state: PostUiState = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertNotNull(state.error)
+        assertFalse(state.isLoadingPost)
+        assertNotNull(state.postLoadError)
     }
 
     @Test
     fun `onCommentSubmit_adds_public_comment_on_success`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post",
-            text = "Body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = null,
-        )
+        val courseId = CourseId(UUID.randomUUID())
+        val post: Post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post",
+                text = "Body",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetPost.result = DomainResult.Success(post)
         fakeGetPostComments.result = DomainResult.Success(emptyList())
 
-        val createdComment: Comment = Comment(
-            id = "new",
-            author = CommentAuthor(
-                id = UserId(UUID.randomUUID()),
-                credentials = "User",
-            ),
-            text = "Hello",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val createdComment: Comment =
+            Comment(
+                id = "new",
+                author =
+                    CommentAuthor(
+                        id = UserId(UUID.randomUUID()),
+                        credentials = "User",
+                    ),
+                text = "Hello",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeAddPostComment.result = DomainResult.Success(createdComment)
 
         viewModel.onRetry()
@@ -289,41 +262,43 @@ class PostScreenViewModelTest {
 
     @Test
     fun `onLoadRepliesClick_loads_and_merges_replies`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post",
-            text = "Body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = null,
-        )
+        val courseId = CourseId(UUID.randomUUID())
+        val post: Post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post",
+                text = "Body",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetPost.result = DomainResult.Success(post)
 
-        val parent: Comment = Comment(
-            id = "c1",
-            author = CommentAuthor(
-                id = UserId(UUID.randomUUID()),
-                credentials = "User",
-            ),
-            text = "Parent",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val parent: Comment =
+            Comment(
+                id = "c1",
+                author =
+                    CommentAuthor(
+                        id = UserId(UUID.randomUUID()),
+                        credentials = "User",
+                    ),
+                text = "Parent",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeGetPostComments.result = DomainResult.Success(listOf(parent))
 
-        val reply: Comment = Comment(
-            id = "c2",
-            author = CommentAuthor(
-                id = UserId(UUID.randomUUID()),
-                credentials = "User",
-            ),
-            text = "Reply",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val reply: Comment =
+            Comment(
+                id = "c2",
+                author =
+                    CommentAuthor(
+                        id = UserId(UUID.randomUUID()),
+                        credentials = "User",
+                    ),
+                text = "Reply",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeGetCommentReplies.result = DomainResult.Success(listOf(reply))
 
         viewModel.onRetry()
@@ -341,64 +316,29 @@ class PostScreenViewModelTest {
     }
 
     @Test
-    fun `initial load as_teacher_for_task_populates_solutions`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val taskDetails: TaskDetails = TaskDetails(
-            deadline = OffsetDateTime.now(),
-            isMandatory = true,
-            maxScore = 10,
-        )
-        val taskPost: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.TASK,
-            title = "Task",
-            text = "Solve",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = taskDetails,
-        )
+    fun `initial load task post exposes task screen content`() = runTest {
+        val courseId = CourseId(UUID.randomUUID())
+        val taskDetails: TaskDetails =
+            TaskDetails(
+                deadline = OffsetDateTime.now(),
+                isMandatory = true,
+                maxScore = 10,
+            )
+        val taskPost: Post =
+            TaskPost(
+                id = postId,
+                courseId = courseId,
+                title = "Task",
+                text = "Solve",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = taskDetails,
+            )
         fakeGetPost.result = DomainResult.Success(taskPost)
         fakeGetPostComments.result = DomainResult.Success(emptyList())
-
-        val taskId: TaskId = TaskId(UUID.randomUUID())
-        val solution: Solution = Solution(
-            id = SolutionId(UUID.randomUUID()),
-            taskId = taskId,
-            authorId = UserId(UUID.randomUUID()),
-            text = "Answer",
-            files = emptyList(),
-            score = null,
-            status = SolutionStatus.PENDING,
-            updatedAt = OffsetDateTime.now(),
-        )
-        fakeGetSolutionsForTask.result = DomainResult.Success(listOf(solution))
-
-        // пересоздадим VM как учителя
-        viewModel = PostScreenViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "postId" to postId.value.toString(),
-                    "role" to "teacher",
-                ),
-            ),
-            getPost = fakeGetPost,
-            getPostComments = fakeGetPostComments,
-            getCommentReplies = fakeGetCommentReplies,
-            addPostComment = fakeAddPostComment,
-            addCommentReply = fakeAddCommentReply,
-            getSolutionsForTask = fakeGetSolutionsForTask,
-            dispatcher = Dispatchers.Unconfined,
-        )
 
         viewModel.onRetry()
         advanceUntilIdle()
 
-        val state: PostUiState = viewModel.uiState.value
-        assertTrue(state.isTask)
-        assertEquals("Задание", state.postTypeLabel)
-        assertEquals(1, state.solutions.size)
-        assertEquals("Student", state.solutions[0].studentName)
+        assertTrue(viewModel.uiState.value.content is PostScreenContent.Task)
     }
 }
-

@@ -22,20 +22,17 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * Values: post,task,team_task
+ * Values: member,leader
  */
 
 @JsonClass(generateAdapter = false)
-enum class PostType(val value: kotlin.String) {
+enum class TeamMemberRole(val value: kotlin.String) {
 
-    @Json(name = "post")
-    post("post"),
+    @Json(name = "member")
+    member("member"),
 
-    @Json(name = "task")
-    task("task"),
-
-    @Json(name = "team_task")
-    team_task("team_task");
+    @Json(name = "leader")
+    leader("leader");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use
@@ -50,12 +47,12 @@ enum class PostType(val value: kotlin.String) {
         /**
          * Converts the provided [data] to a [String] on success, null otherwise.
          */
-        fun encode(data: kotlin.Any?): kotlin.String? = if (data is PostType) "$data" else null
+        fun encode(data: kotlin.Any?): kotlin.String? = if (data is TeamMemberRole) "$data" else null
 
         /**
-         * Returns a valid [PostType] for [data], null otherwise.
+         * Returns a valid [TeamMemberRole] for [data], null otherwise.
          */
-        fun decode(data: kotlin.Any?): PostType? = data?.let {
+        fun decode(data: kotlin.Any?): TeamMemberRole? = data?.let {
           val normalizedData = "$it".lowercase()
           entries.firstOrNull { value ->
             it == value || normalizedData == "$value".lowercase()
