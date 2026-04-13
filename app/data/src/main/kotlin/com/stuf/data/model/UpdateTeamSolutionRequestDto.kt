@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.SolutionStatus
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -22,22 +23,22 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param email 
- * @param password 
- * @param credentials 
+ * @param status 
+ * @param score 
+ * @param comment 
  */
 
 
-data class UserRegisterDto (
+data class UpdateTeamSolutionRequestDto (
 
-    @Json(name = "email")
-    val email: kotlin.String,
+    @Json(name = "status")
+    val status: SolutionStatus,
 
-    @Json(name = "password")
-    val password: kotlin.String,
+    @Json(name = "score")
+    val score: kotlin.Int? = null,
 
-    @Json(name = "credentials")
-    val credentials: kotlin.String? = null
+    @Json(name = "comment")
+    val comment: kotlin.String? = null
 
 ) {
 

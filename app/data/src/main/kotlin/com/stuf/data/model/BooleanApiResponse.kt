@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.ApiResponseType
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -22,22 +23,22 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param email 
- * @param password 
- * @param credentials 
+ * @param type 
+ * @param message 
+ * @param `data` 
  */
 
 
-data class UserRegisterDto (
+data class BooleanApiResponse (
 
-    @Json(name = "email")
-    val email: kotlin.String,
+    @Json(name = "type")
+    val type: ApiResponseType,
 
-    @Json(name = "password")
-    val password: kotlin.String,
+    @Json(name = "message")
+    val message: kotlin.String? = null,
 
-    @Json(name = "credentials")
-    val credentials: kotlin.String? = null
+    @Json(name = "data")
+    val `data`: kotlin.Boolean? = null
 
 ) {
 

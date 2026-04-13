@@ -13,11 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.stuf.domain.model.Post
+import com.stuf.domain.model.TaskPost
 
 @Composable
 internal fun CourseTaskPostCard(
-    post: Post,
+    post: TaskPost,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

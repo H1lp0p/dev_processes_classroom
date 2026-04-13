@@ -4,9 +4,13 @@ import com.stuf.data.api.PostApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.CourseId
+import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
+import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.TeamTaskPost
 import com.stuf.domain.repository.PostRepository
 import javax.inject.Inject
 import retrofit2.Response
@@ -52,9 +56,14 @@ class PostRepositoryImpl @Inject constructor(
                 val data = response.value.data
                     ?: return DomainResult.Failure(DomainError.Unknown())
                 val createdId = PostId(data.id)
-                DomainResult.Success(
-                    post.copy(id = createdId),
-                )
+                val created: Post =
+                    when (post) {
+                        is AnnouncementPost -> post.copy(id = createdId)
+                        is MaterialPost -> post.copy(id = createdId)
+                        is TaskPost -> post.copy(id = createdId)
+                        is TeamTaskPost -> post.copy(id = createdId)
+                    }
+                DomainResult.Success(created)
             }
             is DomainResult.Failure -> response
         }

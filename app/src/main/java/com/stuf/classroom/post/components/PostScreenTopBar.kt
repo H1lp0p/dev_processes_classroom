@@ -21,7 +21,9 @@ internal fun PostScreenTopBar(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp),
+            .padding(horizontal = 16.dp)
+            // Как на CourseScreen: padding колонки 16.dp + верхняя строка CourseScreenTopBar 8.dp
+            .padding(top = 24.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

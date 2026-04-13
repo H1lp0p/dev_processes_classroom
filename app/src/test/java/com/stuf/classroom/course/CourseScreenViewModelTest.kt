@@ -8,7 +8,7 @@ import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.User
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CurrentUserRepository
@@ -195,14 +195,14 @@ class CourseScreenViewModelTest {
         fakeGetCourseInfo.result = DomainResult.Success(course)
 
         val postId = PostId(UUID.fromString("00000000-0000-0000-0000-000000000102"))
-        val post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post 1",
-            text = "Text",
-            createdAt = OffsetDateTime.now(),
-        )
+        val post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post 1",
+                text = "Text",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetCourseFeed.result = DomainResult.Success(listOf(post))
 
         val memberId = UserId(UUID.fromString("00000000-0000-0000-0000-000000000103"))

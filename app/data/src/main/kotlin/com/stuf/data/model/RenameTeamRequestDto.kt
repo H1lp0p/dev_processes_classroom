@@ -22,22 +22,14 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param email 
- * @param password 
- * @param credentials 
+ * @param newName 
  */
 
 
-data class UserRegisterDto (
+data class RenameTeamRequestDto (
 
-    @Json(name = "email")
-    val email: kotlin.String,
-
-    @Json(name = "password")
-    val password: kotlin.String,
-
-    @Json(name = "credentials")
-    val credentials: kotlin.String? = null
+    @Json(name = "newName")
+    val newName: kotlin.String? = null
 
 ) {
 

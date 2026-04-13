@@ -8,7 +8,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.stuf.domain.model.CommentId
-import com.stuf.domain.model.SolutionId
 
 @Composable
 fun PostRoute(
@@ -34,13 +33,6 @@ fun PostRoute(
         onLoadRepliesClick = { commentId: CommentId ->
             viewModel.onLoadRepliesClick(commentId)
         },
-        onToggleCommentsVisibility = {
-            viewModel.onToggleCommentsVisibility()
-        },
-        onSolutionClick = { solutionId: SolutionId ->
-            // навигация к грейдингу будет добавлена позже
-        },
         onBackClick = { navController.popBackStack() },
     )
 }
-

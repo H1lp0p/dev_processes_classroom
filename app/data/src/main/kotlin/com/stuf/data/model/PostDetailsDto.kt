@@ -18,6 +18,7 @@ package com.stuf.data.model
 import com.stuf.data.model.FileDto
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
+import com.stuf.data.model.TeamSolutionDto
 import com.stuf.data.model.UserSolutionDto
 
 import com.squareup.moshi.Json
@@ -36,6 +37,9 @@ import com.squareup.moshi.JsonClass
  * @param solvableAfterDeadline 
  * @param files 
  * @param userSolution 
+ * @param minTeamSize 
+ * @param maxTeamSize 
+ * @param teamSolution 
  */
 
 
@@ -69,7 +73,16 @@ data class PostDetailsDto (
     val files: kotlin.collections.List<FileDto>? = null,
 
     @Json(name = "userSolution")
-    val userSolution: UserSolutionDto? = null
+    val userSolution: UserSolutionDto? = null,
+
+    @Json(name = "minTeamSize")
+    val minTeamSize: kotlin.Int? = null,
+
+    @Json(name = "maxTeamSize")
+    val maxTeamSize: kotlin.Int? = null,
+
+    @Json(name = "teamSolution")
+    val teamSolution: TeamSolutionDto? = null
 
 ) {
 
