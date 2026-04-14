@@ -47,7 +47,7 @@ internal fun Post.toCreateUpdateDto(): CreateUpdatePostDto {
             )
         is TeamTaskPost ->
             CreateUpdatePostDto(
-                type = PostType.team_task,
+                type = ApiPostTypeTeamTask,
                 title = title,
                 text = text,
                 deadline = taskDetails.deadline,

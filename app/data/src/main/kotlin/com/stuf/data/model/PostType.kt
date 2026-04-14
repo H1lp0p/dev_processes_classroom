@@ -22,7 +22,7 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * Values: post,task,team_task
+ * Values: post,task,teaM_TASK
  */
 
 @JsonClass(generateAdapter = false)
@@ -34,8 +34,8 @@ enum class PostType(val value: kotlin.String) {
     @Json(name = "task")
     task("task"),
 
-    @Json(name = "team_task")
-    team_task("team_task");
+    @Json(name = "teaM_TASK")
+    teaM_TASK("teaM_TASK");
 
     /**
      * Override [toString()] to avoid using the enum variable name as the value, and instead use

@@ -7,6 +7,9 @@ import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.FileInfo
+import com.stuf.domain.model.GradeDistribution
+import com.stuf.domain.model.GradeDistributionEntry
+import com.stuf.domain.model.GradeVote
 import com.stuf.domain.model.GradeCell
 import com.stuf.domain.model.GradeRow
 import com.stuf.domain.model.GradeStatus
@@ -20,13 +23,22 @@ import com.stuf.domain.model.TaskPost
 import com.stuf.domain.model.TeamTaskPost
 import com.stuf.domain.model.isTask
 import com.stuf.domain.model.Review
+import com.stuf.domain.model.Score
 import com.stuf.domain.model.Solution
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
+import com.stuf.domain.model.Team
+import com.stuf.domain.model.TeamId
+import com.stuf.domain.model.TeamMember
+import com.stuf.domain.model.TeamMemberRole
+import com.stuf.domain.model.TeamTaskSolution
+import com.stuf.domain.common.DomainError
+import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.UserCourse
 import com.stuf.domain.model.UserId
+import com.stuf.domain.model.UserRef
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.OffsetDateTime
@@ -50,6 +62,20 @@ class DemoDataStore @Inject constructor() {
     private val commentsBySolution = mutableMapOf<SolutionId, MutableList<Comment>>()
     private val repliesByComment = mutableMapOf<String, MutableList<Comment>>()
     private var fileSeq = 0
+
+    /** Демо-состояние командных заданий (списки команд, «моя» команда, решения). */
+    private val teamsByAssignment = mutableMapOf<PostId, MutableList<Team>>()
+    private val myTeamByAssignment = mutableMapOf<PostId, Team?>()
+    private val teamTaskSolutionsByTask = mutableMapOf<TaskId, TeamTaskSolution>()
+
+    private data class DemoGradeDistributionBucket(
+        var teamRawScore: Double,
+        val pointsByUser: MutableMap<UserId, Double>,
+        val votes: MutableMap<UserId, GradeVote>,
+        var distributionChanged: Boolean,
+    )
+
+    private val gradeDistributions = mutableMapOf<String, DemoGradeDistributionBucket>()
 
     init {
         seed()
@@ -119,6 +145,7 @@ class DemoDataStore @Inject constructor() {
                         isMandatory = true,
                         maxScore = 5,
                     ),
+                assignedScore = Score(4),
             )
         val materialAlgebra =
             MaterialPost(
@@ -137,7 +164,9 @@ class DemoDataStore @Inject constructor() {
                 id = DemoIds.postTeamAlgebra,
                 courseId = DemoIds.courseAlgebra,
                 title = "Командный проект: мини-исследование",
-                text = "Сформируйте команды по 3 человека и подготовьте краткий отчёт.",
+                text =
+                    "Демо: три команды — полная (без мест), с пустыми слотами и пустая. " +
+                        "Вы не в команде: проверьте карусель и кнопку «Присоединиться».",
                 createdAt = t.minusHours(6),
                 taskDetails =
                     TaskDetails(
@@ -145,6 +174,9 @@ class DemoDataStore @Inject constructor() {
                         isMandatory = false,
                         maxScore = 10,
                     ),
+                minTeamSize = 2,
+                maxTeamSize = 4,
+                assignedScore = Score(8),
             )
         val webLab =
             TaskPost(
@@ -154,6 +186,63 @@ class DemoDataStore @Inject constructor() {
                 text = "Сверстайте страницу входа на HTML/CSS.",
                 createdAt = t,
                 taskDetails = TaskDetails(deadline = t.plusDays(14), isMandatory = false, maxScore = 10),
+                assignedScore = Score(9),
+            )
+        val teamWebSprint =
+            TeamTaskPost(
+                id = DemoIds.postTeamWebSprint,
+                courseId = DemoIds.courseWeb,
+                title = "Командный спринт: UI-прототип",
+                text =
+                    "Демо: вы — капитан команды, есть черновик решения и файл. " +
+                        "Проверьте блок «Решение команды» (редактирование, файлы) и комментарии.",
+                createdAt = t.minusHours(4),
+                taskDetails =
+                    TaskDetails(
+                        deadline = t.plusDays(7),
+                        isMandatory = true,
+                        maxScore = 8,
+                    ),
+                minTeamSize = 2,
+                maxTeamSize = 5,
+                assignedScore = Score(7),
+            )
+        val teamWebCaptainDraft =
+            TeamTaskPost(
+                id = DemoIds.postTeamWebCaptainDraft,
+                courseId = DemoIds.courseWeb,
+                title = "Командное UI: только черновик (решение не отправлено)",
+                text =
+                    "Демо: вы — капитан единственной команды, решение ещё не отправлено. " +
+                        "Заполните текст, прикрепите файлы и нажмите «Отправить решение».",
+                createdAt = t.minusHours(2),
+                taskDetails =
+                    TaskDetails(
+                        deadline = t.plusDays(14),
+                        isMandatory = false,
+                        maxScore = 10,
+                    ),
+                minTeamSize = 1,
+                maxTeamSize = 4,
+            )
+        val teamOverdue =
+            TeamTaskPost(
+                id = DemoIds.postTeamOverdue,
+                courseId = DemoIds.courseWeb,
+                title = "Просроченный дедлайн (демо)",
+                text =
+                    "Демо: срок сдачи уже прошёл — отправка решения недоступна. " +
+                        "Отдельный сценарий: вы участник команды (капитан — Алексей), есть оценка и черновик распределения баллов.",
+                createdAt = t.minusDays(10),
+                taskDetails =
+                    TaskDetails(
+                        deadline = t.minusDays(1),
+                        isMandatory = true,
+                        maxScore = 5,
+                    ),
+                minTeamSize = 2,
+                maxTeamSize = 5,
+                assignedScore = Score(5),
             )
         val clubWelcome =
             AnnouncementPost(
@@ -165,9 +254,24 @@ class DemoDataStore @Inject constructor() {
             )
 
         postsByCourse[DemoIds.courseAlgebra] = mutableListOf(welcome, homework, materialAlgebra, teamAlgebra)
-        postsByCourse[DemoIds.courseWeb] = mutableListOf(webLab)
+        postsByCourse[DemoIds.courseWeb] =
+            mutableListOf(webLab, teamWebSprint, teamWebCaptainDraft, teamOverdue)
         postsByCourse[DemoIds.courseTeacherClub] = mutableListOf(clubWelcome)
-        listOf(welcome, homework, materialAlgebra, teamAlgebra, webLab, clubWelcome).forEach { postsById[it.id] = it }
+        listOf(
+            welcome,
+            homework,
+            materialAlgebra,
+            teamAlgebra,
+            webLab,
+            teamWebSprint,
+            teamWebCaptainDraft,
+            teamOverdue,
+            clubWelcome,
+        ).forEach {
+            postsById[it.id] = it
+        }
+
+        seedTeamTaskDemoState(t)
 
         val taskHomework = TaskId(DemoIds.postHomework.value)
         solutionsByTask[taskHomework] = Solution(
@@ -182,12 +286,320 @@ class DemoDataStore @Inject constructor() {
         )
 
         commentsByPost[DemoIds.postWelcome] = mutableListOf(
-            comment("c-welcome-1", DemoIds.userStudent, "Спасибо!", t.minusDays(1)),
+            comment(
+                id = "c-welcome-1",
+                authorId = DemoIds.userStudent,
+                authorName = "Студент Демо",
+                text = "Спасибо!",
+                at = t.minusDays(1),
+            ),
         )
-        commentsBySolution[DemoIds.solutionHomework] = mutableListOf(
-            comment("c-sol-1", DemoIds.userTeacher, "Принято, жду проверки", t.minusHours(2)),
-        )
+        commentsByPost[DemoIds.postTeamAlgebra] =
+            mutableListOf(
+                comment(
+                    id = "c-alg-pub",
+                    authorId = DemoIds.userTeacher,
+                    authorName = "Учитель Иванова",
+                    text = "Общий комментарий: шаблон отчёта — в материалах курса.",
+                    at = t.minusHours(5),
+                    isPrivate = false,
+                ),
+            )
+        commentsByPost[DemoIds.postTeamWebSprint] =
+            mutableListOf(
+                comment(
+                    id = "c-web-pub",
+                    authorId = DemoIds.userPeerAlex,
+                    authorName = "Алексей К.",
+                    text = "Готов подключиться к ревью макетов в пятницу.",
+                    at = t.minusHours(2),
+                    isPrivate = false,
+                ),
+            )
+        commentsBySolution[DemoIds.solutionTeamWebSprint] =
+            mutableListOf(
+                comment(
+                    id = "c-web-priv",
+                    authorId = DemoIds.userStudent,
+                    authorName = "Студент Демо",
+                    text = "Приватно команде: обновил PDF в решении.",
+                    at = t.minusHours(1),
+                ),
+            )
+        commentsBySolution[DemoIds.solutionHomework] =
+            mutableListOf(
+                comment(
+                    id = "c-sol-1",
+                    authorId = DemoIds.userTeacher,
+                    authorName = "Учитель Иванова",
+                    text = "Принято, жду проверки",
+                    at = t.minusHours(2),
+                ),
+            )
     }
+
+    private fun seedTeamTaskDemoState(now: OffsetDateTime) {
+        teamsByAssignment.clear()
+        myTeamByAssignment.clear()
+        teamTaskSolutionsByTask.clear()
+        gradeDistributions.clear()
+
+        val teamFull =
+            Team(
+                id = DemoIds.teamAlgebraFull,
+                name = "«Дискриминант» (полный состав, без мест)",
+                members =
+                    listOf(
+                        TeamMember(DemoIds.userPeerAlex, "Алексей К.", TeamMemberRole.LEADER),
+                        TeamMember(DemoIds.userPeerMaria, "Мария С.", TeamMemberRole.MEMBER),
+                        TeamMember(DemoIds.userPeerOleg, "Олег В.", TeamMemberRole.MEMBER),
+                        TeamMember(DemoIds.userPeerAnna, "Анна Л.", TeamMemberRole.MEMBER),
+                    ),
+            )
+        val teamPartial =
+            Team(
+                id = DemoIds.teamAlgebraPartial,
+                name = "«Парабола» (есть места)",
+                members =
+                    listOf(
+                        TeamMember(DemoIds.userTeacher, "Учитель Иванова", TeamMemberRole.LEADER),
+                        TeamMember(DemoIds.userPeerAlex, "Алексей К.", TeamMemberRole.MEMBER),
+                    ),
+            )
+        val teamEmpty =
+            Team(
+                id = DemoIds.teamAlgebraEmpty,
+                name = "«Новая команда» (никого нет)",
+                members = emptyList(),
+            )
+        teamsByAssignment[DemoIds.postTeamAlgebra] =
+            mutableListOf(teamFull, teamPartial, teamEmpty)
+        myTeamByAssignment[DemoIds.postTeamAlgebra] = null
+
+        val webTeam =
+            Team(
+                id = DemoIds.teamWebUiCrew,
+                name = "UI Crew",
+                members =
+                    listOf(
+                        TeamMember(DemoIds.userStudent, "Студент Демо", TeamMemberRole.LEADER),
+                        TeamMember(DemoIds.userPeerMaria, "Мария С.", TeamMemberRole.MEMBER),
+                    ),
+            )
+        teamsByAssignment[DemoIds.postTeamWebSprint] = mutableListOf(webTeam)
+        myTeamByAssignment[DemoIds.postTeamWebSprint] = webTeam
+
+        val teamCaptainSolo =
+            Team(
+                id = DemoIds.teamWebCaptainSolo,
+                name = "Капитан соло",
+                members =
+                    listOf(
+                        TeamMember(DemoIds.userStudent, "Студент Демо", TeamMemberRole.LEADER),
+                    ),
+            )
+        teamsByAssignment[DemoIds.postTeamWebCaptainDraft] = mutableListOf(teamCaptainSolo)
+        myTeamByAssignment[DemoIds.postTeamWebCaptainDraft] = teamCaptainSolo
+
+        val teamOverdueCrew =
+            Team(
+                id = DemoIds.teamWebOverdue,
+                name = "Команда «Дедлайн»",
+                members =
+                    listOf(
+                        TeamMember(DemoIds.userPeerAlex, "Алексей К.", TeamMemberRole.LEADER),
+                        TeamMember(DemoIds.userStudent, "Студент Демо", TeamMemberRole.MEMBER),
+                        TeamMember(DemoIds.userPeerMaria, "Мария С.", TeamMemberRole.MEMBER),
+                    ),
+            )
+        teamsByAssignment[DemoIds.postTeamOverdue] = mutableListOf(teamOverdueCrew)
+        myTeamByAssignment[DemoIds.postTeamOverdue] = teamOverdueCrew
+
+        teamTaskSolutionsByTask[TaskId(DemoIds.postTeamWebSprint.value)] =
+            TeamTaskSolution(
+                id = DemoIds.solutionTeamWebSprint,
+                taskId = TaskId(DemoIds.postTeamWebSprint.value),
+                text =
+                    "Черновик: главный экран, карточки курсов и нижняя навигация. Фидбек приветствуется.",
+                files =
+                    listOf(
+                        FileInfo(id = "demo-team-file-1", name = "ui-wireframe.pdf"),
+                    ),
+                score = Score(7),
+                status = SolutionStatus.CHECKED,
+                updatedAt = now,
+                team = webTeam,
+                submittedBy = UserRef(DemoIds.userStudent, "Студент Демо"),
+            )
+
+        teamTaskSolutionsByTask[TaskId(DemoIds.postTeamOverdue.value)] =
+            TeamTaskSolution(
+                id = DemoIds.solutionTeamOverdue,
+                taskId = TaskId(DemoIds.postTeamOverdue.value),
+                text = "Демо: решение команды (капитан — Алексей).",
+                files = emptyList(),
+                score = Score(5),
+                status = SolutionStatus.CHECKED,
+                updatedAt = now,
+                team = teamOverdueCrew,
+                submittedBy = UserRef(DemoIds.userPeerAlex, "Алексей К."),
+            )
+
+        val overdueGradeKey = gradeDistributionKey(DemoIds.teamWebOverdue, DemoIds.postTeamOverdue)
+        gradeDistributions[overdueGradeKey] =
+            DemoGradeDistributionBucket(
+                teamRawScore = 5.0,
+                pointsByUser =
+                    mutableMapOf(
+                        DemoIds.userPeerAlex to 2.5,
+                        DemoIds.userStudent to 1.5,
+                        DemoIds.userPeerMaria to 1.0,
+                    ),
+                votes = mutableMapOf(),
+                distributionChanged = true,
+            )
+    }
+
+    private fun findTeamSlot(teamId: TeamId): Triple<PostId, Int, Team>? {
+        for ((postId, list) in teamsByAssignment) {
+            val idx = list.indexOfFirst { it.id == teamId }
+            if (idx >= 0) {
+                return Triple(postId, idx, list[idx])
+            }
+        }
+        return null
+    }
+
+    suspend fun getTeamTaskTeams(assignmentId: PostId): List<Team> =
+        mutex.withLock {
+            teamsByAssignment[assignmentId].orEmpty().map { it.copy(members = it.members.toList()) }
+        }
+
+    suspend fun getTeamTaskMyTeam(assignmentId: PostId): Team? =
+        mutex.withLock {
+            val team: Team = myTeamByAssignment[assignmentId] ?: return@withLock null
+            team.copy(members = team.members.toList())
+        }
+
+    suspend fun getTeamTaskSolution(taskId: TaskId): TeamTaskSolution? =
+        mutex.withLock {
+            teamTaskSolutionsByTask[taskId]
+        }
+
+    suspend fun demoJoinTeam(teamId: TeamId): DomainResult<Unit> =
+        mutex.withLock {
+            val slot = findTeamSlot(teamId)
+                ?: return@withLock DomainResult.Failure(
+                    DomainError.Validation("Команда не найдена"),
+                )
+            val (postId, index, team) = slot
+            if (myTeamByAssignment[postId] != null) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Вы уже в команде по этому заданию"),
+                )
+            }
+            val post = postsById[postId] as? TeamTaskPost
+                ?: return@withLock DomainResult.Failure(
+                    DomainError.Unknown(),
+                )
+            val maxTeamSize: Int = post.maxTeamSize ?: Int.MAX_VALUE
+            if (team.members.size >= maxTeamSize) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("В команде нет свободных мест"),
+                )
+            }
+            if (team.members.any { it.userId == DemoIds.userStudent }) {
+                return@withLock DomainResult.Success(Unit)
+            }
+            val updated: Team =
+                team.copy(
+                    members =
+                        team.members +
+                            TeamMember(
+                                DemoIds.userStudent,
+                                "Студент Демо",
+                                TeamMemberRole.MEMBER,
+                            ),
+                )
+            teamsByAssignment[postId]!![index] = updated
+            myTeamByAssignment[postId] = updated
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoLeaveTeam(teamId: TeamId): DomainResult<Unit> =
+        mutex.withLock {
+            val slot = findTeamSlot(teamId)
+                ?: return@withLock DomainResult.Failure(
+                    DomainError.Validation("Команда не найдена"),
+                )
+            val (postId, index, team) = slot
+            postsById[postId] as? TeamTaskPost
+                ?: return@withLock DomainResult.Failure(DomainError.Unknown())
+            if (!team.members.any { it.userId == DemoIds.userStudent }) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Вы не состоите в этой команде"),
+                )
+            }
+            val newMembers: List<TeamMember> =
+                team.members.filter { it.userId != DemoIds.userStudent }
+            val updated: Team = team.copy(members = newMembers)
+            teamsByAssignment[postId]!![index] = updated
+            myTeamByAssignment[postId] = null
+            teamTaskSolutionsByTask.remove(TaskId(postId.value))
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoIsCaptain(teamId: TeamId): Boolean =
+        mutex.withLock {
+            val slot = findTeamSlot(teamId) ?: return@withLock false
+            slot.third.members.any {
+                it.userId == DemoIds.userStudent && it.role == TeamMemberRole.LEADER
+            }
+        }
+
+    suspend fun demoSubmitTeamSolution(
+        taskId: TaskId,
+        text: String?,
+        fileIds: List<String>,
+    ): DomainResult<SolutionId> =
+        mutex.withLock {
+            val postId = PostId(taskId.value)
+            val teamPost = postsById[postId] as? TeamTaskPost
+                ?: return@withLock DomainResult.Failure(DomainError.Unknown())
+            val deadline = teamPost.taskDetails.deadline
+            if (deadline != null && deadline.isBefore(OffsetDateTime.now())) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Срок сдачи прошёл"),
+                )
+            }
+            val myTeam = myTeamByAssignment[postId] ?: return@withLock DomainResult.Failure(
+                DomainError.Validation("Нет команды"),
+            )
+            if (!myTeam.members.any { it.userId == DemoIds.userStudent && it.role == TeamMemberRole.LEADER }) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Только капитан"),
+                )
+            }
+            val files =
+                fileIds.mapIndexed { i, id ->
+                    FileInfo(id = id, name = "upload-$i")
+                }
+            val newId = SolutionId(UUID.randomUUID())
+            val solution =
+                TeamTaskSolution(
+                    id = newId,
+                    taskId = taskId,
+                    text = text,
+                    files = files,
+                    score = null,
+                    status = SolutionStatus.PENDING,
+                    updatedAt = OffsetDateTime.now(),
+                    team = myTeam,
+                    submittedBy = UserRef(DemoIds.userStudent, "Студент Демо"),
+                )
+            teamTaskSolutionsByTask[taskId] = solution
+            DomainResult.Success(newId)
+        }
 
     private fun member(
         id: UserId,
@@ -204,15 +616,18 @@ class DemoDataStore @Inject constructor() {
     private fun comment(
         id: String,
         authorId: UserId,
+        authorName: String,
         text: String,
         at: OffsetDateTime,
-    ): Comment = Comment(
-        id = id,
-        author = CommentAuthor(id = authorId, credentials = "Демо"),
-        text = text,
-        createdAt = at,
-        isPrivate = false,
-    )
+        isPrivate: Boolean = false,
+    ): Comment =
+        Comment(
+            id = id,
+            author = CommentAuthor(id = authorId, credentials = authorName),
+            text = text,
+            createdAt = at,
+            isPrivate = isPrivate,
+        )
 
     suspend fun getUserCourses(): List<UserCourse> = mutex.withLock { userCourses.toList() }
 
@@ -326,6 +741,11 @@ class DemoDataStore @Inject constructor() {
         if (old.isTask()) {
             solutionsByTask.remove(TaskId(postId.value))
         }
+        if (old is TeamTaskPost) {
+            teamsByAssignment.remove(postId)
+            myTeamByAssignment.remove(postId)
+            teamTaskSolutionsByTask.remove(TaskId(postId.value))
+        }
         true
     }
 
@@ -386,23 +806,27 @@ class DemoDataStore @Inject constructor() {
         mutex.withLock { commentsBySolution[solutionId].orEmpty().toList() }
 
     suspend fun addPostComment(postId: PostId, text: String): Comment = mutex.withLock {
-        val c = comment(
-            id = UUID.randomUUID().toString(),
-            authorId = DemoIds.userStudent,
-            text = text,
-            at = OffsetDateTime.now(),
-        )
+        val c =
+            comment(
+                id = UUID.randomUUID().toString(),
+                authorId = DemoIds.userStudent,
+                authorName = "Студент Демо",
+                text = text,
+                at = OffsetDateTime.now(),
+            )
         commentsByPost.getOrPut(postId) { mutableListOf() }.add(c)
         c
     }
 
     suspend fun addSolutionComment(solutionId: SolutionId, text: String): Comment = mutex.withLock {
-        val c = comment(
-            id = UUID.randomUUID().toString(),
-            authorId = DemoIds.userStudent,
-            text = text,
-            at = OffsetDateTime.now(),
-        )
+        val c =
+            comment(
+                id = UUID.randomUUID().toString(),
+                authorId = DemoIds.userStudent,
+                authorName = "Студент Демо",
+                text = text,
+                at = OffsetDateTime.now(),
+            )
         commentsBySolution.getOrPut(solutionId) { mutableListOf() }.add(c)
         c
     }
@@ -412,12 +836,14 @@ class DemoDataStore @Inject constructor() {
 
     suspend fun addCommentReply(commentId: com.stuf.domain.model.CommentId, text: String): Comment =
         mutex.withLock {
-            val c = comment(
-                id = UUID.randomUUID().toString(),
-                authorId = DemoIds.userStudent,
-                text = text,
-                at = OffsetDateTime.now(),
-            )
+            val c =
+                comment(
+                    id = UUID.randomUUID().toString(),
+                    authorId = DemoIds.userStudent,
+                    authorName = "Студент Демо",
+                    text = text,
+                    at = OffsetDateTime.now(),
+                )
             repliesByComment.getOrPut(commentId.value) { mutableListOf() }.add(c)
             c
         }
@@ -458,4 +884,114 @@ class DemoDataStore @Inject constructor() {
         }
         GradeTable(tasks = taskPosts, rows = rows)
     }
+
+    private fun gradeDistributionKey(teamId: TeamId, assignmentId: PostId): String =
+        "${teamId.value}|${assignmentId.value}"
+
+    private fun ensureGradeDistributionBucketLocked(
+        teamId: TeamId,
+        assignmentId: PostId,
+    ): DemoGradeDistributionBucket? {
+        val team = teamsByAssignment[assignmentId]?.find { it.id == teamId } ?: return null
+        val taskId = TaskId(assignmentId.value)
+        val solution = teamTaskSolutionsByTask[taskId] ?: return null
+        val sc = solution.score ?: return null
+        val rraw = sc.value.toDouble()
+        val key = gradeDistributionKey(teamId, assignmentId)
+        return gradeDistributions.getOrPut(key) {
+            DemoGradeDistributionBucket(
+                teamRawScore = rraw,
+                pointsByUser = team.members.associateTo(mutableMapOf()) { it.userId to 0.0 },
+                votes = mutableMapOf(),
+                distributionChanged = false,
+            )
+        }.also { bucket ->
+            bucket.teamRawScore = rraw
+            for (m in team.members) {
+                bucket.pointsByUser.putIfAbsent(m.userId, 0.0)
+            }
+        }
+    }
+
+    suspend fun gradeDistributionGet(
+        teamId: TeamId,
+        assignmentId: PostId,
+        currentUserId: UserId?,
+    ): DomainResult<GradeDistribution> =
+        mutex.withLock {
+            val team = teamsByAssignment[assignmentId]?.find { it.id == teamId }
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Команда не найдена"))
+            val bucket = ensureGradeDistributionBucketLocked(teamId, assignmentId)
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Оценка ещё не выставлена"))
+            val entries =
+                team.members.map { m ->
+                    GradeDistributionEntry(m.userId, bucket.pointsByUser[m.userId] ?: 0.0)
+                }
+            val sum = entries.sumOf { it.points }
+            DomainResult.Success(
+                GradeDistribution(
+                    teamId = teamId,
+                    assignmentId = assignmentId,
+                    teamRawScore = bucket.teamRawScore,
+                    entries = entries,
+                    sumDistributed = sum,
+                    distributionChanged = bucket.distributionChanged,
+                    currentUserVote = currentUserId?.let { bucket.votes[it] },
+                ),
+            )
+        }
+
+    suspend fun gradeDistributionUpdate(
+        teamId: TeamId,
+        assignmentId: PostId,
+        entries: List<GradeDistributionEntry>,
+    ): DomainResult<GradeDistribution> =
+        mutex.withLock {
+            val team = teamsByAssignment[assignmentId]?.find { it.id == teamId }
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Команда не найдена"))
+            val bucket = ensureGradeDistributionBucketLocked(teamId, assignmentId)
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Оценка ещё не выставлена"))
+            val memberIds = team.members.map { it.userId }.toSet()
+            for (e in entries) {
+                if (e.userId !in memberIds) {
+                    return@withLock DomainResult.Failure(DomainError.Validation("Неверный участник"))
+                }
+                bucket.pointsByUser[e.userId] = e.points
+            }
+            bucket.distributionChanged = true
+            val outEntries =
+                team.members.map { m ->
+                    GradeDistributionEntry(m.userId, bucket.pointsByUser[m.userId] ?: 0.0)
+                }
+            val sum = outEntries.sumOf { it.points }
+            DomainResult.Success(
+                GradeDistribution(
+                    teamId = teamId,
+                    assignmentId = assignmentId,
+                    teamRawScore = bucket.teamRawScore,
+                    entries = outEntries,
+                    sumDistributed = sum,
+                    distributionChanged = bucket.distributionChanged,
+                    currentUserVote = null,
+                ),
+            )
+        }
+
+    suspend fun gradeDistributionVote(
+        teamId: TeamId,
+        assignmentId: PostId,
+        vote: GradeVote,
+        voterId: UserId,
+    ): DomainResult<Unit> =
+        mutex.withLock {
+            val bucket = ensureGradeDistributionBucketLocked(teamId, assignmentId)
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Оценка ещё не выставлена"))
+            val team = teamsByAssignment[assignmentId]?.find { it.id == teamId }
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Команда не найдена"))
+            if (team.members.none { it.userId == voterId }) {
+                return@withLock DomainResult.Failure(DomainError.Validation("Не участник команды"))
+            }
+            bucket.votes[voterId] = vote
+            DomainResult.Success(Unit)
+        }
 }

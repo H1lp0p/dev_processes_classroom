@@ -44,7 +44,8 @@ internal fun mapCourseFeedItemToPost(
                 taskDetails = placeholderDetails,
                 attachments = emptyList(),
             )
-        PostType.team_task ->
+        // OpenAPI: teaM_TASK → доменное командное задание ([TeamTaskPost]); см. [ApiPostTypeTeamTask].
+        PostType.teaM_TASK ->
             TeamTaskPost(
                 id = PostId(item.id),
                 courseId = courseId,

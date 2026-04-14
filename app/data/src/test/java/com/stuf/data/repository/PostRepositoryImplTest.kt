@@ -12,12 +12,14 @@ import com.stuf.data.model.PostDetailsDto
 import com.stuf.data.model.PostDetailsDtoApiResponse
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
+import com.stuf.data.model.UserSolutionDto
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
+import com.stuf.domain.model.Score
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskPost
 import com.stuf.domain.repository.PostRepository
@@ -199,6 +201,46 @@ class PostRepositoryImplTest {
         assertEquals(OffsetDateTime.parse("2024-01-10T12:00:00Z"), taskPost.taskDetails.deadline)
         assertEquals(true, taskPost.taskDetails.isMandatory)
         assertEquals(10, taskPost.taskDetails.maxScore)
+    }
+
+    @Test
+    fun `getPost maps userSolution score for task`() {
+        val postId = UUID.fromString("00000000-0000-0000-0000-000000000021")
+        val api = FakePostApi().apply {
+            getPostResponse = Response.success(
+                PostDetailsDtoApiResponse(
+                    type = ApiResponseType.success,
+                    message = null,
+                    data = PostDetailsDto(
+                        id = postId,
+                        type = PostType.task,
+                        title = "Task title",
+                        text = "Solve this",
+                        deadline = OffsetDateTime.parse("2024-01-10T12:00:00Z"),
+                        maxScore = 10,
+                        taskType = TaskType.mandatory,
+                        solvableAfterDeadline = true,
+                        files = null,
+                        userSolution = UserSolutionDto(
+                            text = "My work",
+                            score = 7,
+                            id = null,
+                            status = null,
+                        ),
+                    ),
+                ),
+            )
+        }
+        val repository: PostRepository = PostRepositoryImpl(api)
+
+        val result = runBlocking {
+            repository.getPost(PostId(postId))
+        }
+
+        assertTrue(result is DomainResult.Success<Post>)
+        val post = (result as DomainResult.Success<Post>).value
+        assertTrue(post is TaskPost)
+        assertEquals(Score(7), (post as TaskPost).assignedScore)
     }
 
     @Test

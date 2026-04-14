@@ -30,6 +30,8 @@ internal fun PostCommentItem(
     onLoadRepliesClick: (CommentId) -> Unit,
     onReplyClick: (CommentId) -> Unit,
     loadingRepliesForCommentId: String?,
+    /** Для ветки без тредов (например, комментарии к решению). */
+    showThreadActions: Boolean = true,
 ) {
     Row(
         modifier =
@@ -81,48 +83,53 @@ internal fun PostCommentItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                TextButton(
-                    onClick = { onReplyClick(CommentId(comment.id)) },
-                    modifier = Modifier.testTag("post_comment_reply_button"),
-                ) {
-                    Text("Ответить")
+                if (showThreadActions) {
+                    TextButton(
+                        onClick = { onReplyClick(CommentId(comment.id)) },
+                        modifier = Modifier.testTag("post_comment_reply_button"),
+                    ) {
+                        Text("Ответить")
+                    }
                 }
             }
 
-            when {
-                loadingRepliesForCommentId == comment.id -> {
-                    CircularProgressIndicator(
-                        modifier =
-                            Modifier
-                                .padding(top = 8.dp)
-                                .size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
-                }
-                comment.replies.isNotEmpty() -> {
-                    Column(modifier = Modifier.padding(top = 4.dp)) {
-                        comment.replies.forEach { reply ->
-                            PostCommentItem(
-                                comment = reply,
-                                depth = depth + 1,
-                                onLoadRepliesClick = onLoadRepliesClick,
-                                onReplyClick = onReplyClick,
-                                loadingRepliesForCommentId = loadingRepliesForCommentId,
-                            )
+            if (showThreadActions) {
+                when {
+                    loadingRepliesForCommentId == comment.id -> {
+                        CircularProgressIndicator(
+                            modifier =
+                                Modifier
+                                    .padding(top = 8.dp)
+                                    .size(20.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                    comment.replies.isNotEmpty() -> {
+                        Column(modifier = Modifier.padding(top = 4.dp)) {
+                            comment.replies.forEach { reply ->
+                                PostCommentItem(
+                                    comment = reply,
+                                    depth = depth + 1,
+                                    onLoadRepliesClick = onLoadRepliesClick,
+                                    onReplyClick = onReplyClick,
+                                    loadingRepliesForCommentId = loadingRepliesForCommentId,
+                                    showThreadActions = true,
+                                )
+                            }
                         }
                     }
-                }
-                comment.repliesLoaded && comment.replies.isEmpty() -> {
-                    Text(
-                        text = "Нет ответов",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                else -> {
-                    TextButton(onClick = { onLoadRepliesClick(CommentId(comment.id)) }) {
-                        Text("Показать ответы")
+                    comment.repliesLoaded && comment.replies.isEmpty() -> {
+                        Text(
+                            text = "Нет ответов",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                    else -> {
+                        TextButton(onClick = { onLoadRepliesClick(CommentId(comment.id)) }) {
+                            Text("Показать ответы")
+                        }
                     }
                 }
             }

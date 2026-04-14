@@ -48,6 +48,8 @@ data class TaskPost(
     override val createdAt: OffsetDateTime,
     val taskDetails: TaskDetails,
     val attachments: List<PostAttachment> = emptyList(),
+    /** Оценка по решению пользователя ([PostDetailsDto.userSolution]). */
+    val assignedScore: Score? = null,
 ) : Post()
 
 data class TeamTaskPost(
@@ -58,6 +60,11 @@ data class TeamTaskPost(
     override val createdAt: OffsetDateTime,
     val taskDetails: TaskDetails,
     val attachments: List<PostAttachment> = emptyList(),
+    /** Ограничения размера команды из API деталей поста; в ленте курса обычно отсутствуют. */
+    val minTeamSize: Int? = null,
+    val maxTeamSize: Int? = null,
+    /** Оценка по решению команды ([PostDetailsDto.teamSolution]). */
+    val assignedScore: Score? = null,
 ) : Post()
 
 fun Post.typeLabelForScreen(): String =

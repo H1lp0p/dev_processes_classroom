@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.stuf.classroom.auth.AuthManager
 import com.stuf.classroom.auth.LoadingScreen
 import com.stuf.classroom.auth.LoginRoute
@@ -17,6 +19,7 @@ import com.stuf.classroom.courses.CreateCourseRoute
 import com.stuf.classroom.courses.JoinCourseRoute
 import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
+import com.stuf.classroom.grade.GradeDistributionRoute
 import com.stuf.classroom.post.PostRoute
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseRole
@@ -104,6 +107,20 @@ fun ClassroomNavHost(
         }
         composable(ClassroomRoutes.POST) { backStackEntry ->
             PostRoute(
+                navController = navController,
+                backStackEntry = backStackEntry,
+            )
+        }
+        composable(
+            route = ClassroomRoutes.GRADE_DISTRIBUTION,
+            arguments =
+                listOf(
+                    navArgument("teamId") { type = NavType.StringType },
+                    navArgument("postId") { type = NavType.StringType },
+                    navArgument("role") { type = NavType.StringType },
+                ),
+        ) { backStackEntry ->
+            GradeDistributionRoute(
                 navController = navController,
                 backStackEntry = backStackEntry,
             )

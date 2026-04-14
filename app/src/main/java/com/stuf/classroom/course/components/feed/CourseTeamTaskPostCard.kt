@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.stuf.classroom.post.components.PostTaskScoreLine
 import com.stuf.domain.model.TeamTaskPost
 
 @Composable
@@ -50,6 +51,11 @@ internal fun CourseTeamTaskPostCard(
                 Text(
                     text = post.title,
                     style = MaterialTheme.typography.bodyLarge,
+                )
+                PostTaskScoreLine(
+                    assignedScore = post.assignedScore,
+                    maxScore = post.taskDetails.maxScore,
+                    compact = true,
                 )
             }
         }

@@ -83,7 +83,8 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api_v2.json")
+    // v3 включает team-task teams, grade-distribution и др.; при генерации не должно оставаться дублей с ручными DTO в model/.
+    inputSpec.set("$projectDir/classroom_api_v3.json")
 
     outputDir.set("$projectDir")
 

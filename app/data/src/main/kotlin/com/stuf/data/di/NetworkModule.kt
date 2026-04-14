@@ -5,8 +5,11 @@ import com.stuf.data.api.AuthApi
 import com.stuf.data.api.CommentApi
 import com.stuf.data.api.CourseApi
 import com.stuf.data.api.FilesApi
+import com.stuf.data.api.GradeDistributionApi
 import com.stuf.data.api.PostApi
 import com.stuf.data.api.SolutionApi
+import com.stuf.data.api.TeamApi
+import com.stuf.data.api.TeamSolutionApi
 import com.stuf.data.api.UserApi
 import com.stuf.data.auth.BearerTokenApplier
 import com.stuf.data.auth.AuthTokenManager
@@ -89,5 +92,23 @@ object NetworkModule {
     fun provideSolutionApi(
         apiClient: ApiClient,
     ): SolutionApi = apiClient.createService(SolutionApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTeamApi(
+        apiClient: ApiClient,
+    ): TeamApi = apiClient.createService(TeamApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTeamSolutionApi(
+        apiClient: ApiClient,
+    ): TeamSolutionApi = apiClient.createService(TeamSolutionApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGradeDistributionApi(
+        apiClient: ApiClient,
+    ): GradeDistributionApi = apiClient.createService(GradeDistributionApi::class.java)
 }
 
