@@ -13,14 +13,32 @@ import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.TaskDetails
+import com.stuf.domain.model.TaskId
 import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.Team
+import com.stuf.domain.model.TeamId
 import com.stuf.domain.model.TeamTaskPost
+import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
+import com.stuf.domain.repository.FileRepository
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
+import com.stuf.domain.usecase.AddSolutionComment
+import com.stuf.domain.usecase.CheckTeamCaptain
 import com.stuf.domain.usecase.GetCommentReplies
+import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
+import com.stuf.domain.usecase.GetSolutionComments
+import com.stuf.domain.usecase.GetTeamTaskSolution
+import com.stuf.domain.usecase.GetTeamsForTeamTask
+import com.stuf.domain.usecase.JoinTeam
+import com.stuf.domain.usecase.LeaveTeam
+import com.stuf.domain.usecase.SubmitTeamTaskSolution
+import com.stuf.domain.model.User
+import com.stuf.domain.repository.CurrentUserRepository
+import com.stuf.domain.model.FileInfo
+import com.stuf.domain.model.SolutionId
 import java.time.OffsetDateTime
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -89,11 +107,91 @@ class PostScreenViewModelTest {
         }
     }
 
+    private class FakeGetSolutionComments : GetSolutionComments {
+        var result: DomainResult<List<Comment>> = DomainResult.Success(emptyList())
+        var lastSolutionId: SolutionId? = null
+
+        override suspend fun invoke(solutionId: SolutionId): DomainResult<List<Comment>> {
+            lastSolutionId = solutionId
+            return result
+        }
+    }
+
+    private class FakeAddSolutionComment : AddSolutionComment {
+        var result: DomainResult<Comment> = DomainResult.Failure(DomainError.Unknown())
+        var lastSolutionId: SolutionId? = null
+        var lastText: String? = null
+
+        override suspend fun invoke(solutionId: SolutionId, text: String): DomainResult<Comment> {
+            lastSolutionId = solutionId
+            lastText = text
+            return result
+        }
+    }
+
+    private class FakeGetTeamsForTeamTask : GetTeamsForTeamTask {
+        override suspend fun invoke(assignmentId: PostId): DomainResult<List<Team>> =
+            DomainResult.Success(emptyList())
+    }
+
+    private class FakeGetMyTeamForTeamTask : GetMyTeamForTeamTask {
+        override suspend fun invoke(assignmentId: PostId): DomainResult<Team?> =
+            DomainResult.Success(null)
+    }
+
+    private class FakeJoinTeam : JoinTeam {
+        override suspend fun invoke(teamId: TeamId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeLeaveTeam : LeaveTeam {
+        override suspend fun invoke(teamId: TeamId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeCurrentUserRepository : CurrentUserRepository {
+        override suspend fun getCurrentUser(): DomainResult<User> =
+            DomainResult.Success(
+                User(
+                    id = UserId(UUID.fromString("00000000-0000-0000-0000-000000000001")),
+                    credentials = "Test User",
+                    email = "test@example.com",
+                ),
+            )
+    }
+
+    private class FakeGetTeamTaskSolution : GetTeamTaskSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<TeamTaskSolution?> =
+            DomainResult.Success(null)
+    }
+
+    private class FakeCheckTeamCaptain : CheckTeamCaptain {
+        override suspend fun invoke(teamId: TeamId): DomainResult<Boolean> =
+            DomainResult.Success(false)
+    }
+
+    private class FakeSubmitTeamTaskSolution : SubmitTeamTaskSolution {
+        override suspend fun invoke(
+            taskId: TaskId,
+            captainTeamId: TeamId,
+            text: String?,
+            fileIds: List<String>,
+        ): DomainResult<SolutionId> =
+            DomainResult.Failure(DomainError.Unknown())
+    }
+
+    private class FakeFileRepository : FileRepository {
+        override suspend fun uploadFile(bytes: ByteArray, name: String): DomainResult<FileInfo> =
+            DomainResult.Failure(DomainError.Unknown())
+    }
+
     private lateinit var fakeGetPost: FakeGetPost
     private lateinit var fakeGetPostComments: FakeGetPostComments
     private lateinit var fakeGetCommentReplies: FakeGetCommentReplies
     private lateinit var fakeAddPostComment: FakeAddPostComment
     private lateinit var fakeAddCommentReply: FakeAddCommentReply
+    private lateinit var fakeGetSolutionComments: FakeGetSolutionComments
+    private lateinit var fakeAddSolutionComment: FakeAddSolutionComment
 
     private lateinit var viewModel: PostScreenViewModel
 
@@ -106,6 +204,8 @@ class PostScreenViewModelTest {
         fakeGetCommentReplies = FakeGetCommentReplies()
         fakeAddPostComment = FakeAddPostComment()
         fakeAddCommentReply = FakeAddCommentReply()
+        fakeGetSolutionComments = FakeGetSolutionComments()
+        fakeAddSolutionComment = FakeAddSolutionComment()
 
         viewModel =
             PostScreenViewModel(
@@ -118,9 +218,20 @@ class PostScreenViewModelTest {
                     ),
                 getPost = fakeGetPost,
                 getPostComments = fakeGetPostComments,
+                getSolutionComments = fakeGetSolutionComments,
                 getCommentReplies = fakeGetCommentReplies,
                 addPostComment = fakeAddPostComment,
+                addSolutionComment = fakeAddSolutionComment,
                 addCommentReply = fakeAddCommentReply,
+                getTeamsForTeamTask = FakeGetTeamsForTeamTask(),
+                getMyTeamForTeamTask = FakeGetMyTeamForTeamTask(),
+                joinTeam = FakeJoinTeam(),
+                getTeamTaskSolution = FakeGetTeamTaskSolution(),
+                checkTeamCaptain = FakeCheckTeamCaptain(),
+                submitTeamTaskSolution = FakeSubmitTeamTaskSolution(),
+                fileRepository = FakeFileRepository(),
+                currentUserRepository = FakeCurrentUserRepository(),
+                leaveTeam = FakeLeaveTeam(),
                 dispatcher = Dispatchers.Unconfined,
             )
     }

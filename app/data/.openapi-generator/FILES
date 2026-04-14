@@ -2,6 +2,7 @@ src/main/kotlin/com/stuf/data/api/AuthApi.kt
 src/main/kotlin/com/stuf/data/api/CommentApi.kt
 src/main/kotlin/com/stuf/data/api/CourseApi.kt
 src/main/kotlin/com/stuf/data/api/FilesApi.kt
+src/main/kotlin/com/stuf/data/api/GradeDistributionApi.kt
 src/main/kotlin/com/stuf/data/api/PostApi.kt
 src/main/kotlin/com/stuf/data/api/SolutionApi.kt
 src/main/kotlin/com/stuf/data/api/TeamApi.kt
@@ -44,6 +45,12 @@ src/main/kotlin/com/stuf/data/model/EditCommentRequestDto.kt
 src/main/kotlin/com/stuf/data/model/FeedResponseDto.kt
 src/main/kotlin/com/stuf/data/model/FeedResponseDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/FileDto.kt
+src/main/kotlin/com/stuf/data/model/GradeDistributionEntryDto.kt
+src/main/kotlin/com/stuf/data/model/GradeDistributionResponseDto.kt
+src/main/kotlin/com/stuf/data/model/GradeDistributionResponseDtoApiResponse.kt
+src/main/kotlin/com/stuf/data/model/GradeDistributionUpdateRequestDto.kt
+src/main/kotlin/com/stuf/data/model/GradeDistributionVoteRequestDto.kt
+src/main/kotlin/com/stuf/data/model/GradeVoteType.kt
 src/main/kotlin/com/stuf/data/model/IdRequestDto.kt
 src/main/kotlin/com/stuf/data/model/IdRequestDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/JoinCourseRequestDto.kt

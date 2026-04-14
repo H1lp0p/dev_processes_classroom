@@ -2,15 +2,12 @@ package com.stuf.classroom.post.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Assignment
@@ -95,6 +92,12 @@ internal fun PostScreenTaskSection(
             typeLabel = post.typeLabelForScreen(),
             icon = Icons.Outlined.Assignment,
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        PostTaskScoreLine(
+            assignedScore = post.assignedScore,
+            maxScore = post.taskDetails.maxScore,
+            compact = false,
+        )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = post.text,
@@ -123,6 +126,12 @@ internal fun PostScreenTeamTaskSection(
             typeLabel = post.typeLabelForScreen(),
             icon = Icons.Outlined.Groups,
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        PostTaskScoreLine(
+            assignedScore = post.assignedScore,
+            maxScore = post.taskDetails.maxScore,
+            compact = false,
+        )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = post.text,
@@ -137,6 +146,28 @@ internal fun PostScreenTeamTaskSection(
             }
         }
     }
+}
+
+@Composable
+internal fun PostScreenTeamTaskRulesBlock(
+    post: TeamTaskPost,
+    modifier: Modifier = Modifier,
+) {
+    val label: String? =
+        when {
+            post.minTeamSize != null && post.maxTeamSize != null ->
+                "Состав команды: от ${post.minTeamSize} до ${post.maxTeamSize} человек"
+            post.minTeamSize != null -> "Минимум участников в команде: ${post.minTeamSize}"
+            post.maxTeamSize != null -> "Максимум участников в команде: ${post.maxTeamSize}"
+            else -> null
+        }
+    if (label == null) return
+    Text(
+        text = label,
+        modifier = modifier.testTag("team_task_rules"),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -159,7 +190,7 @@ private fun PostHeaderUserCourseCard(
 }
 
 @Composable
-private fun PostFileAttachmentCard(
+internal fun PostFileAttachmentCard(
     attachment: PostAttachment,
 ) {
     Surface(
@@ -172,36 +203,25 @@ private fun PostFileAttachmentCard(
         shadowElevation = 0.dp,
         color = MaterialTheme.colorScheme.surface,
     ) {
-        Row(
+        Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = attachment.name ?: (attachment.id?.toString() ?: "Файл"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Вложение",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-            }
-            Surface(
-                modifier = Modifier.size(56.dp, 72.dp),
-                shape = RoundedCornerShape(4.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            ) {
-                Box(modifier = Modifier.fillMaxSize())
-            }
+            Text(
+                text = attachment.name ?: (attachment.id?.toString() ?: "Файл"),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Вложение",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary,
+            )
         }
     }
 }

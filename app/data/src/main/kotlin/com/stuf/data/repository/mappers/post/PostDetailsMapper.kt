@@ -10,6 +10,7 @@ import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
+import com.stuf.domain.model.Score
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskPost
 import com.stuf.domain.model.TeamTaskPost
@@ -67,9 +68,11 @@ internal fun mapPostDetailsDtoToPost(
                 createdAt = createdAt,
                 taskDetails = taskDetails,
                 attachments = attachments,
+                assignedScore = dto.userSolution?.let { Score(it.score) },
             )
         }
-        PostType.team_task -> {
+        // OpenAPI: teaM_TASK → доменное командное задание ([TeamTaskPost]); см. [ApiPostTypeTeamTask].
+        PostType.teaM_TASK -> {
             val taskDetails =
                 TaskDetails(
                     deadline = dto.deadline,
@@ -84,6 +87,9 @@ internal fun mapPostDetailsDtoToPost(
                 createdAt = createdAt,
                 taskDetails = taskDetails,
                 attachments = attachments,
+                minTeamSize = dto.minTeamSize,
+                maxTeamSize = dto.maxTeamSize,
+                assignedScore = dto.teamSolution?.let { Score(it.score) },
             )
         }
     }

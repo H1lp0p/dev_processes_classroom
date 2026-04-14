@@ -12,8 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,15 +35,18 @@ import com.stuf.classroom.post.components.PostScreenErrorBlock
 import com.stuf.classroom.post.components.PostScreenLoadingIndicator
 import com.stuf.classroom.post.components.PostScreenMaterialSection
 import com.stuf.classroom.post.components.PostScreenTaskSection
-import com.stuf.classroom.post.components.PostScreenTeamTaskSection
 import com.stuf.classroom.post.components.PostScreenTopBar
 import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.CourseRole
+import com.stuf.domain.model.TeamId
 
 private sealed class PostComposerState {
     data object Closed : PostComposerState()
 
     data object NewRootComment : PostComposerState()
+
+    /** Приватный комментарий к решению (`/api/solution/{id}/comment`). */
+    data object NewPrivateSolutionComment : PostComposerState()
 
     data class Reply(
         val toCommentId: CommentId,
@@ -56,6 +59,13 @@ fun PostScreen(
     state: PostUiState,
     onRetry: () -> Unit,
     onAttachSolutionClick: () -> Unit,
+    onTeamTaskPickSolutionFile: () -> Unit,
+    onSubmitTeamSolution: (String) -> Unit,
+    onRemovePendingTeamSolutionFile: (String) -> Unit,
+    onRemoveSavedTeamSolutionFile: (String) -> Unit,
+    onJoinTeam: (TeamId) -> Unit,
+    onLeaveTeam: (TeamId) -> Unit,
+    onOpenGradeDistribution: () -> Unit = {},
     onCommentSubmit: (text: String, isPrivate: Boolean, parentCommentId: CommentId?) -> Unit,
     onLoadRepliesClick: (CommentId) -> Unit,
     onBackClick: () -> Unit,
@@ -69,119 +79,151 @@ fun PostScreen(
             state.content != null &&
             state.postLoadError == null &&
             !state.isLoadingPost &&
-            (state.content is PostScreenContent.Task || state.content is PostScreenContent.TeamTask)
+            state.content is PostScreenContent.Task
+
+    val showTeamTaskScreen: Boolean =
+        state.content is PostScreenContent.TeamTask &&
+            state.postLoadError == null &&
+            !state.isLoadingPost
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                PostScreenTopBar(onBackClick = onBackClick)
-            },
-            bottomBar = {
-                if (showAttachSolutionBar) {
-                    Button(
-                        onClick = onAttachSolutionClick,
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .testTag("post_attach_solution_button"),
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 18.dp),
-                    ) {
-                        Text(
-                            text = "Прикрепить решение",
-                            style = MaterialTheme.typography.titleMedium,
+        if (showTeamTaskScreen) {
+            val teamContent: PostScreenContent.TeamTask = state.content as PostScreenContent.TeamTask
+            TeamTaskPostScreen(
+                modifier = Modifier.fillMaxSize(),
+                state = state,
+                post = teamContent.post,
+                onBackClick = onBackClick,
+                onOpenPublicCommentComposer = {
+                    composerState = PostComposerState.NewRootComment
+                },
+                onOpenPrivateCommentComposer = {
+                    composerState = PostComposerState.NewPrivateSolutionComment
+                },
+                onReplyClick = { commentId: CommentId ->
+                    composerState = PostComposerState.Reply(commentId)
+                },
+                onLoadRepliesClick = onLoadRepliesClick,
+                onJoinTeam = onJoinTeam,
+                onLeaveTeam = onLeaveTeam,
+                onTeamTaskPickSolutionFile = onTeamTaskPickSolutionFile,
+                onSubmitTeamSolution = onSubmitTeamSolution,
+                onRemovePendingTeamSolutionFile = onRemovePendingTeamSolutionFile,
+                onRemoveSavedTeamSolutionFile = onRemoveSavedTeamSolutionFile,
+                onOpenGradeDistribution = onOpenGradeDistribution,
+            )
+        } else {
+            Scaffold(
+                topBar = {
+                    PostScreenTopBar(onBackClick = onBackClick)
+                },
+                bottomBar = {
+                    if (showAttachSolutionBar) {
+                        Button(
+                            onClick = onAttachSolutionClick,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .navigationBarsPadding()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .testTag("post_attach_solution_button"),
+                            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 18.dp),
+                        ) {
+                            Text(
+                                text = "Прикрепить решение",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                    }
+                },
+            ) { innerPadding ->
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(16.dp)
+                            .testTag("post_comments_list"),
+                ) {
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    if (state.isLoadingPost && state.content == null) {
+                        item { PostScreenLoadingIndicator() }
+                    } else if (state.postLoadError != null) {
+                        item {
+                            PostScreenErrorBlock(
+                                message = state.postLoadError,
+                                onRetry = onRetry,
+                            )
+                        }
+                    } else {
+                        val content = state.content
+                        if (content != null) {
+                            item {
+                                when (content) {
+                                    is PostScreenContent.Announcement ->
+                                        PostScreenAnnouncementSection(post = content.post)
+                                    is PostScreenContent.Material ->
+                                        PostScreenMaterialSection(post = content.post)
+                                    is PostScreenContent.Task ->
+                                        PostScreenTaskSection(post = content.post)
+                                    is PostScreenContent.TeamTask ->
+                                        Spacer(modifier = Modifier.height(0.dp))
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    if (state.isLoadingComments && state.content != null) {
+                        item {
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+
+                    state.commentsLoadError?.let { msg ->
+                        item {
+                            PostScreenErrorBlock(message = msg, onRetry = onRetry)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+
+                    if (state.content != null && state.postLoadError == null && !state.isLoadingPost) {
+                        item {
+                            PostScreenCommentsDivider()
+                        }
+                        item {
+                            TextButton(
+                                onClick = {
+                                    composerState = PostComposerState.NewRootComment
+                                },
+                                modifier = Modifier.testTag("post_new_comment_button"),
+                            ) {
+                                Text("Написать комментарий")
+                            }
+                        }
+                    }
+
+                    items(
+                        items = state.comments,
+                        key = { it.id },
+                    ) { comment ->
+                        PostCommentItem(
+                            comment = comment,
+                            onLoadRepliesClick = onLoadRepliesClick,
+                            onReplyClick = { commentId: CommentId ->
+                                composerState = PostComposerState.Reply(commentId)
+                            },
+                            loadingRepliesForCommentId = state.loadingRepliesForCommentId,
                         )
                     }
                 }
-            },
-        ) { innerPadding ->
-            LazyColumn(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .padding(16.dp)
-                        .testTag("post_comments_list"),
-            ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            if (state.isLoadingPost && state.content == null) {
-                item { PostScreenLoadingIndicator() }
-            } else if (state.postLoadError != null) {
-                item {
-                    PostScreenErrorBlock(
-                        message = state.postLoadError,
-                        onRetry = onRetry,
-                    )
-                }
-            } else {
-                val content = state.content
-                if (content != null) {
-                    item {
-                        when (content) {
-                            is PostScreenContent.Announcement ->
-                                PostScreenAnnouncementSection(post = content.post)
-                            is PostScreenContent.Material ->
-                                PostScreenMaterialSection(post = content.post)
-                            is PostScreenContent.Task ->
-                                PostScreenTaskSection(post = content.post)
-                            is PostScreenContent.TeamTask ->
-                                PostScreenTeamTaskSection(post = content.post)
-                        }
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            if (state.isLoadingComments && state.content != null) {
-                item {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-
-            state.commentsLoadError?.let { msg ->
-                item {
-                    PostScreenErrorBlock(message = msg, onRetry = onRetry)
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-
-            if (state.content != null && state.postLoadError == null && !state.isLoadingPost) {
-                item {
-                    PostScreenCommentsDivider()
-                }
-                item {
-                    TextButton(
-                        onClick = {
-                            composerState = PostComposerState.NewRootComment
-                        },
-                        modifier = Modifier.testTag("post_new_comment_button"),
-                    ) {
-                        Text("Написать комментарий")
-                    }
-                }
-            }
-
-            items(
-                items = state.comments,
-                key = { it.id },
-            ) { comment ->
-                PostCommentItem(
-                    comment = comment,
-                    onLoadRepliesClick = onLoadRepliesClick,
-                    onReplyClick = { commentId: CommentId ->
-                        composerState = PostComposerState.Reply(commentId)
-                    },
-                    loadingRepliesForCommentId = state.loadingRepliesForCommentId,
-                )
-            }
             }
         }
 
@@ -194,6 +236,17 @@ fun PostScreen(
                     PostComposerState.NewRootComment ->
                         PostScreenCommentComposer(
                             isReply = false,
+                            onDismiss = { composerState = PostComposerState.Closed },
+                            onCommentSubmit = { text, isPrivate ->
+                                onCommentSubmit(text, isPrivate, null)
+                                composerState = PostComposerState.Closed
+                            },
+                        )
+                    PostComposerState.NewPrivateSolutionComment ->
+                        PostScreenCommentComposer(
+                            isReply = false,
+                            titleText = "Приватный комментарий к решению",
+                            submitAsPrivate = true,
                             onDismiss = { composerState = PostComposerState.Closed },
                             onCommentSubmit = { text, isPrivate ->
                                 onCommentSubmit(text, isPrivate, null)

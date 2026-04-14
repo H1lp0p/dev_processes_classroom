@@ -29,6 +29,8 @@ internal fun PostScreenCommentComposer(
     isReply: Boolean,
     onDismiss: () -> Unit,
     onCommentSubmit: (text: String, isPrivate: Boolean) -> Unit,
+    titleText: String? = null,
+    submitAsPrivate: Boolean = false,
 ) {
     val textState: MutableState<String> = remember { mutableStateOf("") }
 
@@ -47,11 +49,12 @@ internal fun PostScreenCommentComposer(
         ) {
             Text(
                 text =
-                    if (isReply) {
-                        "Ответ на комментарий"
-                    } else {
-                        "Новый комментарий"
-                    },
+                    titleText
+                        ?: if (isReply) {
+                            "Ответ на комментарий"
+                        } else {
+                            "Новый комментарий"
+                        },
                 style = MaterialTheme.typography.titleSmall,
             )
             TextButton(onClick = onDismiss) {
@@ -78,7 +81,7 @@ internal fun PostScreenCommentComposer(
                 onClick = {
                     val text: String = textState.value
                     if (text.isNotBlank()) {
-                        onCommentSubmit(text, false)
+                        onCommentSubmit(text, submitAsPrivate)
                         textState.value = ""
                     }
                 },

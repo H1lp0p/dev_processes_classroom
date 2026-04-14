@@ -107,6 +107,21 @@ interface TeamApi {
     suspend fun apiTeamTaskAssignmentIdMyTeamGet(@Path("assignmentId") assignmentId: java.util.UUID): Response<TeamDtoApiResponse>
 
     /**
+     * GET api/team-task/{assignmentId}/teams
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param assignmentId 
+     * @return [TeamDtoListApiResponse]
+     */
+    @GET("api/team-task/{assignmentId}/teams")
+    suspend fun apiTeamTaskAssignmentIdTeamsGet(@Path("assignmentId") assignmentId: java.util.UUID): Response<TeamDtoListApiResponse>
+
+    /**
      * GET api/teams/{teamId}/is-captain
      * 
      * 
