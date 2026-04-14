@@ -63,9 +63,22 @@ data class TeamTaskPost(
     /** Ограничения размера команды из API деталей поста; в ленте курса обычно отсутствуют. */
     val minTeamSize: Int? = null,
     val maxTeamSize: Int? = null,
+    val solvableAfterDeadline: Boolean? = null,
+    val captainMode: TeamCaptainSelectionMode? = null,
+    val votingDurationHours: Int? = null,
+    val predefinedTeamsCount: Int? = null,
+    val allowJoinTeam: Boolean? = null,
+    val allowLeaveTeam: Boolean? = null,
+    val allowStudentTransferCaptain: Boolean? = null,
     /** Оценка по решению команды ([PostDetailsDto.teamSolution]). */
     val assignedScore: Score? = null,
 ) : Post()
+
+enum class TeamCaptainSelectionMode {
+    FIRST_MEMBER,
+    TEACHER_FIXED,
+    VOTING_AND_LOTTERY,
+}
 
 fun Post.typeLabelForScreen(): String =
     when (this) {

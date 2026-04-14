@@ -81,6 +81,17 @@ class TeamRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun voteCaptain(teamId: TeamId, candidateId: UserId): DomainResult<Unit> {
+        val response =
+            safeCall {
+                api.apiTeamsTeamIdVoteCandidateIdPost(teamId.value, candidateId.value)
+            }
+        return when (response) {
+            is DomainResult.Success -> parseObjectResponse(response.value)
+            is DomainResult.Failure -> response
+        }
+    }
+
     override suspend fun isCaptain(teamId: TeamId): DomainResult<Boolean> {
         val response = safeCall { api.apiTeamsTeamIdIsCaptainGet(teamId.value) }
         return when (response) {

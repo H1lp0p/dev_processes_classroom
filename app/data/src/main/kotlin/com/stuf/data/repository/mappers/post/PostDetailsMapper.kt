@@ -1,6 +1,7 @@
 package com.stuf.data.repository
 
 import com.stuf.data.model.FileDto
+import com.stuf.data.model.CaptainSelectionMode as ApiCaptainSelectionMode
 import com.stuf.data.model.PostDetailsDto
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
@@ -13,6 +14,7 @@ import com.stuf.domain.model.PostId
 import com.stuf.domain.model.Score
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.TeamCaptainSelectionMode
 import com.stuf.domain.model.TeamTaskPost
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -89,6 +91,13 @@ internal fun mapPostDetailsDtoToPost(
                 attachments = attachments,
                 minTeamSize = dto.minTeamSize,
                 maxTeamSize = dto.maxTeamSize,
+                solvableAfterDeadline = dto.solvableAfterDeadline,
+                captainMode = dto.captainMode?.toDomain(),
+                votingDurationHours = dto.votingDurationHours,
+                predefinedTeamsCount = dto.predefinedTeamsCount,
+                allowJoinTeam = dto.allowJoinTeam,
+                allowLeaveTeam = dto.allowLeaveTeam,
+                allowStudentTransferCaptain = dto.allowStudentTransferCaptain,
                 assignedScore = dto.teamSolution?.let { Score(it.score) },
             )
         }
@@ -102,3 +111,10 @@ private fun FileDto.toPostAttachment(): PostAttachment? {
         }
     return PostAttachment(id = uuid, name = name)
 }
+
+private fun ApiCaptainSelectionMode.toDomain(): TeamCaptainSelectionMode =
+    when (this) {
+        ApiCaptainSelectionMode.firstMember -> TeamCaptainSelectionMode.FIRST_MEMBER
+        ApiCaptainSelectionMode.teacherFixed -> TeamCaptainSelectionMode.TEACHER_FIXED
+        ApiCaptainSelectionMode.votingAndLottery -> TeamCaptainSelectionMode.VOTING_AND_LOTTERY
+    }

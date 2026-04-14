@@ -30,6 +30,7 @@ import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
 import com.stuf.domain.model.Team
+import com.stuf.domain.model.TeamCaptainSelectionMode
 import com.stuf.domain.model.TeamId
 import com.stuf.domain.model.TeamMember
 import com.stuf.domain.model.TeamMemberRole
@@ -41,6 +42,7 @@ import com.stuf.domain.model.UserId
 import com.stuf.domain.model.UserRef
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.text.Charsets
 import java.time.OffsetDateTime
 import java.util.UUID
 import javax.inject.Inject
@@ -176,6 +178,13 @@ class DemoDataStore @Inject constructor() {
                     ),
                 minTeamSize = 2,
                 maxTeamSize = 4,
+                solvableAfterDeadline = false,
+                captainMode = TeamCaptainSelectionMode.VOTING_AND_LOTTERY,
+                votingDurationHours = 24,
+                predefinedTeamsCount = 3,
+                allowJoinTeam = true,
+                allowLeaveTeam = true,
+                allowStudentTransferCaptain = false,
                 assignedScore = Score(8),
             )
         val webLab =
@@ -194,17 +203,25 @@ class DemoDataStore @Inject constructor() {
                 courseId = DemoIds.courseWeb,
                 title = "Командный спринт: UI-прототип",
                 text =
-                    "Демо: вы — капитан команды, есть черновик решения и файл. " +
-                        "Проверьте блок «Решение команды» (редактирование, файлы) и комментарии.",
+                    "Демо: вы — капитан, оценка команде уже выставлена, срок сдачи прошёл — " +
+                        "редактирование текста решения недоступно, но «Распределение оценок» " +
+                        "по участникам можно менять в любое время.",
                 createdAt = t.minusHours(4),
                 taskDetails =
                     TaskDetails(
-                        deadline = t.plusDays(7),
+                        deadline = t.minusDays(1),
                         isMandatory = true,
                         maxScore = 8,
                     ),
                 minTeamSize = 2,
                 maxTeamSize = 5,
+                solvableAfterDeadline = true,
+                captainMode = TeamCaptainSelectionMode.TEACHER_FIXED,
+                votingDurationHours = null,
+                predefinedTeamsCount = 1,
+                allowJoinTeam = false,
+                allowLeaveTeam = false,
+                allowStudentTransferCaptain = false,
                 assignedScore = Score(7),
             )
         val teamWebCaptainDraft =
@@ -224,6 +241,13 @@ class DemoDataStore @Inject constructor() {
                     ),
                 minTeamSize = 1,
                 maxTeamSize = 4,
+                solvableAfterDeadline = false,
+                captainMode = TeamCaptainSelectionMode.VOTING_AND_LOTTERY,
+                votingDurationHours = 48,
+                predefinedTeamsCount = 1,
+                allowJoinTeam = false,
+                allowLeaveTeam = true,
+                allowStudentTransferCaptain = true,
             )
         val teamOverdue =
             TeamTaskPost(
@@ -242,6 +266,13 @@ class DemoDataStore @Inject constructor() {
                     ),
                 minTeamSize = 2,
                 maxTeamSize = 5,
+                solvableAfterDeadline = false,
+                captainMode = TeamCaptainSelectionMode.FIRST_MEMBER,
+                votingDurationHours = null,
+                predefinedTeamsCount = 1,
+                allowJoinTeam = false,
+                allowLeaveTeam = false,
+                allowStudentTransferCaptain = false,
                 assignedScore = Score(5),
             )
         val clubWelcome =
@@ -396,6 +427,7 @@ class DemoDataStore @Inject constructor() {
                 members =
                     listOf(
                         TeamMember(DemoIds.userStudent, "Студент Демо", TeamMemberRole.LEADER),
+                        TeamMember(DemoIds.userPeerMaria, "Мария С.", TeamMemberRole.MEMBER),
                     ),
             )
         teamsByAssignment[DemoIds.postTeamWebCaptainDraft] = mutableListOf(teamCaptainSolo)
@@ -503,6 +535,12 @@ class DemoDataStore @Inject constructor() {
                     DomainError.Unknown(),
                 )
             val maxTeamSize: Int = post.maxTeamSize ?: Int.MAX_VALUE
+            val canJoinByPolicy = post.allowJoinTeam ?: true
+            if (!canJoinByPolicy) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Вступление в команды отключено"),
+                )
+            }
             if (team.members.size >= maxTeamSize) {
                 return@withLock DomainResult.Failure(
                     DomainError.Validation("В команде нет свободных мест"),
@@ -535,6 +573,12 @@ class DemoDataStore @Inject constructor() {
             val (postId, index, team) = slot
             postsById[postId] as? TeamTaskPost
                 ?: return@withLock DomainResult.Failure(DomainError.Unknown())
+            val post = postsById[postId] as TeamTaskPost
+            if (post.allowLeaveTeam == false) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Выход из команды отключен"),
+                )
+            }
             if (!team.members.any { it.userId == DemoIds.userStudent }) {
                 return@withLock DomainResult.Failure(
                     DomainError.Validation("Вы не состоите в этой команде"),
@@ -555,6 +599,74 @@ class DemoDataStore @Inject constructor() {
             slot.third.members.any {
                 it.userId == DemoIds.userStudent && it.role == TeamMemberRole.LEADER
             }
+        }
+
+    suspend fun demoTransferCaptain(teamId: TeamId, toUserId: UserId): DomainResult<Unit> =
+        mutex.withLock {
+            val slot = findTeamSlot(teamId)
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Команда не найдена"))
+            val (postId, index, team) = slot
+            val post = postsById[postId] as? TeamTaskPost
+                ?: return@withLock DomainResult.Failure(DomainError.Unknown())
+            if (post.allowStudentTransferCaptain != true) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Передача капитана отключена"),
+                )
+            }
+            val isCurrentUserLeader =
+                team.members.any {
+                    it.userId == DemoIds.userStudent && it.role == TeamMemberRole.LEADER
+                }
+            if (!isCurrentUserLeader) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Только капитан может передавать роль"),
+                )
+            }
+            if (team.members.none { it.userId == toUserId }) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Кандидат не состоит в команде"),
+                )
+            }
+            if (toUserId == DemoIds.userStudent) {
+                return@withLock DomainResult.Success(Unit)
+            }
+            val updatedMembers =
+                team.members.map { member ->
+                    when (member.userId) {
+                        toUserId -> member.copy(role = TeamMemberRole.LEADER)
+                        DemoIds.userStudent -> member.copy(role = TeamMemberRole.MEMBER)
+                        else -> member
+                    }
+                }
+            val updatedTeam = team.copy(members = updatedMembers)
+            teamsByAssignment[postId]!![index] = updatedTeam
+            myTeamByAssignment[postId] = updatedTeam
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoVoteCaptain(teamId: TeamId, candidateId: UserId): DomainResult<Unit> =
+        mutex.withLock {
+            val slot = findTeamSlot(teamId)
+                ?: return@withLock DomainResult.Failure(DomainError.Validation("Команда не найдена"))
+            val (postId, _, team) = slot
+            val post = postsById[postId] as? TeamTaskPost
+                ?: return@withLock DomainResult.Failure(DomainError.Unknown())
+            if (post.captainMode != TeamCaptainSelectionMode.VOTING_AND_LOTTERY) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Голосование за капитана недоступно"),
+                )
+            }
+            if (team.members.none { it.userId == DemoIds.userStudent }) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Вы не состоите в этой команде"),
+                )
+            }
+            if (team.members.none { it.userId == candidateId }) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Кандидат не состоит в команде"),
+                )
+            }
+            DomainResult.Success(Unit)
         }
 
     suspend fun demoSubmitTeamSolution(
@@ -949,6 +1061,11 @@ class DemoDataStore @Inject constructor() {
         mutex.withLock {
             val team = teamsByAssignment[assignmentId]?.find { it.id == teamId }
                 ?: return@withLock DomainResult.Failure(DomainError.Validation("Команда не найдена"))
+            if (!team.members.any { it.userId == DemoIds.userStudent && it.role == TeamMemberRole.LEADER }) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Только капитан команды может сохранить распределение"),
+                )
+            }
             val bucket = ensureGradeDistributionBucketLocked(teamId, assignmentId)
                 ?: return@withLock DomainResult.Failure(DomainError.Validation("Оценка ещё не выставлена"))
             val memberIds = team.members.map { it.userId }.toSet()

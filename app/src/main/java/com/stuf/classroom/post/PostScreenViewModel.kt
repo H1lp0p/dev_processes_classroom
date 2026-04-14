@@ -10,6 +10,7 @@ import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.FileInfo
 import com.stuf.domain.model.Post
+import com.stuf.domain.model.TaskPost
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.TaskId
@@ -18,6 +19,7 @@ import com.stuf.domain.model.TeamId
 import com.stuf.domain.model.TeamTaskPost
 import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
+import com.stuf.data.di.ApiBaseUrl
 import com.stuf.domain.repository.CurrentUserRepository
 import com.stuf.domain.repository.FileRepository
 import com.stuf.domain.usecase.AddCommentReply
@@ -28,21 +30,29 @@ import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
+import com.stuf.domain.usecase.GetUserSolution
 import com.stuf.domain.usecase.GetSolutionComments
 import com.stuf.domain.usecase.GetTeamTaskSolution
 import com.stuf.domain.usecase.GetTeamsForTeamTask
 import com.stuf.domain.usecase.JoinTeam
 import com.stuf.domain.usecase.LeaveTeam
+import com.stuf.domain.usecase.SubmitSolution
 import com.stuf.domain.usecase.SubmitTeamTaskSolution
+import com.stuf.domain.usecase.TransferTeamCaptain
+import com.stuf.domain.usecase.VoteTeamCaptain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.OffsetDateTime
+import java.util.UUID
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -61,7 +71,12 @@ class PostScreenViewModel @Inject constructor(
     private val getTeamTaskSolution: GetTeamTaskSolution,
     private val checkTeamCaptain: CheckTeamCaptain,
     private val submitTeamTaskSolution: SubmitTeamTaskSolution,
+    private val transferTeamCaptain: TransferTeamCaptain,
+    private val voteTeamCaptain: VoteTeamCaptain,
+    private val getUserSolution: GetUserSolution,
+    private val submitSolution: SubmitSolution,
     private val fileRepository: FileRepository,
+    @ApiBaseUrl private val apiBaseUrl: String,
     private val currentUserRepository: CurrentUserRepository,
     private val leaveTeam: LeaveTeam,
     @MainDispatcher private val dispatcher: CoroutineDispatcher,
@@ -82,6 +97,22 @@ class PostScreenViewModel @Inject constructor(
         )
     val uiState: StateFlow<PostUiState> = _uiState.asStateFlow()
 
+    private val _attachmentDownloadEvents =
+        MutableSharedFlow<AttachmentDownloadUiEvent>(extraBufferCapacity = 1)
+    val attachmentDownloadEvents: SharedFlow<AttachmentDownloadUiEvent> =
+        _attachmentDownloadEvents.asSharedFlow()
+
+    private val _transientEvents = MutableSharedFlow<PostTransientUiEvent>(extraBufferCapacity = 1)
+    val transientEvents: SharedFlow<PostTransientUiEvent> = _transientEvents.asSharedFlow()
+
+    /** Открытие прямой ссылки на файл ([GET] `api/files/{id}`). */
+    fun downloadAttachment(fileId: UUID) {
+        viewModelScope.launch(dispatcher) {
+            val url = buildFileDownloadUrl(apiBaseUrl, fileId)
+            _attachmentDownloadEvents.emit(AttachmentDownloadUiEvent.OpenUrl(url))
+        }
+    }
+
     fun onRetry() {
         val postIdValue: String = savedStateHandle.get<String>("postId") ?: return
         val postId: PostId = PostId(java.util.UUID.fromString(postIdValue))
@@ -94,6 +125,7 @@ class PostScreenViewModel @Inject constructor(
                 commentsLoadError = null,
                 content = null,
                 teamTask = null,
+                individualTask = null,
                 isLoadingTeamSection = false,
                 teamSectionError = null,
             )
@@ -107,10 +139,22 @@ class PostScreenViewModel @Inject constructor(
                         _uiState.value.copy(
                             isLoadingPost = false,
                             content = post.toPostScreenContent(),
+                            individualTask =
+                                if (post is TaskPost) {
+                                    IndividualTaskPostState(
+                                        isLoadingSolutionSection = true,
+                                        sectionError = null,
+                                    )
+                                } else {
+                                    null
+                                },
                         )
 
                     if (post is TeamTaskPost) {
                         launch(dispatcher) { loadTeamTaskSection(post) }
+                    }
+                    if (post is TaskPost) {
+                        launch(dispatcher) { loadIndividualTaskSection(post) }
                     }
 
                     val commentsResult: DomainResult<List<Comment>> = getPostComments(postId)
@@ -162,6 +206,8 @@ class PostScreenViewModel @Inject constructor(
     fun onLeaveTeam(teamId: TeamId) {
         val ttPost: TeamTaskPost =
             (_uiState.value.content as? PostScreenContent.TeamTask)?.post ?: return
+        val teamTask: TeamTaskPostState = _uiState.value.teamTask ?: return
+        if (!teamTask.canLeaveTeam) return
 
         viewModelScope.launch(dispatcher) {
             when (leaveTeam(teamId)) {
@@ -170,6 +216,47 @@ class PostScreenViewModel @Inject constructor(
                     _uiState.value =
                         _uiState.value.copy(teamSectionError = "Не удалось покинуть команду")
             }
+        }
+    }
+
+    fun onVoteCaptain(teamId: TeamId, candidateId: UserId) {
+        val ttPost: TeamTaskPost =
+            (_uiState.value.content as? PostScreenContent.TeamTask)?.post ?: return
+
+        viewModelScope.launch(dispatcher) {
+            when (voteTeamCaptain(teamId, candidateId)) {
+                is DomainResult.Success -> {
+                    _transientEvents.emit(PostTransientUiEvent.ShowMessage("Голос учтен"))
+                    loadTeamTaskSection(ttPost)
+                }
+                is DomainResult.Failure ->
+                    _transientEvents.emit(PostTransientUiEvent.ShowMessage("Что-то пошло не так"))
+            }
+        }
+    }
+
+    fun onTransferCaptain(teamId: TeamId, toUserId: UserId) {
+        val ttPost: TeamTaskPost =
+            (_uiState.value.content as? PostScreenContent.TeamTask)?.post ?: return
+
+        viewModelScope.launch(dispatcher) {
+            when (transferTeamCaptain(teamId, toUserId)) {
+                is DomainResult.Success -> {
+                    _transientEvents.emit(PostTransientUiEvent.ShowMessage("Роль капитана передана"))
+                    loadTeamTaskSection(ttPost)
+                }
+                is DomainResult.Failure ->
+                    _transientEvents.emit(PostTransientUiEvent.ShowMessage("Что-то пошло не так"))
+            }
+        }
+    }
+
+    /** Загрузка файла в черновик решения (командное или индивидуальное задание). */
+    fun onPickedSolutionFile(bytes: ByteArray, fileName: String) {
+        when (_uiState.value.content) {
+            is PostScreenContent.TeamTask -> onPickedTeamSolutionFile(bytes, fileName)
+            is PostScreenContent.Task -> onPickedIndividualSolutionFile(bytes, fileName)
+            else -> Unit
         }
     }
 
@@ -222,6 +309,108 @@ class PostScreenViewModel @Inject constructor(
                         removedSavedSolutionFileIds = tt.removedSavedSolutionFileIds + fileId,
                     ),
             )
+    }
+
+    fun onPickedIndividualSolutionFile(bytes: ByteArray, fileName: String) {
+        val taskPost: TaskPost =
+            (_uiState.value.content as? PostScreenContent.Task)?.post ?: return
+        val dl = taskPost.taskDetails.deadline
+        if (dl != null && dl.isBefore(OffsetDateTime.now())) {
+            _uiState.value =
+                _uiState.value.copy(
+                    individualTask =
+                        (_uiState.value.individualTask ?: IndividualTaskPostState())
+                            .copy(sectionError = "Срок сдачи прошёл"),
+                )
+            return
+        }
+        viewModelScope.launch(dispatcher) {
+            when (val upload = fileRepository.uploadFile(bytes, fileName)) {
+                is DomainResult.Success -> {
+                    val file: FileInfo = upload.value
+                    val ind: IndividualTaskPostState =
+                        _uiState.value.individualTask ?: return@launch
+                    _uiState.value =
+                        _uiState.value.copy(
+                            individualTask =
+                                ind.copy(
+                                    pendingSolutionFiles = ind.pendingSolutionFiles + file,
+                                    sectionError = null,
+                                ),
+                        )
+                }
+                is DomainResult.Failure ->
+                    _uiState.value =
+                        _uiState.value.copy(
+                            individualTask =
+                                (_uiState.value.individualTask ?: IndividualTaskPostState())
+                                    .copy(sectionError = "Не удалось загрузить файл"),
+                        )
+            }
+        }
+    }
+
+    fun onRemovePendingIndividualSolutionFile(fileId: String) {
+        val ind: IndividualTaskPostState = _uiState.value.individualTask ?: return
+        _uiState.value =
+            _uiState.value.copy(
+                individualTask =
+                    ind.copy(
+                        pendingSolutionFiles = ind.pendingSolutionFiles.filter { it.id != fileId },
+                    ),
+            )
+    }
+
+    fun onRemoveSavedIndividualSolutionFile(fileId: String) {
+        val ind: IndividualTaskPostState = _uiState.value.individualTask ?: return
+        _uiState.value =
+            _uiState.value.copy(
+                individualTask =
+                    ind.copy(
+                        removedSavedSolutionFileIds = ind.removedSavedSolutionFileIds + fileId,
+                    ),
+            )
+    }
+
+    fun onSubmitIndividualSolution(text: String) {
+        val taskPost: TaskPost =
+            (_uiState.value.content as? PostScreenContent.Task)?.post ?: return
+        val dl = taskPost.taskDetails.deadline
+        if (dl != null && dl.isBefore(OffsetDateTime.now())) {
+            _uiState.value =
+                _uiState.value.copy(
+                    individualTask =
+                        (_uiState.value.individualTask ?: IndividualTaskPostState())
+                            .copy(sectionError = "Срок сдачи прошёл"),
+                )
+            return
+        }
+        val ind: IndividualTaskPostState = _uiState.value.individualTask ?: return
+        val taskId = TaskId(taskPost.id.value)
+        val keptFromSaved: List<String> =
+            ind.solution?.files
+                ?.map { it.id }
+                ?.filter { it !in ind.removedSavedSolutionFileIds }
+                .orEmpty()
+        val pendingIds: List<String> = ind.pendingSolutionFiles.map { it.id }
+        val fileIds: List<String> = keptFromSaved + pendingIds
+
+        viewModelScope.launch(dispatcher) {
+            when (
+                submitSolution(
+                    taskId = taskId,
+                    text = text.ifBlank { null },
+                    fileIds = fileIds,
+                )
+            ) {
+                is DomainResult.Success -> loadIndividualTaskSection(taskPost)
+                is DomainResult.Failure ->
+                    _uiState.value =
+                        _uiState.value.copy(
+                            individualTask = ind.copy(sectionError = "Не удалось отправить решение"),
+                        )
+            }
+        }
     }
 
     fun onSubmitTeamSolution(text: String) {
@@ -337,6 +526,12 @@ class PostScreenViewModel @Inject constructor(
                     else -> null
                 }
 
+            val assignmentDeadline = post.taskDetails.deadline
+            val deadlinePassed: Boolean =
+                assignmentDeadline?.isBefore(OffsetDateTime.now()) == true
+            val canLeaveByApi: Boolean = post.allowLeaveTeam ?: true
+            val canLeaveTeam: Boolean = canLeaveByApi && !deadlinePassed
+
             _uiState.value =
                 _uiState.value.copy(
                     isLoadingTeamSection = false,
@@ -350,6 +545,56 @@ class PostScreenViewModel @Inject constructor(
                             isLoadingSolutionComments = false,
                             solutionCommentsError = solutionCommentsErr,
                             isCaptain = isCaptain,
+                            currentUserId = currentUserId,
+                            pendingSolutionFiles = emptyList(),
+                            removedSavedSolutionFileIds = emptySet(),
+                            canLeaveTeam = canLeaveTeam,
+                        ),
+                )
+        }
+    }
+
+    private suspend fun loadIndividualTaskSection(post: TaskPost) {
+        coroutineScope {
+            _uiState.value =
+                _uiState.value.copy(
+                    individualTask =
+                        IndividualTaskPostState(
+                            isLoadingSolutionSection = true,
+                            sectionError = null,
+                        ),
+                )
+            val taskId = TaskId(post.id.value)
+            val solDeferred = async { getUserSolution(taskId) }
+            val currentUserDeferred = async { currentUserRepository.getCurrentUser() }
+
+            val solResult = solDeferred.await()
+            val currentUserId: UserId? =
+                when (val u = currentUserDeferred.await()) {
+                    is DomainResult.Success -> u.value.id
+                    is DomainResult.Failure -> null
+                }
+
+            val solution =
+                when (solResult) {
+                    is DomainResult.Success -> solResult.value
+                    is DomainResult.Failure -> null
+                }
+
+            val sectionError: String? =
+                if (solResult is DomainResult.Failure) {
+                    "Не удалось загрузить решение"
+                } else {
+                    null
+                }
+
+            _uiState.value =
+                _uiState.value.copy(
+                    individualTask =
+                        IndividualTaskPostState(
+                            solution = solution,
+                            isLoadingSolutionSection = false,
+                            sectionError = sectionError,
                             currentUserId = currentUserId,
                             pendingSolutionFiles = emptyList(),
                             removedSavedSolutionFileIds = emptySet(),

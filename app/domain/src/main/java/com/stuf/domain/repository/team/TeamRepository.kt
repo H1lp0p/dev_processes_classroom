@@ -17,5 +17,7 @@ interface TeamRepository {
 
     suspend fun transferCaptain(teamId: TeamId, toUserId: UserId): DomainResult<Unit>
 
+    suspend fun voteCaptain(teamId: TeamId, candidateId: UserId): DomainResult<Unit>
+
     suspend fun isCaptain(teamId: TeamId): DomainResult<Boolean>
 }

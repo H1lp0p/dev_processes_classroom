@@ -10,7 +10,6 @@ import com.stuf.domain.repository.FileRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.Response
 import java.io.IOException
 import javax.inject.Inject
 

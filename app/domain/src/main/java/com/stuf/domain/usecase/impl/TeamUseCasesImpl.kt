@@ -18,6 +18,7 @@ import com.stuf.domain.usecase.JoinTeam
 import com.stuf.domain.usecase.LeaveTeam
 import com.stuf.domain.usecase.SubmitTeamTaskSolution
 import com.stuf.domain.usecase.TransferTeamCaptain
+import com.stuf.domain.usecase.VoteTeamCaptain
 import javax.inject.Inject
 
 class GetTeamsForTeamTaskUseCase @Inject constructor(
@@ -54,6 +55,14 @@ class TransferTeamCaptainUseCase @Inject constructor(
 
     override suspend fun invoke(teamId: TeamId, toUserId: UserId) =
         repository.transferCaptain(teamId, toUserId)
+}
+
+class VoteTeamCaptainUseCase @Inject constructor(
+    private val repository: TeamRepository,
+) : VoteTeamCaptain {
+
+    override suspend fun invoke(teamId: TeamId, candidateId: UserId) =
+        repository.voteCaptain(teamId, candidateId)
 }
 
 class CheckTeamCaptainUseCase @Inject constructor(

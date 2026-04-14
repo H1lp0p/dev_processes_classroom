@@ -26,12 +26,13 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @ApiBaseUrl
     fun provideBaseUrl(): String = BuildConfig.API_BASE_URL
 
     @Provides
     @Singleton
     fun provideApiClient(
-        baseUrl: String,
+        @ApiBaseUrl baseUrl: String,
     ): ApiClient = ApiClient(
         baseUrl = baseUrl,
         authNames = arrayOf("bearerAuth"),

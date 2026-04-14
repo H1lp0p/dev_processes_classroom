@@ -136,10 +136,9 @@ class CourseScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("course_tab_course").assertIsDisplayed()
-        // Вкладка пользователей недоступна для студента
-        composeRule.onNodeWithTag("course_tab_members")
-            .assertDoesNotExist()
+        // Нижней навигации нет: переключатель «Лента / Участники» только у преподавателя
+        composeRule.onNodeWithTag("course_tab_course").assertDoesNotExist()
+        composeRule.onNodeWithTag("course_tab_members").assertDoesNotExist()
     }
 
     @Test
