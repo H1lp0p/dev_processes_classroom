@@ -183,15 +183,19 @@ class PostScreenTest {
         val comments: List<CommentUi> = listOf(
             CommentUi(
                 id = "1",
+                authorId = "u1",
                 text = "First",
                 authorName = "User 1",
                 createdAtLabel = "1 янв., 12:00",
+                isOwn = false,
             ),
             CommentUi(
                 id = "2",
+                authorId = "u2",
                 text = "Second",
                 authorName = "User 2",
                 createdAtLabel = "1 янв., 12:00",
+                isOwn = false,
             ),
         )
         val state: PostUiState =

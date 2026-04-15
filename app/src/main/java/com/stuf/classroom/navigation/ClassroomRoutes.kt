@@ -10,6 +10,9 @@ object ClassroomRoutes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val HOME = "home"
+    const val PROFILE = "profile"
+    const val EDIT_PROFILE = "editProfile"
+    const val CHANGE_PASSWORD = "changePassword"
     const val CREATE_COURSE = "createCourse"
     const val JOIN_COURSE = "joinCourse"
 

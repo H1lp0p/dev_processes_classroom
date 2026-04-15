@@ -50,6 +50,8 @@ data class PostUiState(
     val loadingRepliesForCommentId: String? = null,
     val content: PostScreenContent? = null,
     val comments: List<CommentUi> = emptyList(),
+    val currentUserId: UserId? = null,
+    val currentUserName: String? = null,
     val currentUserRole: CourseRole = CourseRole.STUDENT,
     /** Данные командного задания; заполняется только для [PostScreenContent.TeamTask]. */
     val teamTask: TeamTaskPostState? = null,

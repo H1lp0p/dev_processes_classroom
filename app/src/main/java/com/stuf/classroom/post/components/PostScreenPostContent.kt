@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -48,6 +49,7 @@ import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.TeamCaptainSelectionMode
 import com.stuf.domain.model.TeamTaskPost
 import com.stuf.domain.model.typeLabelForScreen
 import java.time.OffsetDateTime
@@ -78,6 +80,7 @@ internal fun PostScreenAnnouncementSection(
             text = post.text,
             modifier = Modifier.testTag("post_text"),
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -106,6 +109,7 @@ internal fun PostScreenMaterialSection(
             text = post.text,
             modifier = Modifier.testTag("post_text"),
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (post.files.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -154,6 +158,7 @@ internal fun PostScreenTaskSection(
             text = post.text,
             modifier = Modifier.testTag("post_text"),
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (post.attachments.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -190,6 +195,7 @@ internal fun PostScreenTeamTaskSection(
             deadline = post.taskDetails.deadline,
             teamCompositionLabel = teamCompositionRulesLabel(post),
             maxScore = post.taskDetails.maxScore,
+            extraDetails = teamTaskFlagsDetails(post),
         )
         Spacer(modifier = Modifier.height(16.dp))
         PostTaskScoreLine(
@@ -203,6 +209,7 @@ internal fun PostScreenTeamTaskSection(
             text = post.text,
             modifier = Modifier.testTag("post_text"),
             style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         if (post.attachments.isNotEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -229,6 +236,38 @@ private fun teamCompositionRulesLabel(post: TeamTaskPost): String? =
         else -> null
     }
 
+private fun teamTaskFlagsDetails(post: TeamTaskPost): List<String> {
+    val details = mutableListOf<String>()
+    post.solvableAfterDeadline?.let {
+        details += "Можно сдавать после дедлайна: ${if (it) "Да" else "Нет"}"
+    }
+    post.captainMode?.let { mode ->
+        val modeLabel =
+            when (mode) {
+                TeamCaptainSelectionMode.FIRST_MEMBER -> "Первый участник"
+                TeamCaptainSelectionMode.TEACHER_FIXED -> "Назначает преподаватель"
+                TeamCaptainSelectionMode.VOTING_AND_LOTTERY -> "Голосование и жеребьевка"
+            }
+        details += "Выбор капитана: $modeLabel"
+    }
+    post.votingDurationHours?.let {
+        details += "Длительность голосования (ч): $it"
+    }
+    post.predefinedTeamsCount?.let {
+        details += "Предзаданных команд: $it"
+    }
+    post.allowJoinTeam?.let {
+        details += "Разрешено вступать в команду: ${if (it) "Да" else "Нет"}"
+    }
+    post.allowLeaveTeam?.let {
+        details += "Разрешено выходить из команды: ${if (it) "Да" else "Нет"}"
+    }
+    post.allowStudentTransferCaptain?.let {
+        details += "Студентам разрешена передача капитана: ${if (it) "Да" else "Нет"}"
+    }
+    return details
+}
+
 /** Как [com.stuf.classroom.course.components.feed.CourseFeedPostCardShell]: Card + отступы 16.dp. */
 private val PostDetailsCardElevation = 2.dp
 
@@ -239,6 +278,7 @@ private fun PostHeaderDetailsCollapsible(
     deadline: OffsetDateTime?,
     teamCompositionLabel: String?,
     maxScore: Int?,
+    extraDetails: List<String> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     var expanded: Boolean by rememberSaveable { mutableStateOf(false) }
@@ -249,7 +289,6 @@ private fun PostHeaderDetailsCollapsible(
     val detailTextStyle = MaterialTheme.typography.bodyMedium
     val detailColor = MaterialTheme.colorScheme.onSurfaceVariant
     Card(
-        onClick = { expanded = !expanded },
         modifier =
             modifier
                 .fillMaxWidth()
@@ -264,20 +303,34 @@ private fun PostHeaderDetailsCollapsible(
                     .padding(16.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable { expanded = !expanded },
+                // Увеличиваем только кликабельный контейнер заголовка, чтобы ripple был заметнее.
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "Детали",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = if (expanded) "Свернуть" else "Развернуть",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Детали",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = if (expanded) "Свернуть" else "Развернуть",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             AnimatedVisibility(
                 visible = expanded,
@@ -317,6 +370,13 @@ private fun PostHeaderDetailsCollapsible(
                         Text(
                             text = label,
                             modifier = Modifier.testTag("team_task_rules"),
+                            style = detailTextStyle,
+                            color = detailColor,
+                        )
+                    }
+                    extraDetails.forEach { line ->
+                        Text(
+                            text = line,
                             style = detailTextStyle,
                             color = detailColor,
                         )

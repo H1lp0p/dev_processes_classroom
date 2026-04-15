@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -67,10 +68,13 @@ internal fun IndividualTaskPostScreen(
     post: TaskPost,
     onBackClick: () -> Unit,
     onOpenPublicCommentComposer: () -> Unit,
+    onEditCommentClick: (CommentId, String, Boolean) -> Unit,
+    onDeleteCommentClick: (CommentId, Boolean) -> Unit,
     onReplyClick: (CommentId) -> Unit,
     onLoadRepliesClick: (CommentId) -> Unit,
     onPickSolutionFile: () -> Unit,
     onSubmitIndividualSolution: (String) -> Unit,
+    onDeleteIndividualSolution: () -> Unit,
     onRemovePendingIndividualSolutionFile: (String) -> Unit,
     onRemoveSavedIndividualSolutionFile: (String) -> Unit,
     onDownloadAttachment: (UUID) -> Unit = {},
@@ -79,6 +83,21 @@ internal fun IndividualTaskPostScreen(
     val ind: IndividualTaskPostState = state.individualTask ?: IndividualTaskPostState()
     val publicComments: List<CommentUi> = state.comments.filter { !it.isPrivate }
     val showStudentActions: Boolean = state.currentUserRole == CourseRole.STUDENT
+
+    if (!showStudentActions) {
+        TeacherIndividualTaskPostScreen(
+            state = state,
+            post = post,
+            onBackClick = onBackClick,
+            onOpenPublicCommentComposer = onOpenPublicCommentComposer,
+            onEditCommentClick = onEditCommentClick,
+            onDeleteCommentClick = onDeleteCommentClick,
+            onReplyClick = onReplyClick,
+            onLoadRepliesClick = onLoadRepliesClick,
+            modifier = modifier,
+        )
+        return
+    }
 
     val scaffoldState = rememberBottomSheetScaffoldState()
     val sheetPeekHeight = 132.dp
@@ -90,7 +109,7 @@ internal fun IndividualTaskPostScreen(
         sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         sheetShadowElevation = 18.dp,
         sheetTonalElevation = 6.dp,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = MaterialTheme.colorScheme.background,
         sheetDragHandle = { BottomSheetDefaults.DragHandle() },
         sheetContent = {
             Box(
@@ -158,6 +177,7 @@ internal fun IndividualTaskPostScreen(
                         isDeadlinePassed = isDeadlinePassed,
                         onPickFile = onPickSolutionFile,
                         onSubmit = onSubmitIndividualSolution,
+                        onDelete = onDeleteIndividualSolution,
                         onRemovePendingFile = onRemovePendingIndividualSolutionFile,
                         onRemoveSavedFile = onRemoveSavedIndividualSolutionFile,
                         onDownloadAttachment = onDownloadAttachment,
@@ -204,6 +224,7 @@ internal fun IndividualTaskPostScreen(
                     Text(
                         text = "Публичные комментарии",
                         style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -235,9 +256,109 @@ internal fun IndividualTaskPostScreen(
                         comment = comment,
                         onLoadRepliesClick = onLoadRepliesClick,
                         onReplyClick = onReplyClick,
+                        onEditCommentClick = onEditCommentClick,
+                        onDeleteCommentClick = onDeleteCommentClick,
+                        currentUserId = state.currentUserId?.value?.toString(),
                         loadingRepliesForCommentId = state.loadingRepliesForCommentId,
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TeacherIndividualTaskPostScreen(
+    state: PostUiState,
+    post: TaskPost,
+    onBackClick: () -> Unit,
+    onOpenPublicCommentComposer: () -> Unit,
+    onEditCommentClick: (CommentId, String, Boolean) -> Unit,
+    onDeleteCommentClick: (CommentId, Boolean) -> Unit,
+    onReplyClick: (CommentId) -> Unit,
+    onLoadRepliesClick: (CommentId) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val publicComments: List<CommentUi> = state.comments.filter { !it.isPrivate }
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding(),
+        ) {
+            PostScreenTopBar(onBackClick = onBackClick)
+        }
+        LazyColumn(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .testTag("individual_task_post_main"),
+        ) {
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item {
+                PostScreenTaskSection(post = post)
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Подробные данные по заданию и решения студентов доступны на веб-сайте.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                PostScreenCommentsDivider()
+            }
+            item {
+                Text(
+                    text = "Публичные комментарии",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (state.isLoadingComments) {
+                item {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            state.commentsLoadError?.let { msg ->
+                item {
+                    Text(text = msg, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            item {
+                TextButton(
+                    onClick = onOpenPublicCommentComposer,
+                    modifier = Modifier.testTag("post_new_comment_button"),
+                ) {
+                    Text("Написать комментарий")
+                }
+            }
+            items(
+                items = publicComments,
+                key = { it.id },
+            ) { comment ->
+                PostCommentItem(
+                    comment = comment,
+                    onLoadRepliesClick = onLoadRepliesClick,
+                    onReplyClick = onReplyClick,
+                    onEditCommentClick = onEditCommentClick,
+                    onDeleteCommentClick = onDeleteCommentClick,
+                    currentUserId = state.currentUserId?.value?.toString(),
+                    loadingRepliesForCommentId = state.loadingRepliesForCommentId,
+                )
             }
         }
     }
@@ -293,6 +414,7 @@ private fun IndividualSolutionBlock(
     isDeadlinePassed: Boolean,
     onPickFile: () -> Unit,
     onSubmit: (String) -> Unit,
+    onDelete: () -> Unit,
     onRemovePendingFile: (String) -> Unit,
     onRemoveSavedFile: (String) -> Unit,
     onDownloadAttachment: (UUID) -> Unit,
@@ -470,6 +592,17 @@ private fun IndividualSolutionBlock(
                             .testTag("individual_task_save_solution"),
                 ) {
                     Text("Сохранить решение")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onDelete,
+                    enabled = canEdit,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag("individual_task_delete_solution"),
+                ) {
+                    Text("Удалить решение")
                 }
             }
         }

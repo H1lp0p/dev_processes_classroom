@@ -11,11 +11,17 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.stuf.classroom.course.components.CourseCourseTabContent
@@ -24,6 +30,7 @@ import com.stuf.classroom.course.components.CourseScreenTopBar
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.UserId
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +43,9 @@ fun CourseScreen(
     onBackClick: () -> Unit,
     onLeaveCourseClick: () -> Unit,
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
@@ -91,6 +101,11 @@ fun CourseScreen(
                 CourseTab.COURSE -> CourseCourseTabContent(
                     state = state,
                     onPostClick = onPostClick,
+                    onHeaderClick = {
+                        val code = state.inviteCode ?: return@CourseCourseTabContent
+                        clipboardManager.setText(AnnotatedString(code))
+                        scope.launch { snackbarHostState.showSnackbar("Код скопирован в буфер") }
+                    },
                 )
 
                 CourseTab.MEMBERS -> CourseMembersTabContent(
@@ -132,6 +147,10 @@ fun CourseScreen(
                         .testTag("course_error"),
                 )
             }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
         }
     }

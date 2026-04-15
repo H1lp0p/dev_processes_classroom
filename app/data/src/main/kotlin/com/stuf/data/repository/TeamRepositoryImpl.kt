@@ -1,5 +1,6 @@
 package com.stuf.data.repository
 
+import android.util.Log
 import com.stuf.data.api.TeamApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
@@ -12,6 +13,7 @@ import com.stuf.domain.model.Team
 import com.stuf.domain.model.TeamId
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.TeamRepository
+import org.json.JSONObject
 import retrofit2.Response
 import java.io.IOException
 import javax.inject.Inject
@@ -43,6 +45,24 @@ class TeamRepositoryImpl @Inject constructor(
         }
 
         if (!response.isSuccessful) {
+            val rawErrorBody: String =
+                runCatching { response.errorBody()?.string() }
+                    .getOrNull()
+                    .orEmpty()
+            val parsedServerMessage: String? =
+                runCatching {
+                    if (rawErrorBody.isBlank()) null else JSONObject(rawErrorBody).optString("message", null)
+                }.getOrNull()
+            val fallbackMessage: String = response.message().ifBlank { "no response message" }
+            val serverMessage: String =
+                parsedServerMessage
+                    ?.takeIf { it.isNotBlank() }
+                    ?: rawErrorBody.takeIf { it.isNotBlank() }
+                    ?: fallbackMessage
+            Log.e(
+                "TeamRepository",
+                "HTTP ${response.code()} while calling Team API. message=$serverMessage, rawErrorBody=$rawErrorBody",
+            )
             return DomainResult.Failure(httpCodeToDomainError(response.code()))
         }
 

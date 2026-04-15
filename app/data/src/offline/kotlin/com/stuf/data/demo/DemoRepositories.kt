@@ -170,6 +170,20 @@ class DemoCommentRepository @Inject constructor(
 
     override suspend fun addCommentReply(commentId: CommentId, text: String): DomainResult<Comment> =
         DomainResult.Success(store.addCommentReply(commentId, text))
+
+    override suspend fun editComment(commentId: CommentId, text: String): DomainResult<Unit> =
+        if (store.editComment(commentId, text)) {
+            DomainResult.Success(Unit)
+        } else {
+            DomainResult.Failure(DomainError.NotFound)
+        }
+
+    override suspend fun deleteComment(commentId: CommentId): DomainResult<Unit> =
+        if (store.deleteComment(commentId)) {
+            DomainResult.Success(Unit)
+        } else {
+            DomainResult.Failure(DomainError.NotFound)
+        }
 }
 
 @Singleton

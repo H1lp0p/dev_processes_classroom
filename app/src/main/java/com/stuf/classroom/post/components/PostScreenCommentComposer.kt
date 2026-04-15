@@ -31,8 +31,10 @@ internal fun PostScreenCommentComposer(
     onCommentSubmit: (text: String, isPrivate: Boolean) -> Unit,
     titleText: String? = null,
     submitAsPrivate: Boolean = false,
+    initialText: String = "",
+    submitButtonContentDescription: String = "Отправить",
 ) {
-    val textState: MutableState<String> = remember { mutableStateOf("") }
+    val textState: MutableState<String> = remember(initialText) { mutableStateOf(initialText) }
 
     Column(
         modifier =
@@ -90,7 +92,7 @@ internal fun PostScreenCommentComposer(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Отправить",
+                    contentDescription = submitButtonContentDescription,
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }

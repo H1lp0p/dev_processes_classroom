@@ -52,6 +52,7 @@ fun GradeDistributionScreen(
     val showBottomBar: Boolean = !state.isLoading && state.loadError == null
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier =
@@ -63,11 +64,16 @@ fun GradeDistributionScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Назад",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
                 Text(
                     text = "Распределение оценок",
                     style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
@@ -260,6 +266,7 @@ private fun GradeDistributionMemberRowContent(
                 Text(
                     text = row.displayName,
                     style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.width(nameW),
@@ -283,6 +290,7 @@ private fun GradeDistributionMemberRowContent(
             Text(
                 text = row.displayName,
                 style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier =
@@ -293,6 +301,7 @@ private fun GradeDistributionMemberRowContent(
             Text(
                 text = if (pts.isNotEmpty()) pts else "—",
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -311,6 +320,7 @@ private fun GradeDistributionRemainderRow(
         Text(
             text = "Остаток",
             style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = formatDouble(remainder),

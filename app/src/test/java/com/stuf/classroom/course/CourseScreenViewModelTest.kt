@@ -136,6 +136,9 @@ class CourseScreenViewModelTest {
         )
 
         override suspend fun getCurrentUser(): DomainResult<User> = result
+
+        override suspend fun updateCurrentUser(credentials: String, email: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
     }
 
     private lateinit var fakeGetCourseInfo: FakeGetCourseInfo

@@ -960,6 +960,36 @@ class DemoDataStore @Inject constructor() {
             c
         }
 
+    suspend fun editComment(commentId: com.stuf.domain.model.CommentId, text: String): Boolean =
+        mutex.withLock {
+            fun update(list: MutableList<Comment>): Boolean {
+                val index = list.indexOfFirst { it.id == commentId.value }
+                if (index < 0) return false
+                val current = list[index]
+                list[index] = current.copy(text = text, createdAt = OffsetDateTime.now())
+                return true
+            }
+
+            commentsByPost.values.forEach { if (update(it)) return@withLock true }
+            commentsBySolution.values.forEach { if (update(it)) return@withLock true }
+            repliesByComment.values.forEach { if (update(it)) return@withLock true }
+            false
+        }
+
+    suspend fun deleteComment(commentId: com.stuf.domain.model.CommentId): Boolean =
+        mutex.withLock {
+            fun removeFrom(mapValues: Collection<MutableList<Comment>>): Boolean =
+                mapValues.any { list -> list.removeAll { it.id == commentId.value } }
+
+            val removedRoot =
+                removeFrom(commentsByPost.values) ||
+                    removeFrom(commentsBySolution.values) ||
+                    removeFrom(repliesByComment.values)
+
+            repliesByComment.remove(commentId.value)
+            removedRoot
+        }
+
     suspend fun uploadFile(bytes: ByteArray, name: String): FileInfo = mutex.withLock {
         fileSeq++
         FileInfo(id = "demo-file-$fileSeq-${bytes.size}", name = name)

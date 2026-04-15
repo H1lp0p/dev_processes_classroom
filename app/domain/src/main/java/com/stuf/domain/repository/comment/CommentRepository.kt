@@ -13,4 +13,6 @@ interface CommentRepository {
     suspend fun addSolutionComment(solutionId: SolutionId, text: String): DomainResult<Comment>
     suspend fun getCommentReplies(commentId: CommentId): DomainResult<List<Comment>>
     suspend fun addCommentReply(commentId: CommentId, text: String): DomainResult<Comment>
+    suspend fun editComment(commentId: CommentId, text: String): DomainResult<Unit>
+    suspend fun deleteComment(commentId: CommentId): DomainResult<Unit>
 }

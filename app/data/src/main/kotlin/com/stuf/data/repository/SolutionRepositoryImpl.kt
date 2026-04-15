@@ -1,5 +1,6 @@
 package com.stuf.data.repository
 
+import android.util.Log
 import com.stuf.data.api.SolutionApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
@@ -147,6 +148,15 @@ class SolutionRepositoryImpl @Inject constructor(
         }
 
         if (!response.isSuccessful) {
+            val serverMessage: String =
+                runCatching { response.errorBody()?.string() }
+                    .getOrNull()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: response.message()
+            Log.e(
+                "SolutionRepository",
+                "HTTP ${response.code()} while calling Solution API. message=$serverMessage",
+            )
             return DomainResult.Failure(httpCodeToDomainError(response.code()))
         }
 

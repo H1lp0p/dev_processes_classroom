@@ -3,6 +3,7 @@ package com.stuf.classroom.post
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,6 +52,12 @@ private sealed class PostComposerState {
     data class Reply(
         val toCommentId: CommentId,
     ) : PostComposerState()
+
+    data class Edit(
+        val commentId: CommentId,
+        val text: String,
+        val isPrivate: Boolean,
+    ) : PostComposerState()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +68,8 @@ fun PostScreen(
     onPickSolutionFile: () -> Unit,
     onSubmitTeamSolution: (String) -> Unit,
     onSubmitIndividualSolution: (String) -> Unit,
+    onDeleteTeamSolution: () -> Unit,
+    onDeleteIndividualSolution: () -> Unit,
     onRemovePendingTeamSolutionFile: (String) -> Unit,
     onRemovePendingIndividualSolutionFile: (String) -> Unit,
     onRemoveSavedTeamSolutionFile: (String) -> Unit,
@@ -72,6 +81,8 @@ fun PostScreen(
     onOpenGradeDistribution: () -> Unit = {},
     onDownloadAttachment: (UUID) -> Unit = {},
     onCommentSubmit: (text: String, isPrivate: Boolean, parentCommentId: CommentId?) -> Unit,
+    onEditComment: (commentId: CommentId, text: String, isPrivate: Boolean) -> Unit = { _, _, _ -> },
+    onDeleteComment: (commentId: CommentId, isPrivate: Boolean) -> Unit = { _, _ -> },
     onLoadRepliesClick: (CommentId) -> Unit,
     onBackClick: () -> Unit,
 ) {
@@ -88,7 +99,12 @@ fun PostScreen(
             state.postLoadError == null &&
             !state.isLoadingPost
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+    ) {
         when {
             showTeamTaskScreen -> {
                 val teamContent: PostScreenContent.TeamTask = state.content as PostScreenContent.TeamTask
@@ -103,6 +119,10 @@ fun PostScreen(
                     onOpenPrivateCommentComposer = {
                         composerState = PostComposerState.NewPrivateSolutionComment
                     },
+                    onEditCommentClick = { commentId, text, isPrivate ->
+                        composerState = PostComposerState.Edit(commentId, text, isPrivate)
+                    },
+                    onDeleteCommentClick = onDeleteComment,
                     onReplyClick = { commentId: CommentId ->
                         composerState = PostComposerState.Reply(commentId)
                     },
@@ -113,6 +133,7 @@ fun PostScreen(
                     onTransferCaptain = onTransferCaptain,
                     onTeamTaskPickSolutionFile = onPickSolutionFile,
                     onSubmitTeamSolution = onSubmitTeamSolution,
+                    onDeleteTeamSolution = onDeleteTeamSolution,
                     onRemovePendingTeamSolutionFile = onRemovePendingTeamSolutionFile,
                     onRemoveSavedTeamSolutionFile = onRemoveSavedTeamSolutionFile,
                     onOpenGradeDistribution = onOpenGradeDistribution,
@@ -129,12 +150,17 @@ fun PostScreen(
                     onOpenPublicCommentComposer = {
                         composerState = PostComposerState.NewRootComment
                     },
+                    onEditCommentClick = { commentId, text, isPrivate ->
+                        composerState = PostComposerState.Edit(commentId, text, isPrivate)
+                    },
+                    onDeleteCommentClick = onDeleteComment,
                     onReplyClick = { commentId: CommentId ->
                         composerState = PostComposerState.Reply(commentId)
                     },
                     onLoadRepliesClick = onLoadRepliesClick,
                     onPickSolutionFile = onPickSolutionFile,
                     onSubmitIndividualSolution = onSubmitIndividualSolution,
+                    onDeleteIndividualSolution = onDeleteIndividualSolution,
                     onRemovePendingIndividualSolutionFile = onRemovePendingIndividualSolutionFile,
                     onRemoveSavedIndividualSolutionFile = onRemoveSavedIndividualSolutionFile,
                     onDownloadAttachment = onDownloadAttachment,
@@ -239,6 +265,11 @@ fun PostScreen(
                                 onReplyClick = { commentId: CommentId ->
                                     composerState = PostComposerState.Reply(commentId)
                                 },
+                                onEditCommentClick = { commentId, text, isPrivate ->
+                                    composerState = PostComposerState.Edit(commentId, text, isPrivate)
+                                },
+                                onDeleteCommentClick = onDeleteComment,
+                                currentUserId = state.currentUserId?.value?.toString(),
                                 loadingRepliesForCommentId = state.loadingRepliesForCommentId,
                             )
                         }
@@ -270,6 +301,18 @@ fun PostScreen(
                             onDismiss = { composerState = PostComposerState.Closed },
                             onCommentSubmit = { text, isPrivate ->
                                 onCommentSubmit(text, isPrivate, null)
+                                composerState = PostComposerState.Closed
+                            },
+                        )
+                    is PostComposerState.Edit ->
+                        PostScreenCommentComposer(
+                            isReply = false,
+                            titleText = "Редактирование комментария",
+                            initialText = composer.text,
+                            submitButtonContentDescription = "Сохранить",
+                            onDismiss = { composerState = PostComposerState.Closed },
+                            onCommentSubmit = { text, _ ->
+                                onEditComment(composer.commentId, text, composer.isPrivate)
                                 composerState = PostComposerState.Closed
                             },
                         )

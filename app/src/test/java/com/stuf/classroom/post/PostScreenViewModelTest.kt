@@ -26,6 +26,10 @@ import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.AddSolutionComment
 import com.stuf.domain.usecase.CheckTeamCaptain
+import com.stuf.domain.usecase.CancelSolution
+import com.stuf.domain.usecase.CancelTeamTaskSolution
+import com.stuf.domain.usecase.DeleteComment
+import com.stuf.domain.usecase.EditComment
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
@@ -165,6 +169,9 @@ class PostScreenViewModelTest {
                     email = "test@example.com",
                 ),
             )
+
+        override suspend fun updateCurrentUser(credentials: String, email: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
     }
 
     private class FakeGetTeamTaskSolution : GetTeamTaskSolution {
@@ -230,6 +237,24 @@ class PostScreenViewModelTest {
             DomainResult.Failure(DomainError.Unknown())
     }
 
+    private class FakeCancelSolution : CancelSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
+    }
+
+    private class FakeCancelTeamTaskSolution : CancelTeamTaskSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
+    }
+
+    private class FakeEditComment : EditComment {
+        override suspend fun invoke(commentId: CommentId, text: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeDeleteComment : DeleteComment {
+        override suspend fun invoke(commentId: CommentId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
     private lateinit var fakeGetPost: FakeGetPost
     private lateinit var fakeGetPostComments: FakeGetPostComments
     private lateinit var fakeGetCommentReplies: FakeGetCommentReplies
@@ -272,6 +297,8 @@ class PostScreenViewModelTest {
                 addPostComment = fakeAddPostComment,
                 addSolutionComment = fakeAddSolutionComment,
                 addCommentReply = fakeAddCommentReply,
+                editComment = FakeEditComment(),
+                deleteComment = FakeDeleteComment(),
                 getTeamsForTeamTask = FakeGetTeamsForTeamTask(),
                 getMyTeamForTeamTask = FakeGetMyTeamForTeamTask(),
                 joinTeam = FakeJoinTeam(),
@@ -282,6 +309,8 @@ class PostScreenViewModelTest {
                 voteTeamCaptain = fakeVoteTeamCaptain,
                 getUserSolution = FakeGetUserSolution(),
                 submitSolution = FakeSubmitSolution(),
+                cancelSolution = FakeCancelSolution(),
+                cancelTeamTaskSolution = FakeCancelTeamTaskSolution(),
                 fileRepository = FakeFileRepository(),
                 apiBaseUrl = "http://localhost/",
                 currentUserRepository = FakeCurrentUserRepository(),

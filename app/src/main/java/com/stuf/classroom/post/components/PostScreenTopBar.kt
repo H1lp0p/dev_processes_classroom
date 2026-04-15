@@ -31,6 +31,7 @@ internal fun PostScreenTopBar(onBackClick: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = null,
+                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
             )
         }
     }

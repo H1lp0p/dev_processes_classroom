@@ -1,5 +1,6 @@
 package com.stuf.data.di
 
+import android.util.Log
 import com.stuf.data.BuildConfig
 import com.stuf.data.api.AuthApi
 import com.stuf.data.api.CommentApi
@@ -33,10 +34,13 @@ object NetworkModule {
     @Singleton
     fun provideApiClient(
         @ApiBaseUrl baseUrl: String,
-    ): ApiClient = ApiClient(
-        baseUrl = baseUrl,
-        authNames = arrayOf("bearerAuth"),
-    )
+    ): ApiClient =
+        ApiClient(
+            baseUrl = baseUrl,
+            authNames = arrayOf("bearerAuth"),
+        ).setLogger { message ->
+            Log.d("ApiHttp", message)
+        }
 
     @Provides
     @Singleton

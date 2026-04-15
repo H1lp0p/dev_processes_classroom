@@ -27,10 +27,10 @@ android {
     productFlavors {
         create("api") {
             dimension = "backend"
+            isDefault = true
         }
         create("offline") {
             dimension = "backend"
-            isDefault = true
         }
     }
 

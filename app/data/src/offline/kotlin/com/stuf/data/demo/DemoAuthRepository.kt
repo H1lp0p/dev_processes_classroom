@@ -40,4 +40,11 @@ class DemoAuthRepository @Inject constructor(
         authTokenManager.applySession(stored)
         return DomainResult.Success(stored)
     }
+
+    override suspend fun changePassword(oldPassword: String, newPassword: String): DomainResult<Unit> {
+        if (oldPassword.isBlank() || newPassword.length < 6) {
+            return DomainResult.Failure(DomainError.Validation("Проверьте старый и новый пароль"))
+        }
+        return DomainResult.Success(Unit)
+    }
 }

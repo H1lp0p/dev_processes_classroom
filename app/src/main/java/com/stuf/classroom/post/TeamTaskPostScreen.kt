@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -89,6 +90,8 @@ internal fun TeamTaskPostScreen(
     onBackClick: () -> Unit,
     onOpenPublicCommentComposer: () -> Unit,
     onOpenPrivateCommentComposer: () -> Unit,
+    onEditCommentClick: (CommentId, String, Boolean) -> Unit,
+    onDeleteCommentClick: (CommentId, Boolean) -> Unit,
     onReplyClick: (CommentId) -> Unit,
     onLoadRepliesClick: (CommentId) -> Unit,
     onJoinTeam: (TeamId) -> Unit,
@@ -97,6 +100,7 @@ internal fun TeamTaskPostScreen(
     onTransferCaptain: (TeamId, UserId) -> Unit = { _, _ -> },
     onTeamTaskPickSolutionFile: () -> Unit,
     onSubmitTeamSolution: (String) -> Unit,
+    onDeleteTeamSolution: () -> Unit,
     onRemovePendingTeamSolutionFile: (String) -> Unit,
     onRemoveSavedTeamSolutionFile: (String) -> Unit,
     onOpenGradeDistribution: () -> Unit,
@@ -110,6 +114,21 @@ internal fun TeamTaskPostScreen(
     val publicComments: List<CommentUi> = state.comments.filter { !it.isPrivate }
     val privateComments: List<CommentUi> = teamTask.solutionComments
     val showStudentActions: Boolean = state.currentUserRole == CourseRole.STUDENT
+
+    if (!showStudentActions) {
+        TeacherTeamTaskPostScreen(
+            state = state,
+            post = post,
+            onBackClick = onBackClick,
+            onOpenPublicCommentComposer = onOpenPublicCommentComposer,
+            onEditCommentClick = onEditCommentClick,
+            onDeleteCommentClick = onDeleteCommentClick,
+            onReplyClick = onReplyClick,
+            onLoadRepliesClick = onLoadRepliesClick,
+            modifier = modifier,
+        )
+        return
+    }
 
     val pageCount: Int = maxOf(teams.size, 1)
     val pagerState =
@@ -141,7 +160,7 @@ internal fun TeamTaskPostScreen(
         sheetContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         sheetShadowElevation = 18.dp,
         sheetTonalElevation = 6.dp,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = MaterialTheme.colorScheme.background,
         sheetDragHandle = { BottomSheetDefaults.DragHandle() },
         sheetContent = {
             Box(
@@ -217,7 +236,11 @@ internal fun TeamTaskPostScreen(
                                 },
                                 enabled = pagerState.currentPage > 0,
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Назад")
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Назад",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
                             }
                             Text(
                                 text = teams.getOrNull(pagerState.currentPage)?.name.orEmpty(),
@@ -240,7 +263,11 @@ internal fun TeamTaskPostScreen(
                                 },
                                 enabled = pagerState.currentPage < pageCount - 1,
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Вперёд")
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Вперёд",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
                             }
                         }
                         HorizontalPager(
@@ -343,6 +370,7 @@ internal fun TeamTaskPostScreen(
                         isDeadlinePassed = isDeadlinePassed,
                         onPickFile = onTeamTaskPickSolutionFile,
                         onSubmit = onSubmitTeamSolution,
+                        onDelete = onDeleteTeamSolution,
                         onRemovePendingFile = onRemovePendingTeamSolutionFile,
                         onRemoveSavedFile = onRemoveSavedTeamSolutionFile,
                         onDownloadAttachment = onDownloadAttachment,
@@ -351,6 +379,7 @@ internal fun TeamTaskPostScreen(
                     Text(
                         text = "Приватные комментарии",
                         style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     teamTask.solutionCommentsError?.let { err ->
@@ -389,6 +418,9 @@ internal fun TeamTaskPostScreen(
                                 comment = c,
                                 onLoadRepliesClick = onLoadRepliesClick,
                                 onReplyClick = onReplyClick,
+                                onEditCommentClick = onEditCommentClick,
+                                onDeleteCommentClick = onDeleteCommentClick,
+                                currentUserId = state.currentUserId?.value?.toString(),
                                 loadingRepliesForCommentId = state.loadingRepliesForCommentId,
                                 showThreadActions = false,
                             )
@@ -456,6 +488,7 @@ internal fun TeamTaskPostScreen(
                 Text(
                     text = "Публичные комментарии",
                     style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -487,9 +520,109 @@ internal fun TeamTaskPostScreen(
                     comment = comment,
                     onLoadRepliesClick = onLoadRepliesClick,
                     onReplyClick = onReplyClick,
+                    onEditCommentClick = onEditCommentClick,
+                    onDeleteCommentClick = onDeleteCommentClick,
+                    currentUserId = state.currentUserId?.value?.toString(),
                     loadingRepliesForCommentId = state.loadingRepliesForCommentId,
                 )
             }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TeacherTeamTaskPostScreen(
+    state: PostUiState,
+    post: TeamTaskPost,
+    onBackClick: () -> Unit,
+    onOpenPublicCommentComposer: () -> Unit,
+    onEditCommentClick: (CommentId, String, Boolean) -> Unit,
+    onDeleteCommentClick: (CommentId, Boolean) -> Unit,
+    onReplyClick: (CommentId) -> Unit,
+    onLoadRepliesClick: (CommentId) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val publicComments: List<CommentUi> = state.comments.filter { !it.isPrivate }
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding(),
+        ) {
+            PostScreenTopBar(onBackClick = onBackClick)
+        }
+        LazyColumn(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .testTag("team_task_post_main"),
+        ) {
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item {
+                PostScreenTeamTaskSection(post = post)
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Подробные данные по заданию и решения студентов доступны на веб-сайте.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                PostScreenCommentsDivider()
+            }
+            item {
+                Text(
+                    text = "Публичные комментарии",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (state.isLoadingComments) {
+                item {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            state.commentsLoadError?.let { msg ->
+                item {
+                    Text(text = msg, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            item {
+                TextButton(
+                    onClick = onOpenPublicCommentComposer,
+                    modifier = Modifier.testTag("post_new_comment_button"),
+                ) {
+                    Text("Написать комментарий")
+                }
+            }
+            items(
+                items = publicComments,
+                key = { it.id },
+            ) { comment ->
+                PostCommentItem(
+                    comment = comment,
+                    onLoadRepliesClick = onLoadRepliesClick,
+                    onReplyClick = onReplyClick,
+                    onEditCommentClick = onEditCommentClick,
+                    onDeleteCommentClick = onDeleteCommentClick,
+                    currentUserId = state.currentUserId?.value?.toString(),
+                    loadingRepliesForCommentId = state.loadingRepliesForCommentId,
+                )
             }
         }
     }
@@ -732,6 +865,7 @@ private fun TeamSolutionBlock(
     isDeadlinePassed: Boolean,
     onPickFile: () -> Unit,
     onSubmit: (String) -> Unit,
+    onDelete: () -> Unit,
     onRemovePendingFile: (String) -> Unit,
     onRemoveSavedFile: (String) -> Unit,
     onDownloadAttachment: (UUID) -> Unit,
@@ -901,6 +1035,17 @@ private fun TeamSolutionBlock(
                             .testTag("team_task_save_solution"),
                 ) {
                     Text("Сохранить решение")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onDelete,
+                    enabled = canEdit,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag("team_task_delete_solution"),
+                ) {
+                    Text("Удалить решение")
                 }
             }
         }

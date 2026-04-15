@@ -64,17 +64,22 @@ class CourseScreenViewModel @Inject constructor(
 
     fun onRetry() {
         viewModelScope.launch(dispatcher) {
+            val shouldLoadMembers: Boolean = _uiState.value.currentUserRole == CourseRole.TEACHER
             _uiState.value = _uiState.value.copy(
                 isLoadingCourse = true,
                 isLoadingFeed = true,
-                isLoadingMembers = true,
+                isLoadingMembers = shouldLoadMembers,
                 error = null,
             )
 
             val courseResult: DomainResult<Course> = getCourseInfo(courseId)
             val feedResult: DomainResult<List<Post>> = getCourseFeed(courseId)
             val membersResult: DomainResult<List<CourseMember>> =
-                getCourseMembers(courseId, null)
+                if (shouldLoadMembers) {
+                    getCourseMembers(courseId, null)
+                } else {
+                    DomainResult.Success(emptyList())
+                }
             val userResult: DomainResult<User> = currentUserRepository.getCurrentUser()
 
             var newState = _uiState.value.copy(
@@ -119,7 +124,7 @@ class CourseScreenViewModel @Inject constructor(
             }
 
             _uiState.value = newState.copy(
-                error = courseError ?: feedError ?: membersError,
+                error = courseError ?: feedError,
             )
         }
     }
