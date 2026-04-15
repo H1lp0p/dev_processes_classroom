@@ -39,7 +39,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = {},
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -61,7 +61,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = {},
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -83,7 +83,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = {},
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -102,7 +102,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = {},
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -124,7 +124,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = { newCourseClicked = true },
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -147,7 +147,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = {},
                     onJoinCourse = { joinClicked = true },
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -170,7 +170,7 @@ class UserCoursesScreenTest {
                     onRetry = { retryClicked = true },
                     onNewCourse = {},
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                 )
             }
         }
@@ -196,7 +196,7 @@ class UserCoursesScreenTest {
                     onRetry = {},
                     onNewCourse = {},
                     onJoinCourse = {},
-                    onLogout = null,
+                    onProfile = null,
                     onCourseClick = { clickedCourse = it },
                 )
             }
