@@ -37,7 +37,6 @@ import com.squareup.moshi.JsonClass
  * @param maxTeamSize 
  * @param captainMode 
  * @param votingDurationHours 
- * @param teacherCreatesTeams 
  * @param predefinedTeamsCount 
  * @param allowJoinTeam 
  * @param allowLeaveTeam 
@@ -84,9 +83,6 @@ data class CreateUpdatePostDto (
 
     @Json(name = "votingDurationHours")
     val votingDurationHours: kotlin.Int? = null,
-
-    @Json(name = "teacherCreatesTeams")
-    val teacherCreatesTeams: kotlin.Boolean? = null,
 
     @Json(name = "predefinedTeamsCount")
     val predefinedTeamsCount: kotlin.Int? = null,

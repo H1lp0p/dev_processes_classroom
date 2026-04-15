@@ -53,6 +53,12 @@ private class FakeCommentRepliesRepository : CommentRepository {
     ): DomainResult<Comment> {
         error("Not needed in this fake")
     }
+
+    override suspend fun editComment(commentId: CommentId, text: String): DomainResult<Unit> =
+        error("Not needed in this fake")
+
+    override suspend fun deleteComment(commentId: CommentId): DomainResult<Unit> =
+        error("Not needed in this fake")
 }
 
 class GetCommentRepliesUseCaseTest {

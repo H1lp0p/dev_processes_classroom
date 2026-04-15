@@ -39,7 +39,7 @@ fun UserCoursesScreen(
     onRetry: () -> Unit,
     onNewCourse: () -> Unit,
     onJoinCourse: () -> Unit,
-    onLogout: (() -> Unit)? = null,
+    onProfile: (() -> Unit)? = null,
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
     var fabExpanded by remember { mutableStateOf(false) }
@@ -49,9 +49,9 @@ fun UserCoursesScreen(
             TopAppBar(
                 title = { Text("Мои курсы") },
                 actions = {
-                    if (onLogout != null) {
-                        TextButton(onClick = onLogout) {
-                            Text("Выйти")
+                    if (onProfile != null) {
+                        TextButton(onClick = onProfile) {
+                            Text("Профиль")
                         }
                     }
                 },

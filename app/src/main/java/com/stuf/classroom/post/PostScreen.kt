@@ -1,21 +1,21 @@
 package com.stuf.classroom.post
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -37,8 +37,9 @@ import com.stuf.classroom.post.components.PostScreenMaterialSection
 import com.stuf.classroom.post.components.PostScreenTaskSection
 import com.stuf.classroom.post.components.PostScreenTopBar
 import com.stuf.domain.model.CommentId
-import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.TeamId
+import com.stuf.domain.model.UserId
+import java.util.UUID
 
 private sealed class PostComposerState {
     data object Closed : PostComposerState()
@@ -51,6 +52,12 @@ private sealed class PostComposerState {
     data class Reply(
         val toCommentId: CommentId,
     ) : PostComposerState()
+
+    data class Edit(
+        val commentId: CommentId,
+        val text: String,
+        val isPrivate: Boolean,
+    ) : PostComposerState()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,170 +65,214 @@ private sealed class PostComposerState {
 fun PostScreen(
     state: PostUiState,
     onRetry: () -> Unit,
-    onAttachSolutionClick: () -> Unit,
-    onTeamTaskPickSolutionFile: () -> Unit,
+    onPickSolutionFile: () -> Unit,
     onSubmitTeamSolution: (String) -> Unit,
+    onSubmitIndividualSolution: (String) -> Unit,
+    onDeleteTeamSolution: () -> Unit,
+    onDeleteIndividualSolution: () -> Unit,
     onRemovePendingTeamSolutionFile: (String) -> Unit,
+    onRemovePendingIndividualSolutionFile: (String) -> Unit,
     onRemoveSavedTeamSolutionFile: (String) -> Unit,
+    onRemoveSavedIndividualSolutionFile: (String) -> Unit,
     onJoinTeam: (TeamId) -> Unit,
     onLeaveTeam: (TeamId) -> Unit,
+    onVoteCaptain: (TeamId, UserId) -> Unit = { _, _ -> },
+    onTransferCaptain: (TeamId, UserId) -> Unit = { _, _ -> },
     onOpenGradeDistribution: () -> Unit = {},
+    onDownloadAttachment: (UUID) -> Unit = {},
     onCommentSubmit: (text: String, isPrivate: Boolean, parentCommentId: CommentId?) -> Unit,
+    onEditComment: (commentId: CommentId, text: String, isPrivate: Boolean) -> Unit = { _, _, _ -> },
+    onDeleteComment: (commentId: CommentId, isPrivate: Boolean) -> Unit = { _, _ -> },
     onLoadRepliesClick: (CommentId) -> Unit,
     onBackClick: () -> Unit,
 ) {
-    val showStudentActions: Boolean = state.currentUserRole == CourseRole.STUDENT
     var composerState: PostComposerState by remember { mutableStateOf(PostComposerState.Closed) }
     val commentSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    val showAttachSolutionBar: Boolean =
-        showStudentActions &&
-            state.content != null &&
-            state.postLoadError == null &&
-            !state.isLoadingPost &&
-            state.content is PostScreenContent.Task
 
     val showTeamTaskScreen: Boolean =
         state.content is PostScreenContent.TeamTask &&
             state.postLoadError == null &&
             !state.isLoadingPost
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (showTeamTaskScreen) {
-            val teamContent: PostScreenContent.TeamTask = state.content as PostScreenContent.TeamTask
-            TeamTaskPostScreen(
-                modifier = Modifier.fillMaxSize(),
-                state = state,
-                post = teamContent.post,
-                onBackClick = onBackClick,
-                onOpenPublicCommentComposer = {
-                    composerState = PostComposerState.NewRootComment
-                },
-                onOpenPrivateCommentComposer = {
-                    composerState = PostComposerState.NewPrivateSolutionComment
-                },
-                onReplyClick = { commentId: CommentId ->
-                    composerState = PostComposerState.Reply(commentId)
-                },
-                onLoadRepliesClick = onLoadRepliesClick,
-                onJoinTeam = onJoinTeam,
-                onLeaveTeam = onLeaveTeam,
-                onTeamTaskPickSolutionFile = onTeamTaskPickSolutionFile,
-                onSubmitTeamSolution = onSubmitTeamSolution,
-                onRemovePendingTeamSolutionFile = onRemovePendingTeamSolutionFile,
-                onRemoveSavedTeamSolutionFile = onRemoveSavedTeamSolutionFile,
-                onOpenGradeDistribution = onOpenGradeDistribution,
-            )
-        } else {
-            Scaffold(
-                topBar = {
-                    PostScreenTopBar(onBackClick = onBackClick)
-                },
-                bottomBar = {
-                    if (showAttachSolutionBar) {
-                        Button(
-                            onClick = onAttachSolutionClick,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .navigationBarsPadding()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .testTag("post_attach_solution_button"),
-                            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 18.dp),
-                        ) {
-                            Text(
-                                text = "Прикрепить решение",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                },
-            ) { innerPadding ->
-                LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .padding(16.dp)
-                            .testTag("post_comments_list"),
-                ) {
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+    val showIndividualTaskScreen: Boolean =
+        state.content is PostScreenContent.Task &&
+            state.postLoadError == null &&
+            !state.isLoadingPost
 
-                    if (state.isLoadingPost && state.content == null) {
-                        item { PostScreenLoadingIndicator() }
-                    } else if (state.postLoadError != null) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+    ) {
+        when {
+            showTeamTaskScreen -> {
+                val teamContent: PostScreenContent.TeamTask = state.content as PostScreenContent.TeamTask
+                TeamTaskPostScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    post = teamContent.post,
+                    onBackClick = onBackClick,
+                    onOpenPublicCommentComposer = {
+                        composerState = PostComposerState.NewRootComment
+                    },
+                    onOpenPrivateCommentComposer = {
+                        composerState = PostComposerState.NewPrivateSolutionComment
+                    },
+                    onEditCommentClick = { commentId, text, isPrivate ->
+                        composerState = PostComposerState.Edit(commentId, text, isPrivate)
+                    },
+                    onDeleteCommentClick = onDeleteComment,
+                    onReplyClick = { commentId: CommentId ->
+                        composerState = PostComposerState.Reply(commentId)
+                    },
+                    onLoadRepliesClick = onLoadRepliesClick,
+                    onJoinTeam = onJoinTeam,
+                    onLeaveTeam = onLeaveTeam,
+                    onVoteCaptain = onVoteCaptain,
+                    onTransferCaptain = onTransferCaptain,
+                    onTeamTaskPickSolutionFile = onPickSolutionFile,
+                    onSubmitTeamSolution = onSubmitTeamSolution,
+                    onDeleteTeamSolution = onDeleteTeamSolution,
+                    onRemovePendingTeamSolutionFile = onRemovePendingTeamSolutionFile,
+                    onRemoveSavedTeamSolutionFile = onRemoveSavedTeamSolutionFile,
+                    onOpenGradeDistribution = onOpenGradeDistribution,
+                    onDownloadAttachment = onDownloadAttachment,
+                )
+            }
+            showIndividualTaskScreen -> {
+                val taskContent: PostScreenContent.Task = state.content as PostScreenContent.Task
+                IndividualTaskPostScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    post = taskContent.post,
+                    onBackClick = onBackClick,
+                    onOpenPublicCommentComposer = {
+                        composerState = PostComposerState.NewRootComment
+                    },
+                    onEditCommentClick = { commentId, text, isPrivate ->
+                        composerState = PostComposerState.Edit(commentId, text, isPrivate)
+                    },
+                    onDeleteCommentClick = onDeleteComment,
+                    onReplyClick = { commentId: CommentId ->
+                        composerState = PostComposerState.Reply(commentId)
+                    },
+                    onLoadRepliesClick = onLoadRepliesClick,
+                    onPickSolutionFile = onPickSolutionFile,
+                    onSubmitIndividualSolution = onSubmitIndividualSolution,
+                    onDeleteIndividualSolution = onDeleteIndividualSolution,
+                    onRemovePendingIndividualSolutionFile = onRemovePendingIndividualSolutionFile,
+                    onRemoveSavedIndividualSolutionFile = onRemoveSavedIndividualSolutionFile,
+                    onDownloadAttachment = onDownloadAttachment,
+                )
+            }
+            else -> {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding(),
+                    ) {
+                        PostScreenTopBar(onBackClick = onBackClick)
+                    }
+                    LazyColumn(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight()
+                                .padding(horizontal = 16.dp)
+                                .testTag("post_comments_list"),
+                    ) {
                         item {
-                            PostScreenErrorBlock(
-                                message = state.postLoadError,
-                                onRetry = onRetry,
-                            )
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
-                    } else {
-                        val content = state.content
-                        if (content != null) {
+
+                        if (state.isLoadingPost && state.content == null) {
+                            item { PostScreenLoadingIndicator() }
+                        } else if (state.postLoadError != null) {
                             item {
-                                when (content) {
-                                    is PostScreenContent.Announcement ->
-                                        PostScreenAnnouncementSection(post = content.post)
-                                    is PostScreenContent.Material ->
-                                        PostScreenMaterialSection(post = content.post)
-                                    is PostScreenContent.Task ->
-                                        PostScreenTaskSection(post = content.post)
-                                    is PostScreenContent.TeamTask ->
-                                        Spacer(modifier = Modifier.height(0.dp))
+                                PostScreenErrorBlock(
+                                    message = state.postLoadError,
+                                    onRetry = onRetry,
+                                )
+                            }
+                        } else {
+                            val content = state.content
+                            if (content != null) {
+                                item {
+                                    when (content) {
+                                        is PostScreenContent.Announcement ->
+                                            PostScreenAnnouncementSection(post = content.post)
+                                        is PostScreenContent.Material ->
+                                            PostScreenMaterialSection(
+                                                post = content.post,
+                                                onAttachmentDownload = onDownloadAttachment,
+                                            )
+                                        is PostScreenContent.Task ->
+                                            PostScreenTaskSection(
+                                                post = content.post,
+                                                onAttachmentDownload = onDownloadAttachment,
+                                            )
+                                        is PostScreenContent.TeamTask ->
+                                            Spacer(modifier = Modifier.height(0.dp))
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    if (state.isLoadingComments && state.content != null) {
                         item {
-                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
-                    }
 
-                    state.commentsLoadError?.let { msg ->
-                        item {
-                            PostScreenErrorBlock(message = msg, onRetry = onRetry)
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-
-                    if (state.content != null && state.postLoadError == null && !state.isLoadingPost) {
-                        item {
-                            PostScreenCommentsDivider()
-                        }
-                        item {
-                            TextButton(
-                                onClick = {
-                                    composerState = PostComposerState.NewRootComment
-                                },
-                                modifier = Modifier.testTag("post_new_comment_button"),
-                            ) {
-                                Text("Написать комментарий")
+                        if (state.isLoadingComments && state.content != null) {
+                            item {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
-                    }
 
-                    items(
-                        items = state.comments,
-                        key = { it.id },
-                    ) { comment ->
-                        PostCommentItem(
-                            comment = comment,
-                            onLoadRepliesClick = onLoadRepliesClick,
-                            onReplyClick = { commentId: CommentId ->
-                                composerState = PostComposerState.Reply(commentId)
-                            },
-                            loadingRepliesForCommentId = state.loadingRepliesForCommentId,
-                        )
+                        state.commentsLoadError?.let { msg ->
+                            item {
+                                PostScreenErrorBlock(message = msg, onRetry = onRetry)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+
+                        if (state.content != null && state.postLoadError == null && !state.isLoadingPost) {
+                            item {
+                                PostScreenCommentsDivider()
+                            }
+                            item {
+                                TextButton(
+                                    onClick = {
+                                        composerState = PostComposerState.NewRootComment
+                                    },
+                                    modifier = Modifier.testTag("post_new_comment_button"),
+                                ) {
+                                    Text("Написать комментарий")
+                                }
+                            }
+                        }
+
+                        items(
+                            items = state.comments,
+                            key = { it.id },
+                        ) { comment ->
+                            PostCommentItem(
+                                comment = comment,
+                                onLoadRepliesClick = onLoadRepliesClick,
+                                onReplyClick = { commentId: CommentId ->
+                                    composerState = PostComposerState.Reply(commentId)
+                                },
+                                onEditCommentClick = { commentId, text, isPrivate ->
+                                    composerState = PostComposerState.Edit(commentId, text, isPrivate)
+                                },
+                                onDeleteCommentClick = onDeleteComment,
+                                currentUserId = state.currentUserId?.value?.toString(),
+                                loadingRepliesForCommentId = state.loadingRepliesForCommentId,
+                            )
+                        }
                     }
                 }
             }
@@ -250,6 +301,18 @@ fun PostScreen(
                             onDismiss = { composerState = PostComposerState.Closed },
                             onCommentSubmit = { text, isPrivate ->
                                 onCommentSubmit(text, isPrivate, null)
+                                composerState = PostComposerState.Closed
+                            },
+                        )
+                    is PostComposerState.Edit ->
+                        PostScreenCommentComposer(
+                            isReply = false,
+                            titleText = "Редактирование комментария",
+                            initialText = composer.text,
+                            submitButtonContentDescription = "Сохранить",
+                            onDismiss = { composerState = PostComposerState.Closed },
+                            onCommentSubmit = { text, _ ->
+                                onEditComment(composer.commentId, text, composer.isPrivate)
                                 composerState = PostComposerState.Closed
                             },
                         )

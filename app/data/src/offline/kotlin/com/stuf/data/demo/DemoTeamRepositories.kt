@@ -37,7 +37,10 @@ class DemoTeamRepository @Inject constructor(
         store.demoLeaveTeam(teamId)
 
     override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId): DomainResult<Unit> =
-        DomainResult.Success(Unit)
+        store.demoTransferCaptain(teamId, toUserId)
+
+    override suspend fun voteCaptain(teamId: TeamId, candidateId: UserId): DomainResult<Unit> =
+        store.demoVoteCaptain(teamId, candidateId)
 
     override suspend fun isCaptain(teamId: TeamId): DomainResult<Boolean> =
         DomainResult.Success(store.demoIsCaptain(teamId))

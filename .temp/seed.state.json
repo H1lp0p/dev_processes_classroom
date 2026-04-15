@@ -1,0 +1,125 @@
+﻿{
+    "users":  [
+                  {
+                      "email":  "maria@demo.local",
+                      "key":  "maria",
+                      "name":  "РњР°СЂРёСЏ РЎ.",
+                      "id":  "019d8c28-8692-7e8e-b2c7-49037b8db546"
+                  },
+                  {
+                      "email":  "teacher@demo.local",
+                      "key":  "teacher",
+                      "name":  "РЈС‡РёС‚РµР»СЊ РРІР°РЅРѕРІР°",
+                      "id":  "019d8c28-748f-7666-a233-9d71a9365dcb"
+                  },
+                  {
+                      "email":  "oleg@demo.local",
+                      "key":  "oleg",
+                      "name":  "РћР»РµРі Р’.",
+                      "id":  "019d8c28-8f93-7692-89db-c6e658786141"
+                  },
+                  {
+                      "email":  "alex@demo.local",
+                      "key":  "alex",
+                      "name":  "РђР»РµРєСЃРµР№ Рљ.",
+                      "id":  "019d8c28-7da1-73ae-87a0-eb7d9ad24110"
+                  },
+                  {
+                      "email":  "anna@demo.local",
+                      "key":  "anna",
+                      "name":  "РђРЅРЅР° Р›.",
+                      "id":  "019d8c28-98a2-71db-9eff-0ac3e847e36a"
+                  },
+                  {
+                      "email":  "student@demo.local",
+                      "key":  "student",
+                      "name":  "РЎС‚СѓРґРµРЅС‚ Р”РµРјРѕ",
+                      "id":  "019d8c28-6b95-706c-a17d-00adea3d0bd5"
+                  }
+              ],
+    "coursesByKey":  {
+                         "web":  {
+                                     "inviteCode":  "3AEC3EB4",
+                                     "title":  "Р’РµР±-СЂР°Р·СЂР°Р±РѕС‚РєР°",
+                                     "key":  "web",
+                                     "id":  "7f03a0a9-8c2f-4eaf-a7fa-990d62a44e8d",
+                                     "ownerKey":  "teacher"
+                                 },
+                         "club":  {
+                                      "inviteCode":  "D85AC8E5",
+                                      "title":  "РљСЂСѓР¶РѕРє РїСЂРѕРіСЂР°РјРјРёСЂРѕРІР°РЅРёСЏ",
+                                      "key":  "club",
+                                      "id":  "2486932e-5074-470f-a97c-6fa26ad2e2cf",
+                                      "ownerKey":  "student"
+                                  },
+                         "algebra":  {
+                                         "inviteCode":  "79ED63E8",
+                                         "title":  "РђР»РіРµР±СЂР° вЂ” 9 РєР»Р°СЃСЃ",
+                                         "key":  "algebra",
+                                         "id":  "2e194359-09fd-4219-8ee6-67cc045664c5",
+                                         "ownerKey":  "teacher"
+                                     }
+                     },
+    "postsByKey":  {
+                       "post_homework":  {
+                                             "key":  "post_homework",
+                                             "id":  "2976fab9-8123-4d1d-8d30-5229d6f0e0bf",
+                                             "type":  "task",
+                                             "courseId":  "2e194359-09fd-4219-8ee6-67cc045664c5"
+                                         },
+                       "post_team_web_draft":  {
+                                                   "key":  "post_team_web_draft",
+                                                   "id":  "5f95fa70-a69d-408e-bff0-ddd5a545b9a3",
+                                                   "type":  "teaM_TASK",
+                                                   "courseId":  "7f03a0a9-8c2f-4eaf-a7fa-990d62a44e8d"
+                                               },
+                       "post_team_web_sprint":  {
+                                                    "key":  "post_team_web_sprint",
+                                                    "id":  "65584cf1-e596-42ab-a60a-d2609da79a51",
+                                                    "type":  "teaM_TASK",
+                                                    "courseId":  "7f03a0a9-8c2f-4eaf-a7fa-990d62a44e8d"
+                                                },
+                       "post_material_algebra":  {
+                                                     "key":  "post_material_algebra",
+                                                     "id":  "207cec02-40b9-498d-9fa0-0a33c77ef573",
+                                                     "type":  "post",
+                                                     "courseId":  "2e194359-09fd-4219-8ee6-67cc045664c5"
+                                                 },
+                       "post_web_lab":  {
+                                            "key":  "post_web_lab",
+                                            "id":  "05719b1d-5cb4-4f49-9306-3b41b64f21e9",
+                                            "type":  "task",
+                                            "courseId":  "7f03a0a9-8c2f-4eaf-a7fa-990d62a44e8d"
+                                        },
+                       "post_welcome":  {
+                                            "key":  "post_welcome",
+                                            "id":  "15670230-50e4-4e17-b01f-d6c0375616fc",
+                                            "type":  "post",
+                                            "courseId":  "2e194359-09fd-4219-8ee6-67cc045664c5"
+                                        },
+                       "post_team_web_overdue":  {
+                                                     "key":  "post_team_web_overdue",
+                                                     "id":  "daf46069-eb9a-48ea-adfd-4d858be5d03d",
+                                                     "type":  "teaM_TASK",
+                                                     "courseId":  "7f03a0a9-8c2f-4eaf-a7fa-990d62a44e8d"
+                                                 },
+                       "post_team_algebra":  {
+                                                 "key":  "post_team_algebra",
+                                                 "id":  "033a36ba-274f-4a8e-8f40-44939e8b93fb",
+                                                 "type":  "teaM_TASK",
+                                                 "courseId":  "2e194359-09fd-4219-8ee6-67cc045664c5"
+                                             },
+                       "post_club_welcome":  {
+                                                 "key":  "post_club_welcome",
+                                                 "id":  "7cece8b4-a0d7-4ff3-9bd5-15f2a0c79413",
+                                                 "type":  "post",
+                                                 "courseId":  "2486932e-5074-470f-a97c-6fa26ad2e2cf"
+                                             }
+                   },
+    "commentIds":  [
+
+                   ],
+    "solutionByPost":  {
+
+                       }
+}

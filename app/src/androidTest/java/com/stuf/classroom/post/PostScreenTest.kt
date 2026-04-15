@@ -55,11 +55,13 @@ class PostScreenTest {
                 PostScreen(
                     state = state,
                     onRetry = {},
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
@@ -79,7 +81,7 @@ class PostScreenTest {
     }
 
     @Test
-    fun postScreen_shows_attach_solution_button_for_task_and_student() {
+    fun postScreen_shows_individual_task_main_for_task_and_student() {
         val stateStudent: PostUiState =
             PostUiState(
                 content =
@@ -106,11 +108,13 @@ class PostScreenTest {
                 PostScreen(
                     state = stateStudent,
                     onRetry = {},
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
@@ -120,11 +124,13 @@ class PostScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("post_attach_solution_button").assertIsDisplayed()
+        composeRule.onNodeWithTag("post_attach_solution_button")
+            .assertDoesNotExist()
+        composeRule.onNodeWithTag("individual_task_post_main").assertIsDisplayed()
     }
 
     @Test
-    fun postScreen_hides_attach_solution_button_for_task_and_teacher() {
+    fun postScreen_shows_individual_task_main_for_task_and_teacher() {
         val stateTeacher: PostUiState =
             PostUiState(
                 content =
@@ -151,11 +157,13 @@ class PostScreenTest {
                 PostScreen(
                     state = stateTeacher,
                     onRetry = {},
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
@@ -167,6 +175,7 @@ class PostScreenTest {
 
         composeRule.onNodeWithTag("post_attach_solution_button")
             .assertDoesNotExist()
+        composeRule.onNodeWithTag("individual_task_post_main").assertIsDisplayed()
     }
 
     @Test
@@ -174,15 +183,19 @@ class PostScreenTest {
         val comments: List<CommentUi> = listOf(
             CommentUi(
                 id = "1",
+                authorId = "u1",
                 text = "First",
                 authorName = "User 1",
                 createdAtLabel = "1 янв., 12:00",
+                isOwn = false,
             ),
             CommentUi(
                 id = "2",
+                authorId = "u2",
                 text = "Second",
                 authorName = "User 2",
                 createdAtLabel = "1 янв., 12:00",
+                isOwn = false,
             ),
         )
         val state: PostUiState =
@@ -206,11 +219,13 @@ class PostScreenTest {
                 PostScreen(
                     state = state,
                     onRetry = {},
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
@@ -251,11 +266,13 @@ class PostScreenTest {
                 PostScreen(
                     state = state,
                     onRetry = {},
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { text, isPrivate, parentCommentId ->
@@ -292,11 +309,13 @@ class PostScreenTest {
                             currentUserRole = CourseRole.STUDENT,
                         ),
                     onRetry = {},
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
@@ -320,11 +339,13 @@ class PostScreenTest {
                             currentUserRole = CourseRole.STUDENT,
                         ),
                     onRetry = { retryCalled = true },
-                    onAttachSolutionClick = {},
-                    onTeamTaskPickSolutionFile = {},
+                    onPickSolutionFile = {},
                     onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
                     onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
                     onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
                     onJoinTeam = {},
                     onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },

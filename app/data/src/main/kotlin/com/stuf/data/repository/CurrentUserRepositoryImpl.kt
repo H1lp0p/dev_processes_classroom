@@ -3,6 +3,7 @@ package com.stuf.data.repository
 import com.stuf.data.api.UserApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
+import com.stuf.data.model.UserUpdateDto
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.User
@@ -32,6 +33,21 @@ class CurrentUserRepositoryImpl @Inject constructor(
                         email = dto.email,
                     ),
                 )
+            }
+            is DomainResult.Failure -> response
+        }
+    }
+
+    override suspend fun updateCurrentUser(credentials: String, email: String): DomainResult<Unit> {
+        val response = safeCall { api.apiUsersPut(UserUpdateDto(credentials = credentials, email = email)) }
+        return when (response) {
+            is DomainResult.Success -> {
+                val body = response.value
+                if (body.type != ApiResponseType.success) {
+                    DomainResult.Failure(DomainError.Unknown())
+                } else {
+                    DomainResult.Success(Unit)
+                }
             }
             is DomainResult.Failure -> response
         }

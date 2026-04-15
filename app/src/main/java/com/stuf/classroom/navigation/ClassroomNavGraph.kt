@@ -21,6 +21,9 @@ import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
 import com.stuf.classroom.grade.GradeDistributionRoute
 import com.stuf.classroom.post.PostRoute
+import com.stuf.classroom.profile.ChangePasswordRoute
+import com.stuf.classroom.profile.EditProfileRoute
+import com.stuf.classroom.profile.ProfileRoute
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.UserCourse
@@ -72,14 +75,7 @@ fun ClassroomNavHost(
             val viewModel: UserCoursesViewModel = hiltViewModel()
             UserCoursesRoute(
                 viewModel = viewModel,
-                onLogout = {
-                    scope.launch {
-                        authManager.logout()
-                        navController.navigate(ClassroomRoutes.LOGIN) {
-                            popUpTo(ClassroomRoutes.HOME) { inclusive = true }
-                        }
-                    }
-                },
+                onProfile = { navController.navigate(ClassroomRoutes.PROFILE) },
                 onNewCourse = { navController.navigate(ClassroomRoutes.CREATE_COURSE) },
                 onJoinCourse = { navController.navigate(ClassroomRoutes.JOIN_COURSE) },
                 onCourseClick = { course: UserCourse ->
@@ -151,6 +147,31 @@ fun ClassroomNavHost(
                         }
                     }
                 },
+            )
+        }
+        composable(ClassroomRoutes.PROFILE) {
+            ProfileRoute(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    scope.launch {
+                        authManager.logout()
+                        navController.navigate(ClassroomRoutes.LOGIN) {
+                            popUpTo(ClassroomRoutes.HOME) { inclusive = true }
+                        }
+                    }
+                },
+                onEditProfile = { navController.navigate(ClassroomRoutes.EDIT_PROFILE) },
+                onChangePassword = { navController.navigate(ClassroomRoutes.CHANGE_PASSWORD) },
+            )
+        }
+        composable(ClassroomRoutes.EDIT_PROFILE) {
+            EditProfileRoute(
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(ClassroomRoutes.CHANGE_PASSWORD) {
+            ChangePasswordRoute(
+                onBack = { navController.popBackStack() },
             )
         }
     }

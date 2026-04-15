@@ -12,6 +12,7 @@ import com.stuf.domain.usecase.SaveGradeDistribution
 import com.stuf.domain.usecase.SubmitTeamTaskSolution
 import com.stuf.domain.usecase.TransferTeamCaptain
 import com.stuf.domain.usecase.VoteOnGradeDistribution
+import com.stuf.domain.usecase.VoteTeamCaptain
 import com.stuf.domain.usecase.impl.CancelTeamTaskSolutionUseCase
 import com.stuf.domain.usecase.impl.CheckTeamCaptainUseCase
 import com.stuf.domain.usecase.impl.GetGradeDistributionUseCase
@@ -24,6 +25,7 @@ import com.stuf.domain.usecase.impl.SaveGradeDistributionUseCase
 import com.stuf.domain.usecase.impl.SubmitTeamTaskSolutionUseCase
 import com.stuf.domain.usecase.impl.TransferTeamCaptainUseCase
 import com.stuf.domain.usecase.impl.VoteOnGradeDistributionUseCase
+import com.stuf.domain.usecase.impl.VoteTeamCaptainUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -53,6 +55,10 @@ abstract class DomainTeamUseCaseModule {
     @Binds
     @Singleton
     abstract fun bindTransferTeamCaptain(impl: TransferTeamCaptainUseCase): TransferTeamCaptain
+
+    @Binds
+    @Singleton
+    abstract fun bindVoteTeamCaptain(impl: VoteTeamCaptainUseCase): VoteTeamCaptain
 
     @Binds
     @Singleton

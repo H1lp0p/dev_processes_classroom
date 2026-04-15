@@ -22,6 +22,13 @@ class GetGradeDistributionUseCase @Inject constructor(
         repository.getGradeDistribution(teamId, assignmentId)
 }
 
+/**
+ * Сохранение распределения баллов по участникам команды.
+ *
+ * Доступно только капитану. Срок сдачи задания **не** ограничивает правку: распределение
+ * имеет смысл только после выставления оценки команде (Rraw), и капитан может
+ * корректировать баллы независимо от дедлайна сдачи решения.
+ */
 class SaveGradeDistributionUseCase @Inject constructor(
     private val gradeDistributionRepository: GradeDistributionRepository,
     private val teamRepository: TeamRepository,
@@ -32,6 +39,16 @@ class SaveGradeDistributionUseCase @Inject constructor(
         assignmentId: PostId,
         entries: List<GradeDistributionEntry>,
     ): DomainResult<GradeDistribution> {
+        when (val captain = teamRepository.isCaptain(teamId)) {
+            is DomainResult.Success ->
+                if (!captain.value) {
+                    return DomainResult.Failure(
+                        DomainError.Validation("Только капитан команды может сохранить распределение"),
+                    )
+                }
+            is DomainResult.Failure -> return captain
+        }
+
         val current = gradeDistributionRepository.getGradeDistribution(teamId, assignmentId)
         val rraw =
             when (current) {

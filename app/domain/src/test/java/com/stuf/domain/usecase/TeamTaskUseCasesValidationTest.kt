@@ -83,7 +83,7 @@ class TeamTaskUseCasesValidationTest {
                 override suspend fun joinTeam(teamId: TeamId) = error("unused")
                 override suspend fun leaveTeam(teamId: TeamId) = error("unused")
                 override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId) = error("unused")
-                override suspend fun isCaptain(teamId: TeamId) = error("unused")
+                override suspend fun isCaptain(teamId: TeamId) = DomainResult.Success(true)
             }
 
         val useCase: SaveGradeDistribution = SaveGradeDistributionUseCase(gradeRepo, teamRepo)
@@ -97,6 +97,67 @@ class TeamTaskUseCasesValidationTest {
 
         assertTrue(result is DomainResult.Failure)
         assertTrue((result as DomainResult.Failure).error is DomainError.Validation)
+    }
+
+    @Test
+    fun `save distribution fails when not captain`() {
+        val gradeRepo =
+            object : GradeDistributionRepository {
+                override suspend fun getGradeDistribution(
+                    teamId: TeamId,
+                    assignmentId: PostId,
+                ): DomainResult<GradeDistribution> =
+                    DomainResult.Success(
+                        GradeDistribution(
+                            teamId = teamId,
+                            assignmentId = assignmentId,
+                            teamRawScore = 10.0,
+                            entries =
+                                listOf(
+                                    GradeDistributionEntry(userA, 5.0),
+                                    GradeDistributionEntry(userB, 5.0),
+                                ),
+                            sumDistributed = 10.0,
+                            distributionChanged = false,
+                        ),
+                    )
+
+                override suspend fun updateGradeDistribution(
+                    teamId: TeamId,
+                    assignmentId: PostId,
+                    entries: List<GradeDistributionEntry>,
+                ): DomainResult<GradeDistribution> =
+                    error("should not be called")
+
+                override suspend fun voteOnGradeDistribution(
+                    teamId: TeamId,
+                    assignmentId: PostId,
+                    vote: GradeVote,
+                ): DomainResult<Unit> = error("unused")
+            }
+
+        val teamRepo =
+            object : TeamRepository {
+                override suspend fun getTeamsForAssignment(assignmentId: PostId) =
+                    DomainResult.Success(listOf(sampleTeam))
+
+                override suspend fun getMyTeam(assignmentId: PostId) = error("unused")
+                override suspend fun joinTeam(teamId: TeamId) = error("unused")
+                override suspend fun leaveTeam(teamId: TeamId) = error("unused")
+                override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId) = error("unused")
+                override suspend fun isCaptain(teamId: TeamId) = DomainResult.Success(false)
+            }
+
+        val useCase: SaveGradeDistribution = SaveGradeDistributionUseCase(gradeRepo, teamRepo)
+        val entries =
+            listOf(
+                GradeDistributionEntry(userA, 5.0),
+                GradeDistributionEntry(userB, 5.0),
+            )
+
+        val result = runBlocking { useCase(teamId, assignmentId, entries) }
+
+        assertTrue(result is DomainResult.Failure)
     }
 
     @Test

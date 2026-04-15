@@ -18,7 +18,14 @@ internal fun PostTaskScoreLine(
     maxScore: Int,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    /**
+     * Если false и выставленной оценки нет, строка скрыта (максимум показывается в блоке «Детали» на экране поста).
+     */
+    showMaxWhenUngraded: Boolean = true,
 ) {
+    if (!showMaxWhenUngraded && assignedScore == null) {
+        return
+    }
     val text: String =
         when {
             assignedScore != null && compact -> "${assignedScore.value} / $maxScore"

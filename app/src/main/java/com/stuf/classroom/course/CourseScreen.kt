@@ -3,17 +3,25 @@ package com.stuf.classroom.course
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.stuf.classroom.course.components.CourseCourseTabContent
@@ -22,7 +30,9 @@ import com.stuf.classroom.course.components.CourseScreenTopBar
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.UserId
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseScreen(
     state: CourseScreenUiState,
@@ -33,22 +43,53 @@ fun CourseScreen(
     onBackClick: () -> Unit,
     onLeaveCourseClick: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    val snackbarHostState = remember { SnackbarHostState() }
+    val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
     ) {
-        CourseScreenTopBar(
-            onBackClick = onBackClick,
-            onLeaveCourseClick = onLeaveCourseClick,
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            CourseScreenTopBar(
+                onBackClick = onBackClick,
+                onLeaveCourseClick = onLeaveCourseClick,
+            )
+
+            if (state.currentUserRole == CourseRole.TEACHER) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(
+                        selected = state.selectedTab == CourseTab.COURSE,
+                        onClick = { onTabSelected(CourseTab.COURSE) },
+                        label = { Text("Лента") },
+                        modifier = Modifier.testTag("course_tab_course"),
+                    )
+                    FilterChip(
+                        selected = state.selectedTab == CourseTab.MEMBERS,
+                        onClick = { onTabSelected(CourseTab.MEMBERS) },
+                        label = { Text("Пользователи") },
+                        modifier = Modifier.testTag("course_tab_members"),
+                    )
+                }
+            }
+
+            Box(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
+            ) {
             val effectiveTab: CourseTab =
                 if (state.currentUserRole == CourseRole.TEACHER) {
                     state.selectedTab
@@ -60,6 +101,11 @@ fun CourseScreen(
                 CourseTab.COURSE -> CourseCourseTabContent(
                     state = state,
                     onPostClick = onPostClick,
+                    onHeaderClick = {
+                        val code = state.inviteCode ?: return@CourseCourseTabContent
+                        clipboardManager.setText(AnnotatedString(code))
+                        scope.launch { snackbarHostState.showSnackbar("Код скопирован в буфер") }
+                    },
                 )
 
                 CourseTab.MEMBERS -> CourseMembersTabContent(
@@ -101,26 +147,11 @@ fun CourseScreen(
                         .testTag("course_error"),
                 )
             }
-        }
-
-        NavigationBar {
-            NavigationBarItem(
-                selected = state.selectedTab == CourseTab.COURSE,
-                onClick = { onTabSelected(CourseTab.COURSE) },
-                icon = { },
-                label = { Text("Курс") },
-                modifier = Modifier.testTag("course_tab_course"),
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
             )
-
-            if (state.currentUserRole == CourseRole.TEACHER) {
-                NavigationBarItem(
-                    selected = state.selectedTab == CourseTab.MEMBERS,
-                    onClick = { onTabSelected(CourseTab.MEMBERS) },
-                    icon = { },
-                    label = { Text("Пользователи") },
-                    modifier = Modifier.testTag("course_tab_members"),
-                )
-            }
+        }
         }
     }
 }

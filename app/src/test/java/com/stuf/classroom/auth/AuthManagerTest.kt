@@ -52,6 +52,10 @@ class AuthManagerTest {
             lastRefreshCalled = true
             return nextRefreshResult
         }
+
+        override suspend fun changePassword(oldPassword: String, newPassword: String): DomainResult<Unit> {
+            error("Not needed in AuthManager tests")
+        }
     }
 
     private class FakeAuthSessionStorage(

@@ -1,12 +1,14 @@
 package com.stuf.classroom.di
 
 import com.stuf.domain.usecase.CancelSolution
+import com.stuf.domain.usecase.ChangePassword
 import com.stuf.domain.usecase.GetSolutionsForTask
 import com.stuf.domain.usecase.GetUserSolution
 import com.stuf.domain.usecase.ReviewSolution
 import com.stuf.domain.usecase.SubmitSolution
 import com.stuf.domain.usecase.UpdateSolution
 import com.stuf.domain.usecase.impl.CancelSolutionUseCase
+import com.stuf.domain.usecase.impl.ChangePasswordUseCase
 import com.stuf.domain.usecase.impl.GetSolutionsForTaskUseCase
 import com.stuf.domain.usecase.impl.GetUserSolutionUseCase
 import com.stuf.domain.usecase.impl.ReviewSolutionUseCase
@@ -45,4 +47,8 @@ abstract class DomainSolutionUseCaseModule {
     @Binds
     @Singleton
     abstract fun bindGetUserSolutionUseCase(impl: GetUserSolutionUseCase): GetUserSolution
+
+    @Binds
+    @Singleton
+    abstract fun bindChangePasswordUseCase(impl: ChangePasswordUseCase): ChangePassword
 }

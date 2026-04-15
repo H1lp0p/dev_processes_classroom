@@ -12,6 +12,7 @@ import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
+import com.stuf.domain.model.Solution
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
 import com.stuf.domain.model.TaskPost
@@ -25,6 +26,10 @@ import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.AddSolutionComment
 import com.stuf.domain.usecase.CheckTeamCaptain
+import com.stuf.domain.usecase.CancelSolution
+import com.stuf.domain.usecase.CancelTeamTaskSolution
+import com.stuf.domain.usecase.DeleteComment
+import com.stuf.domain.usecase.EditComment
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
@@ -34,7 +39,11 @@ import com.stuf.domain.usecase.GetTeamTaskSolution
 import com.stuf.domain.usecase.GetTeamsForTeamTask
 import com.stuf.domain.usecase.JoinTeam
 import com.stuf.domain.usecase.LeaveTeam
+import com.stuf.domain.usecase.GetUserSolution
+import com.stuf.domain.usecase.SubmitSolution
 import com.stuf.domain.usecase.SubmitTeamTaskSolution
+import com.stuf.domain.usecase.TransferTeamCaptain
+import com.stuf.domain.usecase.VoteTeamCaptain
 import com.stuf.domain.model.User
 import com.stuf.domain.repository.CurrentUserRepository
 import com.stuf.domain.model.FileInfo
@@ -42,6 +51,8 @@ import com.stuf.domain.model.SolutionId
 import java.time.OffsetDateTime
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -158,6 +169,9 @@ class PostScreenViewModelTest {
                     email = "test@example.com",
                 ),
             )
+
+        override suspend fun updateCurrentUser(credentials: String, email: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
     }
 
     private class FakeGetTeamTaskSolution : GetTeamTaskSolution {
@@ -180,9 +194,65 @@ class PostScreenViewModelTest {
             DomainResult.Failure(DomainError.Unknown())
     }
 
+    private class FakeTransferTeamCaptain : TransferTeamCaptain {
+        var result: DomainResult<Unit> = DomainResult.Success(Unit)
+        var lastTeamId: TeamId? = null
+        var lastToUserId: UserId? = null
+
+        override suspend fun invoke(teamId: TeamId, toUserId: UserId): DomainResult<Unit> =
+            result.also {
+                lastTeamId = teamId
+                lastToUserId = toUserId
+            }
+    }
+
+    private class FakeVoteTeamCaptain : VoteTeamCaptain {
+        var result: DomainResult<Unit> = DomainResult.Success(Unit)
+        var lastTeamId: TeamId? = null
+        var lastCandidateId: UserId? = null
+
+        override suspend fun invoke(teamId: TeamId, candidateId: UserId): DomainResult<Unit> =
+            result.also {
+                lastTeamId = teamId
+                lastCandidateId = candidateId
+            }
+    }
+
+    private class FakeGetUserSolution : GetUserSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Solution?> =
+            DomainResult.Success(null)
+    }
+
+    private class FakeSubmitSolution : SubmitSolution {
+        override suspend fun invoke(
+            taskId: TaskId,
+            text: String?,
+            fileIds: List<String>,
+        ): DomainResult<Solution> =
+            DomainResult.Failure(DomainError.Unknown())
+    }
+
     private class FakeFileRepository : FileRepository {
         override suspend fun uploadFile(bytes: ByteArray, name: String): DomainResult<FileInfo> =
             DomainResult.Failure(DomainError.Unknown())
+    }
+
+    private class FakeCancelSolution : CancelSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
+    }
+
+    private class FakeCancelTeamTaskSolution : CancelTeamTaskSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
+    }
+
+    private class FakeEditComment : EditComment {
+        override suspend fun invoke(commentId: CommentId, text: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeDeleteComment : DeleteComment {
+        override suspend fun invoke(commentId: CommentId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
     }
 
     private lateinit var fakeGetPost: FakeGetPost
@@ -192,6 +262,8 @@ class PostScreenViewModelTest {
     private lateinit var fakeAddCommentReply: FakeAddCommentReply
     private lateinit var fakeGetSolutionComments: FakeGetSolutionComments
     private lateinit var fakeAddSolutionComment: FakeAddSolutionComment
+    private lateinit var fakeTransferTeamCaptain: FakeTransferTeamCaptain
+    private lateinit var fakeVoteTeamCaptain: FakeVoteTeamCaptain
 
     private lateinit var viewModel: PostScreenViewModel
 
@@ -206,6 +278,8 @@ class PostScreenViewModelTest {
         fakeAddCommentReply = FakeAddCommentReply()
         fakeGetSolutionComments = FakeGetSolutionComments()
         fakeAddSolutionComment = FakeAddSolutionComment()
+        fakeTransferTeamCaptain = FakeTransferTeamCaptain()
+        fakeVoteTeamCaptain = FakeVoteTeamCaptain()
 
         viewModel =
             PostScreenViewModel(
@@ -223,13 +297,22 @@ class PostScreenViewModelTest {
                 addPostComment = fakeAddPostComment,
                 addSolutionComment = fakeAddSolutionComment,
                 addCommentReply = fakeAddCommentReply,
+                editComment = FakeEditComment(),
+                deleteComment = FakeDeleteComment(),
                 getTeamsForTeamTask = FakeGetTeamsForTeamTask(),
                 getMyTeamForTeamTask = FakeGetMyTeamForTeamTask(),
                 joinTeam = FakeJoinTeam(),
                 getTeamTaskSolution = FakeGetTeamTaskSolution(),
                 checkTeamCaptain = FakeCheckTeamCaptain(),
                 submitTeamTaskSolution = FakeSubmitTeamTaskSolution(),
+                transferTeamCaptain = fakeTransferTeamCaptain,
+                voteTeamCaptain = fakeVoteTeamCaptain,
+                getUserSolution = FakeGetUserSolution(),
+                submitSolution = FakeSubmitSolution(),
+                cancelSolution = FakeCancelSolution(),
+                cancelTeamTaskSolution = FakeCancelTeamTaskSolution(),
                 fileRepository = FakeFileRepository(),
+                apiBaseUrl = "http://localhost/",
                 currentUserRepository = FakeCurrentUserRepository(),
                 leaveTeam = FakeLeaveTeam(),
                 dispatcher = Dispatchers.Unconfined,
@@ -451,5 +534,67 @@ class PostScreenViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.content is PostScreenContent.Task)
+    }
+
+    @Test
+    fun `onVoteCaptain emits success message`() = runTest {
+        val teamId = TeamId(UUID.randomUUID())
+        val candidateId = UserId(UUID.randomUUID())
+        val post =
+            TeamTaskPost(
+                id = postId,
+                courseId = CourseId(UUID.randomUUID()),
+                title = "Командное",
+                text = "Текст",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = TaskDetails(deadline = null, isMandatory = false, maxScore = 10),
+            )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+        fakeVoteTeamCaptain.result = DomainResult.Success(Unit)
+
+        val events = mutableListOf<PostTransientUiEvent>()
+        val job = backgroundScope.launch { viewModel.transientEvents.collect { events += it } }
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        viewModel.onVoteCaptain(teamId, candidateId)
+        advanceUntilIdle()
+
+        assertEquals(teamId, fakeVoteTeamCaptain.lastTeamId)
+        assertEquals(candidateId, fakeVoteTeamCaptain.lastCandidateId)
+        assertTrue(events.any { it == PostTransientUiEvent.ShowMessage("Голос учтен") })
+        job.cancel()
+    }
+
+    @Test
+    fun `onTransferCaptain failure emits generic error message`() = runTest {
+        val teamId = TeamId(UUID.randomUUID())
+        val toUserId = UserId(UUID.randomUUID())
+        val post =
+            TeamTaskPost(
+                id = postId,
+                courseId = CourseId(UUID.randomUUID()),
+                title = "Командное",
+                text = "Текст",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = TaskDetails(deadline = null, isMandatory = false, maxScore = 10),
+            )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+        fakeTransferTeamCaptain.result = DomainResult.Failure(DomainError.Forbidden)
+
+        val events = mutableListOf<PostTransientUiEvent>()
+        val job = backgroundScope.launch { viewModel.transientEvents.collect { events += it } }
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        viewModel.onTransferCaptain(teamId, toUserId)
+        advanceUntilIdle()
+
+        assertEquals(teamId, fakeTransferTeamCaptain.lastTeamId)
+        assertEquals(toUserId, fakeTransferTeamCaptain.lastToUserId)
+        assertTrue(events.any { it == PostTransientUiEvent.ShowMessage("Что-то пошло не так") })
+        job.cancel()
     }
 }

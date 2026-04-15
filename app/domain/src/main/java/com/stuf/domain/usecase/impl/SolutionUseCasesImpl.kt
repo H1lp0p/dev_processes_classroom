@@ -10,11 +10,13 @@ import com.stuf.domain.model.TaskId
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.SolutionRepository
 import com.stuf.domain.usecase.CancelSolution
+import com.stuf.domain.usecase.ChangePassword
 import com.stuf.domain.usecase.GetSolutionsForTask
 import com.stuf.domain.usecase.GetUserSolution
 import com.stuf.domain.usecase.ReviewSolution
 import com.stuf.domain.usecase.SubmitSolution
 import com.stuf.domain.usecase.UpdateSolution
+import com.stuf.domain.repository.AuthRepository
 import javax.inject.Inject
 
 class SubmitSolutionUseCase @Inject constructor(
@@ -106,5 +108,12 @@ class GetUserSolutionUseCase @Inject constructor(
     override suspend fun invoke(taskId: TaskId): DomainResult<Solution?> {
         return repository.getUserSolution(taskId)
     }
+}
+
+class ChangePasswordUseCase @Inject constructor(
+    private val authRepository: AuthRepository,
+) : ChangePassword {
+    override suspend fun invoke(oldPassword: String, newPassword: String): DomainResult<Unit> =
+        authRepository.changePassword(oldPassword, newPassword)
 }
 

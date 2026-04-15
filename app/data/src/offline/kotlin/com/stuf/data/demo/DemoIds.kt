@@ -20,7 +20,7 @@ internal object DemoIds {
     val postHomework: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333302"))
     val postMaterialAlgebra: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333303"))
     val postTeamAlgebra: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333304"))
-    /** Командное задание на курсе «Веб»: демо — вы капитан, есть черновик решения. */
+    /** Командное задание на курсе «Веб»: демо — вы капитан, оценка выставлена, дедлайн прошёл. */
     val postTeamWebSprint: PostId = PostId(UUID.fromString("44444444-4444-4444-4444-444444444404"))
     /** Капитан, решение ещё не отправлено — только черновик. */
     val postTeamWebCaptainDraft: PostId = PostId(UUID.fromString("44444444-4444-4444-4444-444444444405"))

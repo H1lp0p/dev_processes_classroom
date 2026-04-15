@@ -2,6 +2,7 @@ package com.stuf.classroom.post
 
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.FileInfo
+import com.stuf.domain.model.Solution
 import com.stuf.domain.model.Team
 import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
@@ -21,6 +22,21 @@ data class TeamTaskPostState(
     val pendingSolutionFiles: List<FileInfo> = emptyList(),
     /** Id файлов из сохранённого решения, помеченных к удалению до следующей отправки. */
     val removedSavedSolutionFileIds: Set<String> = emptySet(),
+    /**
+     * Можно ли покинуть команду (кнопка активна).
+     * Сейчас: нельзя после дедлайна; позже — доп. правила с бэкенда.
+     */
+    val canLeaveTeam: Boolean = true,
+)
+
+/** Индивидуальное задание ([com.stuf.domain.model.TaskPost]). */
+data class IndividualTaskPostState(
+    val solution: Solution? = null,
+    val isLoadingSolutionSection: Boolean = false,
+    val sectionError: String? = null,
+    val currentUserId: UserId? = null,
+    val pendingSolutionFiles: List<FileInfo> = emptyList(),
+    val removedSavedSolutionFileIds: Set<String> = emptySet(),
 )
 
 data class PostUiState(
@@ -34,7 +50,11 @@ data class PostUiState(
     val loadingRepliesForCommentId: String? = null,
     val content: PostScreenContent? = null,
     val comments: List<CommentUi> = emptyList(),
+    val currentUserId: UserId? = null,
+    val currentUserName: String? = null,
     val currentUserRole: CourseRole = CourseRole.STUDENT,
     /** Данные командного задания; заполняется только для [PostScreenContent.TeamTask]. */
     val teamTask: TeamTaskPostState? = null,
+    /** Индивидуальное задание; только [PostScreenContent.Task]. */
+    val individualTask: IndividualTaskPostState? = null,
 )

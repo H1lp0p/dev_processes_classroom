@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.CaptainSelectionMode
 import com.stuf.data.model.FileDto
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
@@ -40,6 +41,12 @@ import com.squareup.moshi.JsonClass
  * @param minTeamSize 
  * @param maxTeamSize 
  * @param teamSolution 
+ * @param captainMode 
+ * @param votingDurationHours 
+ * @param predefinedTeamsCount 
+ * @param allowJoinTeam 
+ * @param allowLeaveTeam 
+ * @param allowStudentTransferCaptain 
  */
 
 
@@ -82,7 +89,25 @@ data class PostDetailsDto (
     val maxTeamSize: kotlin.Int? = null,
 
     @Json(name = "teamSolution")
-    val teamSolution: TeamSolutionDto? = null
+    val teamSolution: TeamSolutionDto? = null,
+
+    @Json(name = "captainMode")
+    val captainMode: CaptainSelectionMode? = null,
+
+    @Json(name = "votingDurationHours")
+    val votingDurationHours: kotlin.Int? = null,
+
+    @Json(name = "predefinedTeamsCount")
+    val predefinedTeamsCount: kotlin.Int? = null,
+
+    @Json(name = "allowJoinTeam")
+    val allowJoinTeam: kotlin.Boolean? = null,
+
+    @Json(name = "allowLeaveTeam")
+    val allowLeaveTeam: kotlin.Boolean? = null,
+
+    @Json(name = "allowStudentTransferCaptain")
+    val allowStudentTransferCaptain: kotlin.Boolean? = null
 
 ) {
 
