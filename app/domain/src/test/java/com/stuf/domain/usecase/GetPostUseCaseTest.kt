@@ -2,6 +2,7 @@ package com.stuf.domain.usecase
 
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
 import com.stuf.domain.repository.PostRepository
@@ -15,15 +16,14 @@ import java.util.UUID
 private class FakeGetPostRepository : PostRepository {
     var lastGetPostId: PostId? = null
     val missingPostId: PostId = PostId(UUID.randomUUID())
-    private val samplePost = Post(
-        id = PostId(UUID.randomUUID()),
-        courseId = com.stuf.domain.model.CourseId(UUID.randomUUID()),
-        kind = com.stuf.domain.model.PostKind.ANNOUNCEMENT,
-        title = "Test",
-        text = "Body",
-        createdAt = OffsetDateTime.now(),
-        taskDetails = null,
-    )
+    private val samplePost =
+        AnnouncementPost(
+            id = PostId(UUID.randomUUID()),
+            courseId = com.stuf.domain.model.CourseId(UUID.randomUUID()),
+            title = "Test",
+            text = "Body",
+            createdAt = OffsetDateTime.now(),
+        )
 
     override suspend fun getCourseFeed(
         courseId: com.stuf.domain.model.CourseId,

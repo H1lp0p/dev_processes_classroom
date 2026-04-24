@@ -1,0 +1,205 @@
+{
+  "sharedPassword": "ClassroomDemo2026!",
+  "users": [
+    { "key": "student", "name": "Студент Демо", "email": "student@demo.local" },
+    { "key": "teacher", "name": "Учитель Иванова", "email": "teacher@demo.local" },
+    { "key": "alex", "name": "Алексей К.", "email": "alex@demo.local" },
+    { "key": "maria", "name": "Мария С.", "email": "maria@demo.local" },
+    { "key": "oleg", "name": "Олег В.", "email": "oleg@demo.local" },
+    { "key": "anna", "name": "Анна Л.", "email": "anna@demo.local" }
+  ],
+  "courses": [
+    {
+      "key": "algebra",
+      "title": "Алгебра — 9 класс",
+      "owner": "teacher",
+      "members": ["student", "alex", "maria", "oleg", "anna"],
+      "roleOverrides": [
+        { "user": "teacher", "role": "teacher" }
+      ]
+    },
+    {
+      "key": "web",
+      "title": "Веб-разработка",
+      "owner": "teacher",
+      "members": ["student", "alex", "maria"],
+      "roleOverrides": [
+        { "user": "teacher", "role": "teacher" }
+      ]
+    },
+    {
+      "key": "club",
+      "title": "Кружок программирования",
+      "owner": "student",
+      "members": ["teacher"],
+      "roleOverrides": [
+        { "user": "student", "role": "teacher" },
+        { "user": "teacher", "role": "student" }
+      ]
+    }
+  ],
+  "posts": [
+    {
+      "key": "post_welcome",
+      "course": "algebra",
+      "title": "Добро пожаловать на курс",
+      "text": "Здесь будут объявления и материалы. Это онлайн seed-данные.",
+      "type": "post"
+    },
+    {
+      "key": "post_homework",
+      "course": "algebra",
+      "title": "Домашняя работа №1",
+      "text": "Решите уравнения 1–5 из учебника. Срок — неделя.",
+      "type": "task",
+      "taskType": "mandatory",
+      "deadlineDaysFromNow": 7,
+      "maxScore": 5,
+      "solvableAfterDeadline": false
+    },
+    {
+      "key": "post_material_algebra",
+      "course": "algebra",
+      "title": "Шпаргалка: квадратные уравнения",
+      "text": "Формула дискриминанта и примеры.",
+      "type": "post"
+    },
+    {
+      "key": "post_team_algebra",
+      "course": "algebra",
+      "title": "Командный проект: мини-исследование",
+      "text": "Демо командного задания для проверки команд и оценивания.",
+      "type": "teaM_TASK",
+      "taskType": "optional",
+      "deadlineDaysFromNow": 10,
+      "maxScore": 10,
+      "solvableAfterDeadline": false,
+      "minTeamSize": 2,
+      "maxTeamSize": 4,
+      "predefinedTeamsCount": 3,
+      "allowJoinTeam": true,
+      "allowLeaveTeam": true,
+      "allowStudentTransferCaptain": false,
+      "captainMode": "votingAndLottery",
+      "votingDurationHours": 24
+    },
+    {
+      "key": "post_web_lab",
+      "course": "web",
+      "title": "Лабораторная: форма входа",
+      "text": "Сверстайте страницу входа на HTML/CSS.",
+      "type": "task",
+      "taskType": "optional",
+      "deadlineDaysFromNow": 14,
+      "maxScore": 10,
+      "solvableAfterDeadline": false
+    },
+    {
+      "key": "post_team_web_sprint",
+      "course": "web",
+      "title": "Командный спринт: UI-прототип",
+      "text": "Соберите UI-прототип и загрузите решение командой.",
+      "type": "teaM_TASK",
+      "taskType": "mandatory",
+      "deadlineDaysFromNow": 5,
+      "maxScore": 8,
+      "solvableAfterDeadline": true,
+      "minTeamSize": 2,
+      "maxTeamSize": 5,
+      "predefinedTeamsCount": 1,
+      "allowJoinTeam": true,
+      "allowLeaveTeam": true,
+      "allowStudentTransferCaptain": false,
+      "captainMode": "teacherFixed"
+    },
+    {
+      "key": "post_team_web_draft",
+      "course": "web",
+      "title": "Командное UI: только черновик",
+      "text": "Черновой сценарий без отправленного решения.",
+      "type": "teaM_TASK",
+      "taskType": "optional",
+      "deadlineDaysFromNow": 14,
+      "maxScore": 10,
+      "solvableAfterDeadline": false,
+      "minTeamSize": 1,
+      "maxTeamSize": 4,
+      "predefinedTeamsCount": 1,
+      "allowJoinTeam": true,
+      "allowLeaveTeam": true,
+      "allowStudentTransferCaptain": true,
+      "captainMode": "votingAndLottery",
+      "votingDurationHours": 48
+    },
+    {
+      "key": "post_team_web_overdue",
+      "course": "web",
+      "title": "Просроченный дедлайн (демо)",
+      "text": "Срок сдачи прошел. Нужен кейс с зафиксированной оценкой.",
+      "type": "teaM_TASK",
+      "taskType": "mandatory",
+      "deadlineDaysFromNow": -1,
+      "maxScore": 5,
+      "solvableAfterDeadline": false,
+      "minTeamSize": 2,
+      "maxTeamSize": 5,
+      "predefinedTeamsCount": 1,
+      "allowJoinTeam": true,
+      "allowLeaveTeam": true,
+      "allowStudentTransferCaptain": false,
+      "captainMode": "firstMember"
+    },
+    {
+      "key": "post_club_welcome",
+      "course": "club",
+      "title": "Правила кружка",
+      "text": "Курс для проверки смены ролей в участниках.",
+      "type": "post"
+    }
+  ],
+  "comments": [
+    { "post": "post_welcome", "author": "student", "text": "Спасибо!" }
+  ],
+  "replies": [
+    { "commentRef": 0, "author": "teacher", "text": "Отлично, работаем дальше." }
+  ],
+  "solutions": [
+    {
+      "kind": "task",
+      "post": "post_homework",
+      "author": "student",
+      "text": "Ответ: x = 2, y = -1",
+      "review": { "reviewer": "teacher", "status": "checked", "score": 4, "comment": "Принято" }
+    }
+  ],
+  "teamWorkflows": [
+    {
+      "post": "post_team_web_sprint",
+      "joinPlan": [
+        { "user": "student", "teamIndex": 0 },
+        { "user": "maria", "teamIndex": 0 }
+      ],
+      "submit": {
+        "author": "student",
+        "text": "Черновик: главный экран, карточки курсов и нижняя навигация."
+      },
+      "review": {
+        "reviewer": "teacher",
+        "status": "checked",
+        "score": 7,
+        "comment": "Хорошая база, доработайте адаптивность."
+      },
+      "gradeDistribution": {
+        "updatedBy": "student",
+        "entriesByEmail": {
+          "student@demo.local": 3.5,
+          "maria@demo.local": 3.5
+        },
+        "voteBy": [
+          { "user": "student", "vote": "approve" },
+          { "user": "maria", "vote": "approve" }
+        ]
+      }
+    }
+  ]
+}

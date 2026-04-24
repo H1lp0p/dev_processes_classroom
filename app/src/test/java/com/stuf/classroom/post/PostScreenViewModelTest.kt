@@ -3,32 +3,58 @@ package com.stuf.classroom.post
 import androidx.lifecycle.SavedStateHandle
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.Comment
 import com.stuf.domain.model.CommentAuthor
 import com.stuf.domain.model.CommentId
-import com.stuf.domain.model.CourseRole
+import com.stuf.domain.model.CourseId
+import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
+import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.Solution
-import com.stuf.domain.model.SolutionId
-import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
-import com.stuf.domain.model.User
+import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.Team
+import com.stuf.domain.model.TeamId
+import com.stuf.domain.model.TeamTaskPost
+import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
+import com.stuf.domain.repository.FileRepository
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
+import com.stuf.domain.usecase.AddSolutionComment
+import com.stuf.domain.usecase.CheckTeamCaptain
+import com.stuf.domain.usecase.CancelSolution
+import com.stuf.domain.usecase.CancelTeamTaskSolution
+import com.stuf.domain.usecase.DeleteComment
+import com.stuf.domain.usecase.EditComment
 import com.stuf.domain.usecase.GetCommentReplies
+import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
 import com.stuf.domain.usecase.GetPostComments
-import com.stuf.domain.usecase.GetSolutionsForTask
+import com.stuf.domain.usecase.GetSolutionComments
+import com.stuf.domain.usecase.GetTeamTaskSolution
+import com.stuf.domain.usecase.GetTeamsForTeamTask
+import com.stuf.domain.usecase.JoinTeam
+import com.stuf.domain.usecase.LeaveTeam
+import com.stuf.domain.usecase.GetUserSolution
+import com.stuf.domain.usecase.SubmitSolution
+import com.stuf.domain.usecase.SubmitTeamTaskSolution
+import com.stuf.domain.usecase.TransferTeamCaptain
+import com.stuf.domain.usecase.VoteTeamCaptain
+import com.stuf.domain.model.User
+import com.stuf.domain.repository.CurrentUserRepository
+import com.stuf.domain.model.FileInfo
+import com.stuf.domain.model.SolutionId
 import java.time.OffsetDateTime
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -92,18 +118,141 @@ class PostScreenViewModelTest {
         }
     }
 
-    private class FakeGetSolutionsForTask : GetSolutionsForTask {
-        var result: DomainResult<List<Solution>> = DomainResult.Success(emptyList())
-        var lastTaskId: TaskId? = null
+    private class FakeGetSolutionComments : GetSolutionComments {
+        var result: DomainResult<List<Comment>> = DomainResult.Success(emptyList())
+        var lastSolutionId: SolutionId? = null
 
-        override suspend fun invoke(
-            taskId: TaskId,
-            status: SolutionStatus?,
-            studentId: UserId?,
-        ): DomainResult<List<Solution>> {
-            lastTaskId = taskId
+        override suspend fun invoke(solutionId: SolutionId): DomainResult<List<Comment>> {
+            lastSolutionId = solutionId
             return result
         }
+    }
+
+    private class FakeAddSolutionComment : AddSolutionComment {
+        var result: DomainResult<Comment> = DomainResult.Failure(DomainError.Unknown())
+        var lastSolutionId: SolutionId? = null
+        var lastText: String? = null
+
+        override suspend fun invoke(solutionId: SolutionId, text: String): DomainResult<Comment> {
+            lastSolutionId = solutionId
+            lastText = text
+            return result
+        }
+    }
+
+    private class FakeGetTeamsForTeamTask : GetTeamsForTeamTask {
+        override suspend fun invoke(assignmentId: PostId): DomainResult<List<Team>> =
+            DomainResult.Success(emptyList())
+    }
+
+    private class FakeGetMyTeamForTeamTask : GetMyTeamForTeamTask {
+        override suspend fun invoke(assignmentId: PostId): DomainResult<Team?> =
+            DomainResult.Success(null)
+    }
+
+    private class FakeJoinTeam : JoinTeam {
+        override suspend fun invoke(teamId: TeamId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeLeaveTeam : LeaveTeam {
+        override suspend fun invoke(teamId: TeamId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeCurrentUserRepository : CurrentUserRepository {
+        override suspend fun getCurrentUser(): DomainResult<User> =
+            DomainResult.Success(
+                User(
+                    id = UserId(UUID.fromString("00000000-0000-0000-0000-000000000001")),
+                    credentials = "Test User",
+                    email = "test@example.com",
+                ),
+            )
+
+        override suspend fun updateCurrentUser(credentials: String, email: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeGetTeamTaskSolution : GetTeamTaskSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<TeamTaskSolution?> =
+            DomainResult.Success(null)
+    }
+
+    private class FakeCheckTeamCaptain : CheckTeamCaptain {
+        override suspend fun invoke(teamId: TeamId): DomainResult<Boolean> =
+            DomainResult.Success(false)
+    }
+
+    private class FakeSubmitTeamTaskSolution : SubmitTeamTaskSolution {
+        override suspend fun invoke(
+            taskId: TaskId,
+            captainTeamId: TeamId,
+            text: String?,
+            fileIds: List<String>,
+        ): DomainResult<SolutionId> =
+            DomainResult.Failure(DomainError.Unknown())
+    }
+
+    private class FakeTransferTeamCaptain : TransferTeamCaptain {
+        var result: DomainResult<Unit> = DomainResult.Success(Unit)
+        var lastTeamId: TeamId? = null
+        var lastToUserId: UserId? = null
+
+        override suspend fun invoke(teamId: TeamId, toUserId: UserId): DomainResult<Unit> =
+            result.also {
+                lastTeamId = teamId
+                lastToUserId = toUserId
+            }
+    }
+
+    private class FakeVoteTeamCaptain : VoteTeamCaptain {
+        var result: DomainResult<Unit> = DomainResult.Success(Unit)
+        var lastTeamId: TeamId? = null
+        var lastCandidateId: UserId? = null
+
+        override suspend fun invoke(teamId: TeamId, candidateId: UserId): DomainResult<Unit> =
+            result.also {
+                lastTeamId = teamId
+                lastCandidateId = candidateId
+            }
+    }
+
+    private class FakeGetUserSolution : GetUserSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Solution?> =
+            DomainResult.Success(null)
+    }
+
+    private class FakeSubmitSolution : SubmitSolution {
+        override suspend fun invoke(
+            taskId: TaskId,
+            text: String?,
+            fileIds: List<String>,
+        ): DomainResult<Solution> =
+            DomainResult.Failure(DomainError.Unknown())
+    }
+
+    private class FakeFileRepository : FileRepository {
+        override suspend fun uploadFile(bytes: ByteArray, name: String): DomainResult<FileInfo> =
+            DomainResult.Failure(DomainError.Unknown())
+    }
+
+    private class FakeCancelSolution : CancelSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
+    }
+
+    private class FakeCancelTeamTaskSolution : CancelTeamTaskSolution {
+        override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
+    }
+
+    private class FakeEditComment : EditComment {
+        override suspend fun invoke(commentId: CommentId, text: String): DomainResult<Unit> =
+            DomainResult.Success(Unit)
+    }
+
+    private class FakeDeleteComment : DeleteComment {
+        override suspend fun invoke(commentId: CommentId): DomainResult<Unit> =
+            DomainResult.Success(Unit)
     }
 
     private lateinit var fakeGetPost: FakeGetPost
@@ -111,7 +260,10 @@ class PostScreenViewModelTest {
     private lateinit var fakeGetCommentReplies: FakeGetCommentReplies
     private lateinit var fakeAddPostComment: FakeAddPostComment
     private lateinit var fakeAddCommentReply: FakeAddCommentReply
-    private lateinit var fakeGetSolutionsForTask: FakeGetSolutionsForTask
+    private lateinit var fakeGetSolutionComments: FakeGetSolutionComments
+    private lateinit var fakeAddSolutionComment: FakeAddSolutionComment
+    private lateinit var fakeTransferTeamCaptain: FakeTransferTeamCaptain
+    private lateinit var fakeVoteTeamCaptain: FakeVoteTeamCaptain
 
     private lateinit var viewModel: PostScreenViewModel
 
@@ -124,68 +276,130 @@ class PostScreenViewModelTest {
         fakeGetCommentReplies = FakeGetCommentReplies()
         fakeAddPostComment = FakeAddPostComment()
         fakeAddCommentReply = FakeAddCommentReply()
-        fakeGetSolutionsForTask = FakeGetSolutionsForTask()
+        fakeGetSolutionComments = FakeGetSolutionComments()
+        fakeAddSolutionComment = FakeAddSolutionComment()
+        fakeTransferTeamCaptain = FakeTransferTeamCaptain()
+        fakeVoteTeamCaptain = FakeVoteTeamCaptain()
 
-        viewModel = PostScreenViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "postId" to postId.value.toString(),
-                    "role" to "student",
-                ),
-            ),
-            getPost = fakeGetPost,
-            getPostComments = fakeGetPostComments,
-            getCommentReplies = fakeGetCommentReplies,
-            addPostComment = fakeAddPostComment,
-            addCommentReply = fakeAddCommentReply,
-            getSolutionsForTask = fakeGetSolutionsForTask,
-            dispatcher = Dispatchers.Unconfined,
-        )
-    }
-
-    @After
-    fun tearDown() {
+        viewModel =
+            PostScreenViewModel(
+                savedStateHandle =
+                    SavedStateHandle(
+                        mapOf(
+                            "postId" to postId.value.toString(),
+                            "role" to "student",
+                        ),
+                    ),
+                getPost = fakeGetPost,
+                getPostComments = fakeGetPostComments,
+                getSolutionComments = fakeGetSolutionComments,
+                getCommentReplies = fakeGetCommentReplies,
+                addPostComment = fakeAddPostComment,
+                addSolutionComment = fakeAddSolutionComment,
+                addCommentReply = fakeAddCommentReply,
+                editComment = FakeEditComment(),
+                deleteComment = FakeDeleteComment(),
+                getTeamsForTeamTask = FakeGetTeamsForTeamTask(),
+                getMyTeamForTeamTask = FakeGetMyTeamForTeamTask(),
+                joinTeam = FakeJoinTeam(),
+                getTeamTaskSolution = FakeGetTeamTaskSolution(),
+                checkTeamCaptain = FakeCheckTeamCaptain(),
+                submitTeamTaskSolution = FakeSubmitTeamTaskSolution(),
+                transferTeamCaptain = fakeTransferTeamCaptain,
+                voteTeamCaptain = fakeVoteTeamCaptain,
+                getUserSolution = FakeGetUserSolution(),
+                submitSolution = FakeSubmitSolution(),
+                cancelSolution = FakeCancelSolution(),
+                cancelTeamTaskSolution = FakeCancelTeamTaskSolution(),
+                fileRepository = FakeFileRepository(),
+                apiBaseUrl = "http://localhost/",
+                currentUserRepository = FakeCurrentUserRepository(),
+                leaveTeam = FakeLeaveTeam(),
+                dispatcher = Dispatchers.Unconfined,
+            )
     }
 
     @Test
     fun `initial load success populates post and comments for student`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.fromString("00000000-0000-0000-0000-000000000901"))
-        val taskDetails: TaskDetails? = null
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post title",
-            text = "Post body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = taskDetails,
-        )
+        val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000901"))
+        val post: Post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post title",
+                text = "Post body",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetPost.result = DomainResult.Success(post)
 
         val authorId: UserId = UserId(UUID.randomUUID())
-        val comment: Comment = Comment(
-            id = "c1",
-            author = CommentAuthor(
-                id = authorId,
-                credentials = "User",
-            ),
-            text = "Comment",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val comment: Comment =
+            Comment(
+                id = "c1",
+                author =
+                    CommentAuthor(
+                        id = authorId,
+                        credentials = "User",
+                    ),
+                text = "Comment",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeGetPostComments.result = DomainResult.Success(listOf(comment))
 
         viewModel.onRetry()
         advanceUntilIdle()
 
         val state: PostUiState = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertEquals("Post title", state.postTitle)
-        assertEquals("Post body", state.postText)
-        assertEquals(false, state.isTask)
+        assertFalse(state.isLoadingPost)
+        val content = state.content as PostScreenContent.Announcement
+        assertEquals("Post title", content.post.title)
+        assertEquals("Post body", content.post.text)
         assertEquals(1, state.comments.size)
         assertEquals("Comment", state.comments[0].text)
+    }
+
+    @Test
+    fun `initial load sets material post content`() = runTest {
+        val courseId = CourseId(UUID.randomUUID())
+        val post: Post =
+            MaterialPost(
+                id = postId,
+                courseId = courseId,
+                title = "PDF",
+                text = "Текст",
+                createdAt = OffsetDateTime.now(),
+                files = listOf(PostAttachment(id = UUID.randomUUID(), name = "a.pdf")),
+            )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.content is PostScreenContent.Material)
+    }
+
+    @Test
+    fun `initial load sets team task content`() = runTest {
+        val courseId = CourseId(UUID.randomUUID())
+        val details = TaskDetails(OffsetDateTime.now(), true, 10)
+        val post: Post =
+            TeamTaskPost(
+                id = postId,
+                courseId = courseId,
+                title = "Команда",
+                text = "Описание",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = details,
+            )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.content is PostScreenContent.TeamTask)
     }
 
     @Test
@@ -196,36 +410,36 @@ class PostScreenViewModelTest {
         advanceUntilIdle()
 
         val state: PostUiState = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertNotNull(state.error)
+        assertFalse(state.isLoadingPost)
+        assertNotNull(state.postLoadError)
     }
 
     @Test
     fun `onCommentSubmit_adds_public_comment_on_success`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post",
-            text = "Body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = null,
-        )
+        val courseId = CourseId(UUID.randomUUID())
+        val post: Post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post",
+                text = "Body",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetPost.result = DomainResult.Success(post)
         fakeGetPostComments.result = DomainResult.Success(emptyList())
 
-        val createdComment: Comment = Comment(
-            id = "new",
-            author = CommentAuthor(
-                id = UserId(UUID.randomUUID()),
-                credentials = "User",
-            ),
-            text = "Hello",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val createdComment: Comment =
+            Comment(
+                id = "new",
+                author =
+                    CommentAuthor(
+                        id = UserId(UUID.randomUUID()),
+                        credentials = "User",
+                    ),
+                text = "Hello",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeAddPostComment.result = DomainResult.Success(createdComment)
 
         viewModel.onRetry()
@@ -242,41 +456,43 @@ class PostScreenViewModelTest {
 
     @Test
     fun `onLoadRepliesClick_loads_and_merges_replies`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val post: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Post",
-            text = "Body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = null,
-        )
+        val courseId = CourseId(UUID.randomUUID())
+        val post: Post =
+            AnnouncementPost(
+                id = postId,
+                courseId = courseId,
+                title = "Post",
+                text = "Body",
+                createdAt = OffsetDateTime.now(),
+            )
         fakeGetPost.result = DomainResult.Success(post)
 
-        val parent: Comment = Comment(
-            id = "c1",
-            author = CommentAuthor(
-                id = UserId(UUID.randomUUID()),
-                credentials = "User",
-            ),
-            text = "Parent",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val parent: Comment =
+            Comment(
+                id = "c1",
+                author =
+                    CommentAuthor(
+                        id = UserId(UUID.randomUUID()),
+                        credentials = "User",
+                    ),
+                text = "Parent",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeGetPostComments.result = DomainResult.Success(listOf(parent))
 
-        val reply: Comment = Comment(
-            id = "c2",
-            author = CommentAuthor(
-                id = UserId(UUID.randomUUID()),
-                credentials = "User",
-            ),
-            text = "Reply",
-            createdAt = OffsetDateTime.now(),
-            isPrivate = false,
-        )
+        val reply: Comment =
+            Comment(
+                id = "c2",
+                author =
+                    CommentAuthor(
+                        id = UserId(UUID.randomUUID()),
+                        credentials = "User",
+                    ),
+                text = "Reply",
+                createdAt = OffsetDateTime.now(),
+                isPrivate = false,
+            )
         fakeGetCommentReplies.result = DomainResult.Success(listOf(reply))
 
         viewModel.onRetry()
@@ -294,63 +510,91 @@ class PostScreenViewModelTest {
     }
 
     @Test
-    fun `initial load as_teacher_for_task_populates_solutions`() = runTest {
-        val courseId: com.stuf.domain.model.CourseId =
-            com.stuf.domain.model.CourseId(UUID.randomUUID())
-        val taskDetails: TaskDetails = TaskDetails(
-            deadline = OffsetDateTime.now(),
-            isMandatory = true,
-            maxScore = 10,
-        )
-        val taskPost: Post = Post(
-            id = postId,
-            courseId = courseId,
-            kind = PostKind.TASK,
-            title = "Task",
-            text = "Solve",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = taskDetails,
-        )
+    fun `initial load task post exposes task screen content`() = runTest {
+        val courseId = CourseId(UUID.randomUUID())
+        val taskDetails: TaskDetails =
+            TaskDetails(
+                deadline = OffsetDateTime.now(),
+                isMandatory = true,
+                maxScore = 10,
+            )
+        val taskPost: Post =
+            TaskPost(
+                id = postId,
+                courseId = courseId,
+                title = "Task",
+                text = "Solve",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = taskDetails,
+            )
         fakeGetPost.result = DomainResult.Success(taskPost)
         fakeGetPostComments.result = DomainResult.Success(emptyList())
-
-        val taskId: TaskId = TaskId(UUID.randomUUID())
-        val solution: Solution = Solution(
-            id = SolutionId(UUID.randomUUID()),
-            taskId = taskId,
-            authorId = UserId(UUID.randomUUID()),
-            text = "Answer",
-            files = emptyList(),
-            score = null,
-            status = SolutionStatus.PENDING,
-            updatedAt = OffsetDateTime.now(),
-        )
-        fakeGetSolutionsForTask.result = DomainResult.Success(listOf(solution))
-
-        // пересоздадим VM как учителя
-        viewModel = PostScreenViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "postId" to postId.value.toString(),
-                    "role" to "teacher",
-                ),
-            ),
-            getPost = fakeGetPost,
-            getPostComments = fakeGetPostComments,
-            getCommentReplies = fakeGetCommentReplies,
-            addPostComment = fakeAddPostComment,
-            addCommentReply = fakeAddCommentReply,
-            getSolutionsForTask = fakeGetSolutionsForTask,
-            dispatcher = Dispatchers.Unconfined,
-        )
 
         viewModel.onRetry()
         advanceUntilIdle()
 
-        val state: PostUiState = viewModel.uiState.value
-        assertTrue(state.isTask)
-        assertEquals(1, state.solutions.size)
-        assertEquals("Student", state.solutions[0].studentName)
+        assertTrue(viewModel.uiState.value.content is PostScreenContent.Task)
+    }
+
+    @Test
+    fun `onVoteCaptain emits success message`() = runTest {
+        val teamId = TeamId(UUID.randomUUID())
+        val candidateId = UserId(UUID.randomUUID())
+        val post =
+            TeamTaskPost(
+                id = postId,
+                courseId = CourseId(UUID.randomUUID()),
+                title = "Командное",
+                text = "Текст",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = TaskDetails(deadline = null, isMandatory = false, maxScore = 10),
+            )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+        fakeVoteTeamCaptain.result = DomainResult.Success(Unit)
+
+        val events = mutableListOf<PostTransientUiEvent>()
+        val job = backgroundScope.launch { viewModel.transientEvents.collect { events += it } }
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        viewModel.onVoteCaptain(teamId, candidateId)
+        advanceUntilIdle()
+
+        assertEquals(teamId, fakeVoteTeamCaptain.lastTeamId)
+        assertEquals(candidateId, fakeVoteTeamCaptain.lastCandidateId)
+        assertTrue(events.any { it == PostTransientUiEvent.ShowMessage("Голос учтен") })
+        job.cancel()
+    }
+
+    @Test
+    fun `onTransferCaptain failure emits generic error message`() = runTest {
+        val teamId = TeamId(UUID.randomUUID())
+        val toUserId = UserId(UUID.randomUUID())
+        val post =
+            TeamTaskPost(
+                id = postId,
+                courseId = CourseId(UUID.randomUUID()),
+                title = "Командное",
+                text = "Текст",
+                createdAt = OffsetDateTime.now(),
+                taskDetails = TaskDetails(deadline = null, isMandatory = false, maxScore = 10),
+            )
+        fakeGetPost.result = DomainResult.Success(post)
+        fakeGetPostComments.result = DomainResult.Success(emptyList())
+        fakeTransferTeamCaptain.result = DomainResult.Failure(DomainError.Forbidden)
+
+        val events = mutableListOf<PostTransientUiEvent>()
+        val job = backgroundScope.launch { viewModel.transientEvents.collect { events += it } }
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        viewModel.onTransferCaptain(teamId, toUserId)
+        advanceUntilIdle()
+
+        assertEquals(teamId, fakeTransferTeamCaptain.lastTeamId)
+        assertEquals(toUserId, fakeTransferTeamCaptain.lastToUserId)
+        assertTrue(events.any { it == PostTransientUiEvent.ShowMessage("Что-то пошло не так") })
+        job.cancel()
     }
 }
-

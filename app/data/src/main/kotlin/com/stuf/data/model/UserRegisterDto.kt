@@ -37,7 +37,7 @@ data class UserRegisterDto (
     val password: kotlin.String,
 
     @Json(name = "credentials")
-    val credentials: kotlin.String
+    val credentials: kotlin.String? = null
 
 ) {
 

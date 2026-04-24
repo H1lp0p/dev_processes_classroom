@@ -23,6 +23,17 @@ android {
         buildConfigField("String", "API_BASE_URL", "\"http://37.21.130.4:5000\"")
     }
 
+    flavorDimensions += "backend"
+    productFlavors {
+        create("api") {
+            dimension = "backend"
+            isDefault = true
+        }
+        create("offline") {
+            dimension = "backend"
+        }
+    }
+
     buildFeatures {
         buildConfig = true
     }
@@ -46,7 +57,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":app:domain"))
+    // api: Hilt @Binds use domain interfaces as return types; consumers need them on compile/KSP classpath
+    api(project(":app:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -60,6 +72,7 @@ dependencies {
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.moshi)
     implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     ksp(libs.hilt.android.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -70,7 +83,7 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api.json")
+    inputSpec.set("$projectDir/classroom_api_v4.json")
 
     outputDir.set("$projectDir")
 

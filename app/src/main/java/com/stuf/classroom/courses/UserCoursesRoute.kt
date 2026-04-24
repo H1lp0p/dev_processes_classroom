@@ -9,7 +9,7 @@ import com.stuf.domain.model.UserCourse
 @Composable
 fun UserCoursesRoute(
     viewModel: UserCoursesViewModel,
-    onLogout: () -> Unit,
+    onProfile: () -> Unit,
     onNewCourse: () -> Unit,
     onJoinCourse: () -> Unit,
     onCourseClick: (UserCourse) -> Unit,
@@ -25,7 +25,7 @@ fun UserCoursesRoute(
         onRetry = viewModel::onRetry,
         onNewCourse = onNewCourse,
         onJoinCourse = onJoinCourse,
-        onLogout = onLogout,
+        onProfile = onProfile,
         onCourseClick = onCourseClick,
     )
 }

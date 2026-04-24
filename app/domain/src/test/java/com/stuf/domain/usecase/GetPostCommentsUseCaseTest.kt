@@ -3,6 +3,7 @@ package com.stuf.domain.usecase
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
+import com.stuf.domain.model.CommentId
 import com.stuf.domain.model.PostId
 import com.stuf.domain.repository.CommentRepository
 import com.stuf.domain.usecase.impl.GetPostCommentsUseCase
@@ -35,6 +36,18 @@ private class FakeGetPostCommentsRepository : CommentRepository {
         solutionId: com.stuf.domain.model.SolutionId,
         text: String,
     ): DomainResult<Comment> = error("Not needed in this fake")
+
+    override suspend fun getCommentReplies(commentId: CommentId): DomainResult<List<Comment>> =
+        error("Not needed in this fake")
+
+    override suspend fun addCommentReply(commentId: CommentId, text: String): DomainResult<Comment> =
+        error("Not needed in this fake")
+
+    override suspend fun editComment(commentId: CommentId, text: String): DomainResult<Unit> =
+        error("Not needed in this fake")
+
+    override suspend fun deleteComment(commentId: CommentId): DomainResult<Unit> =
+        error("Not needed in this fake")
 }
 
 class GetPostCommentsUseCaseTest {

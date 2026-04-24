@@ -7,6 +7,7 @@ import com.stuf.data.model.ApiResponseType
 import com.stuf.data.model.CommentAuthorDto
 import com.stuf.data.model.CommentDto
 import com.stuf.data.model.CommentDtoListApiResponse
+import com.stuf.data.model.EditCommentRequestDto
 import com.stuf.data.model.IdRequestDtoApiResponse
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
@@ -17,6 +18,7 @@ import com.stuf.domain.model.PostId
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.UserId
 import com.stuf.domain.repository.CommentRepository
+import android.util.Log
 import javax.inject.Inject
 import retrofit2.Response
 import java.io.IOException
@@ -32,7 +34,20 @@ class CommentRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSolutionComments(solutionId: SolutionId): DomainResult<List<Comment>> {
+        Log.d("CommentRepository", "GET /api/solution/{id}/comment solutionId=${solutionId.value}")
         val response = safeCallList { api.apiSolutionIdCommentGet(solutionId.value) }
+        when (response) {
+            is DomainResult.Success ->
+                Log.d(
+                    "CommentRepository",
+                    "GET /api/solution/{id}/comment success count=${response.value.size}",
+                )
+            is DomainResult.Failure ->
+                Log.e(
+                    "CommentRepository",
+                    "GET /api/solution/{id}/comment failed error=${response.error}",
+                )
+        }
         return response
     }
 
@@ -117,6 +132,27 @@ class CommentRepositoryImpl @Inject constructor(
             is DomainResult.Failure -> response
         }
     }
+
+    override suspend fun editComment(commentId: CommentId, text: String): DomainResult<Unit> {
+        val dto = EditCommentRequestDto(text = text)
+        val result =
+            safeCall {
+                api.apiCommentIdPut(
+                    id = UUID.fromString(commentId.value),
+                    editCommentRequestDto = dto,
+                )
+            }
+        return when (result) {
+            is DomainResult.Success -> DomainResult.Success(Unit)
+            is DomainResult.Failure -> DomainResult.Failure(result.error)
+        }
+    }
+
+    override suspend fun deleteComment(commentId: CommentId): DomainResult<Unit> =
+        when (val result = safeCall { api.apiCommentIdDelete(UUID.fromString(commentId.value)) }) {
+            is DomainResult.Success -> DomainResult.Success(Unit)
+            is DomainResult.Failure -> DomainResult.Failure(result.error)
+        }
 
     private suspend fun safeCallList(
         block: suspend () -> Response<CommentDtoListApiResponse>,
