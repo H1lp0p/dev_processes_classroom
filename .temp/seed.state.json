@@ -3,58 +3,58 @@
                   {
                       "email":  "maria@demo.local",
                       "key":  "maria",
-                      "name":  "РњР°СЂРёСЏ РЎ.",
+                      "name":  "Мария С.",
                       "id":  "019d8c28-8692-7e8e-b2c7-49037b8db546"
                   },
                   {
                       "email":  "teacher@demo.local",
                       "key":  "teacher",
-                      "name":  "РЈС‡РёС‚РµР»СЊ РРІР°РЅРѕРІР°",
+                      "name":  "Учитель Иванова",
                       "id":  "019d8c28-748f-7666-a233-9d71a9365dcb"
                   },
                   {
                       "email":  "oleg@demo.local",
                       "key":  "oleg",
-                      "name":  "РћР»РµРі Р’.",
+                      "name":  "Олег В.",
                       "id":  "019d8c28-8f93-7692-89db-c6e658786141"
                   },
                   {
                       "email":  "alex@demo.local",
                       "key":  "alex",
-                      "name":  "РђР»РµРєСЃРµР№ Рљ.",
+                      "name":  "Алексей К.",
                       "id":  "019d8c28-7da1-73ae-87a0-eb7d9ad24110"
                   },
                   {
                       "email":  "anna@demo.local",
                       "key":  "anna",
-                      "name":  "РђРЅРЅР° Р›.",
+                      "name":  "Анна Л.",
                       "id":  "019d8c28-98a2-71db-9eff-0ac3e847e36a"
                   },
                   {
                       "email":  "student@demo.local",
                       "key":  "student",
-                      "name":  "РЎС‚СѓРґРµРЅС‚ Р”РµРјРѕ",
+                      "name":  "Студент Демо",
                       "id":  "019d8c28-6b95-706c-a17d-00adea3d0bd5"
                   }
               ],
     "coursesByKey":  {
                          "web":  {
                                      "inviteCode":  "3AEC3EB4",
-                                     "title":  "Р’РµР±-СЂР°Р·СЂР°Р±РѕС‚РєР°",
+                                     "title":  "Веб-разработка",
                                      "key":  "web",
                                      "id":  "7f03a0a9-8c2f-4eaf-a7fa-990d62a44e8d",
                                      "ownerKey":  "teacher"
                                  },
                          "club":  {
                                       "inviteCode":  "D85AC8E5",
-                                      "title":  "РљСЂСѓР¶РѕРє РїСЂРѕРіСЂР°РјРјРёСЂРѕРІР°РЅРёСЏ",
+                                      "title":  "Кружок программирования",
                                       "key":  "club",
                                       "id":  "2486932e-5074-470f-a97c-6fa26ad2e2cf",
                                       "ownerKey":  "student"
                                   },
                          "algebra":  {
                                          "inviteCode":  "79ED63E8",
-                                         "title":  "РђР»РіРµР±СЂР° вЂ” 9 РєР»Р°СЃСЃ",
+                                         "title":  "Алгебра — 9 класс",
                                          "key":  "algebra",
                                          "id":  "2e194359-09fd-4219-8ee6-67cc045664c5",
                                          "ownerKey":  "teacher"

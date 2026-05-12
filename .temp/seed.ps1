@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $DataPath)) {
     throw "Data file not found: $DataPath"
 }
 
-$data = Get-Content -LiteralPath $DataPath -Raw | ConvertFrom-Json
+$data = Get-Content -LiteralPath $DataPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $ctx = New-SeedContext -BaseUrl $BaseUrl -DelayMs $DelayMs -MaxRetries $MaxRetries -DryRun:$DryRun
 
 Write-SeedLog -Context $ctx -Message ("Seeder started. DryRun={0}. BaseUrl={1}. StartFrom={2}" -f $ctx.DryRun, $ctx.BaseUrl, $StartFrom)
@@ -83,7 +83,7 @@ function Load-State {
     if (-not (Test-Path -LiteralPath $StatePath)) {
         return
     }
-    $saved = Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json
+    $saved = Get-Content -LiteralPath $StatePath -Raw -Encoding UTF8 | ConvertFrom-Json
     foreach ($u in @($saved.users)) {
         $state.UsersByKey[$u.key] = [pscustomobject]@{
             key = [string]$u.key

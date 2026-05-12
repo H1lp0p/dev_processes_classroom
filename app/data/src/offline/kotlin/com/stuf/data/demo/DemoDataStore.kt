@@ -131,7 +131,7 @@ class DemoDataStore @Inject constructor() {
                 id = DemoIds.postWelcome,
                 courseId = DemoIds.courseAlgebra,
                 title = "Добро пожаловать на курс",
-                text = "Здесь будут объявления и материалы. Это офлайн-режим с демо-данными.",
+                text = "Здесь будут объявления и материалы. Сейчас включён офлайн-режим с тестовыми данными.",
                 createdAt = t.minusDays(2),
             )
         val homework =
@@ -139,7 +139,7 @@ class DemoDataStore @Inject constructor() {
                 id = DemoIds.postHomework,
                 courseId = DemoIds.courseAlgebra,
                 title = "Домашняя работа №1",
-                text = "Решите уравнения 1–5 из учебника. Срок — неделя.",
+                text = "Решите уравнения с 1 по 5 из учебника. Срок сдачи — одна неделя.",
                 createdAt = t.minusDays(1),
                 taskDetails =
                     TaskDetails(
@@ -154,7 +154,7 @@ class DemoDataStore @Inject constructor() {
                 id = DemoIds.postMaterialAlgebra,
                 courseId = DemoIds.courseAlgebra,
                 title = "Шпаргалка: квадратные уравнения",
-                text = "Формула дискриминанта и примеры — в приложенном PDF (демо).",
+                text = "Формула дискриминанта и примеры — в приложенном PDF (demo).",
                 createdAt = t.minusHours(12),
                 files =
                     listOf(
@@ -167,8 +167,8 @@ class DemoDataStore @Inject constructor() {
                 courseId = DemoIds.courseAlgebra,
                 title = "Командный проект: мини-исследование",
                 text =
-                    "Демо: три команды — полная (без мест), с пустыми слотами и пустая. " +
-                        "Вы не в команде: проверьте карусель и кнопку «Присоединиться».",
+                    "Demo: три команды — полный состав, с свободными местами и пустая. " +
+                        "Вы не в команде: проверьте карусель и кнопку присоединения.",
                 createdAt = t.minusHours(6),
                 taskDetails =
                     TaskDetails(
@@ -201,11 +201,11 @@ class DemoDataStore @Inject constructor() {
             TeamTaskPost(
                 id = DemoIds.postTeamWebSprint,
                 courseId = DemoIds.courseWeb,
-                title = "Командный спринт: UI-прототип",
+                title = "Командный спринт: прототип UI",
                 text =
-                    "Демо: вы — капитан, оценка команде уже выставлена, срок сдачи прошёл — " +
-                        "редактирование текста решения недоступно, но «Распределение оценок» " +
-                        "по участникам можно менять в любое время.",
+                    "Demo: вы капитан, оценка команде уже выставлена, срок сдачи прошёл — " +
+                        "редактировать текст решения нельзя, а распределение баллов по участникам " +
+                        "можно менять в любое время.",
                 createdAt = t.minusHours(4),
                 taskDetails =
                     TaskDetails(
@@ -228,10 +228,10 @@ class DemoDataStore @Inject constructor() {
             TeamTaskPost(
                 id = DemoIds.postTeamWebCaptainDraft,
                 courseId = DemoIds.courseWeb,
-                title = "Командное UI: только черновик (решение не отправлено)",
+                title = "Командное задание по UI: только черновик (решение не отправлено)",
                 text =
-                    "Демо: вы — капитан единственной команды, решение ещё не отправлено. " +
-                        "Заполните текст, прикрепите файлы и нажмите «Отправить решение».",
+                    "Demo: вы капитан единственной команды, решение ещё не отправлено. " +
+                        "Заполните текст, прикрепите файлы и отправьте решение.",
                 createdAt = t.minusHours(2),
                 taskDetails =
                     TaskDetails(
@@ -253,10 +253,10 @@ class DemoDataStore @Inject constructor() {
             TeamTaskPost(
                 id = DemoIds.postTeamOverdue,
                 courseId = DemoIds.courseWeb,
-                title = "Просроченный дедлайн (демо)",
+                title = "Просроченный дедлайн (demo)",
                 text =
-                    "Демо: срок сдачи уже прошёл — отправка решения недоступна. " +
-                        "Отдельный сценарий: вы участник команды (капитан — Алексей), есть оценка и черновик распределения баллов.",
+                    "Demo: срок сдачи уже прошёл, отправка решения недоступна. " +
+                        "Вы в команде у капитана Алексея, есть оценка и черновик распределения баллов.",
                 createdAt = t.minusDays(10),
                 taskDetails =
                     TaskDetails(
@@ -280,7 +280,7 @@ class DemoDataStore @Inject constructor() {
                 id = DemoIds.postClubWelcome,
                 courseId = DemoIds.courseTeacherClub,
                 title = "Правила кружка",
-                text = "Вы ведёте этот курс в демо-режиме. Ученик «Ученик для демо» — для проверки вкладки участников.",
+                text = "Вы ведёте этот курс в тестовом режиме. Участник с именем Ученик для демо нужен для проверки вкладки участников.",
                 createdAt = t.minusHours(1),
             )
 
@@ -342,7 +342,7 @@ class DemoDataStore @Inject constructor() {
                     id = "c-web-pub",
                     authorId = DemoIds.userPeerAlex,
                     authorName = "Алексей К.",
-                    text = "Готов подключиться к ревью макетов в пятницу.",
+                    text = "Могу подключиться к разбору макетов в пятницу.",
                     at = t.minusHours(2),
                     isPrivate = false,
                 ),
@@ -363,7 +363,7 @@ class DemoDataStore @Inject constructor() {
                     id = "c-sol-1",
                     authorId = DemoIds.userTeacher,
                     authorName = "Учитель Иванова",
-                    text = "Принято, жду проверки",
+                    text = "Работа принята, проверю в ближайшее время.",
                     at = t.minusHours(2),
                 ),
             )
@@ -378,7 +378,7 @@ class DemoDataStore @Inject constructor() {
         val teamFull =
             Team(
                 id = DemoIds.teamAlgebraFull,
-                name = "«Дискриминант» (полный состав, без мест)",
+                name = "Дискриминант (полный состав)",
                 members =
                     listOf(
                         TeamMember(DemoIds.userPeerAlex, "Алексей К.", TeamMemberRole.LEADER),
@@ -390,7 +390,7 @@ class DemoDataStore @Inject constructor() {
         val teamPartial =
             Team(
                 id = DemoIds.teamAlgebraPartial,
-                name = "«Парабола» (есть места)",
+                name = "Парабола (есть свободные места)",
                 members =
                     listOf(
                         TeamMember(DemoIds.userTeacher, "Учитель Иванова", TeamMemberRole.LEADER),
@@ -400,7 +400,7 @@ class DemoDataStore @Inject constructor() {
         val teamEmpty =
             Team(
                 id = DemoIds.teamAlgebraEmpty,
-                name = "«Новая команда» (никого нет)",
+                name = "Новая команда (пока без участников)",
                 members = emptyList(),
             )
         teamsByAssignment[DemoIds.postTeamAlgebra] =
@@ -423,7 +423,7 @@ class DemoDataStore @Inject constructor() {
         val teamCaptainSolo =
             Team(
                 id = DemoIds.teamWebCaptainSolo,
-                name = "Капитан соло",
+                name = "Одна команда (черновик)",
                 members =
                     listOf(
                         TeamMember(DemoIds.userStudent, "Студент Демо", TeamMemberRole.LEADER),
@@ -436,7 +436,7 @@ class DemoDataStore @Inject constructor() {
         val teamOverdueCrew =
             Team(
                 id = DemoIds.teamWebOverdue,
-                name = "Команда «Дедлайн»",
+                name = "Дедлайн",
                 members =
                     listOf(
                         TeamMember(DemoIds.userPeerAlex, "Алексей К.", TeamMemberRole.LEADER),
@@ -452,7 +452,7 @@ class DemoDataStore @Inject constructor() {
                 id = DemoIds.solutionTeamWebSprint,
                 taskId = TaskId(DemoIds.postTeamWebSprint.value),
                 text =
-                    "Черновик: главный экран, карточки курсов и нижняя навигация. Фидбек приветствуется.",
+                    "Черновик: главный экран, карточки курсов и нижняя навигация. Комментарии приветствуются.",
                 files =
                     listOf(
                         FileInfo(id = "demo-team-file-1", name = "ui-wireframe.pdf"),
@@ -468,7 +468,7 @@ class DemoDataStore @Inject constructor() {
             TeamTaskSolution(
                 id = DemoIds.solutionTeamOverdue,
                 taskId = TaskId(DemoIds.postTeamOverdue.value),
-                text = "Демо: решение команды (капитан — Алексей).",
+                text = "Demo: решение команды, капитан — Алексей.",
                 files = emptyList(),
                 score = Score(5),
                 status = SolutionStatus.CHECKED,
