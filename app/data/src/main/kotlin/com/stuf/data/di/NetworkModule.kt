@@ -1,12 +1,16 @@
 package com.stuf.data.di
 
+import android.util.Log
 import com.stuf.data.BuildConfig
 import com.stuf.data.api.AuthApi
 import com.stuf.data.api.CommentApi
 import com.stuf.data.api.CourseApi
 import com.stuf.data.api.FilesApi
+import com.stuf.data.api.GradeDistributionApi
 import com.stuf.data.api.PostApi
 import com.stuf.data.api.SolutionApi
+import com.stuf.data.api.TeamApi
+import com.stuf.data.api.TeamSolutionApi
 import com.stuf.data.api.UserApi
 import com.stuf.data.auth.BearerTokenApplier
 import com.stuf.data.auth.AuthTokenManager
@@ -23,16 +27,20 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @ApiBaseUrl
     fun provideBaseUrl(): String = BuildConfig.API_BASE_URL
 
     @Provides
     @Singleton
     fun provideApiClient(
-        baseUrl: String,
-    ): ApiClient = ApiClient(
-        baseUrl = baseUrl,
-        authNames = arrayOf("bearerAuth"),
-    )
+        @ApiBaseUrl baseUrl: String,
+    ): ApiClient =
+        ApiClient(
+            baseUrl = baseUrl,
+            authNames = arrayOf("bearerAuth"),
+        ).setLogger { message ->
+            Log.d("ApiHttp", message)
+        }
 
     @Provides
     @Singleton
@@ -89,5 +97,23 @@ object NetworkModule {
     fun provideSolutionApi(
         apiClient: ApiClient,
     ): SolutionApi = apiClient.createService(SolutionApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTeamApi(
+        apiClient: ApiClient,
+    ): TeamApi = apiClient.createService(TeamApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTeamSolutionApi(
+        apiClient: ApiClient,
+    ): TeamSolutionApi = apiClient.createService(TeamSolutionApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideGradeDistributionApi(
+        apiClient: ApiClient,
+    ): GradeDistributionApi = apiClient.createService(GradeDistributionApi::class.java)
 }
 

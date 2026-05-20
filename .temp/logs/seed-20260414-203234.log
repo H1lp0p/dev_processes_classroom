@@ -1,0 +1,30 @@
+[2026-04-14 20:32:34] [INFO] Seeder started. DryRun=False. BaseUrl=http://37.21.130.4:5000. StartFrom=courses
+[2026-04-14 20:32:34] [INFO] Auth bootstrap for student@demo.local
+[2026-04-14 20:32:36] [INFO] Auth bootstrap for teacher@demo.local
+[2026-04-14 20:32:38] [INFO] Auth bootstrap for alex@demo.local
+[2026-04-14 20:32:39] [INFO] Auth bootstrap for maria@demo.local
+[2026-04-14 20:32:41] [INFO] Auth bootstrap for oleg@demo.local
+[2026-04-14 20:32:42] [INFO] Auth bootstrap for anna@demo.local
+[2026-04-14 20:32:44] [INFO] Create course [Алгебра — 9 класс] by teacher@demo.local
+[2026-04-14 20:32:45] [INFO] Join course [Алгебра — 9 класс] as student@demo.local
+[2026-04-14 20:32:46] [INFO] Join course [Алгебра — 9 класс] as alex@demo.local
+[2026-04-14 20:32:47] [INFO] Join course [Алгебра — 9 класс] as maria@demo.local
+[2026-04-14 20:32:47] [INFO] Join course [Алгебра — 9 класс] as oleg@demo.local
+[2026-04-14 20:32:48] [INFO] Join course [Алгебра — 9 класс] as anna@demo.local
+[2026-04-14 20:32:49] [INFO] Create course [Веб-разработка] by teacher@demo.local
+[2026-04-14 20:32:51] [INFO] Join course [Веб-разработка] as student@demo.local
+[2026-04-14 20:32:52] [INFO] Join course [Веб-разработка] as alex@demo.local
+[2026-04-14 20:32:52] [INFO] Join course [Веб-разработка] as maria@demo.local
+[2026-04-14 20:32:54] [INFO] Create course [Кружок программирования] by student@demo.local
+[2026-04-14 20:32:55] [INFO] Join course [Кружок программирования] as teacher@demo.local
+[2026-04-14 20:32:57] [INFO] Create post [Добро пожаловать на курс] in Алгебра — 9 класс
+[2026-04-14 20:32:58] [INFO] Create post [Домашняя работа №1] in Алгебра — 9 класс
+[2026-04-14 20:32:59] [INFO] Create post [Шпаргалка: квадратные уравнения] in Алгебра — 9 класс
+[2026-04-14 20:33:00] [INFO] Create post [Командный проект: мини-исследование] in Алгебра — 9 класс
+[2026-04-14 20:33:00] [INFO] Create post [Лабораторная: форма входа] in Веб-разработка
+[2026-04-14 20:33:01] [INFO] Create post [Командный спринт: UI-прототип] in Веб-разработка
+[2026-04-14 20:33:02] [INFO] Create post [Командное UI: только черновик] in Веб-разработка
+[2026-04-14 20:33:03] [INFO] Create post [Просроченный дедлайн (демо)] in Веб-разработка
+[2026-04-14 20:33:03] [INFO] Create post [Правила кружка] in Кружок программирования
+[2026-04-14 20:33:05] [WARN] HTTP 404 for POST /api/post/033a36ba-274f-4a8e-8f40-44939e8b93fb/comment. Attempt 1/3. Body: {"type":1,"message":"Post not found","data":null}
+[2026-04-14 20:33:05] [ERROR] HTTP 404 for POST /api/post/033a36ba-274f-4a8e-8f40-44939e8b93fb/comment. Attempt 1/3. Body: {"type":1,"message":"Post not found","data":null}

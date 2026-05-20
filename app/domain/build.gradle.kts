@@ -13,6 +13,7 @@ kotlin {
 }
 
 dependencies {
+    api(project(":app:grading-domain"))
     implementation(libs.dagger)
     testImplementation(libs.junit)
     testImplementation(kotlin("test"))

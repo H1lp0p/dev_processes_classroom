@@ -1,10 +1,10 @@
 package com.stuf.domain.usecase
 
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
 import com.stuf.domain.repository.PostRepository
 import com.stuf.domain.usecase.impl.UpdatePostUseCase
 import org.junit.Assert.assertEquals
@@ -47,15 +47,14 @@ class UpdatePostUseCaseTest {
         val repo = FakeUpdatePostRepository()
         val useCase : UpdatePost = UpdatePostUseCase(repo)
         val postId = PostId(UUID.randomUUID())
-        val post = Post(
-            id = postId,
-            courseId = CourseId(UUID.randomUUID()),
-            kind = PostKind.ANNOUNCEMENT,
-            title = "Updated",
-            text = "Body",
-            createdAt = OffsetDateTime.now(),
-            taskDetails = null,
-        )
+        val post =
+            AnnouncementPost(
+                id = postId,
+                courseId = CourseId(UUID.randomUUID()),
+                title = "Updated",
+                text = "Body",
+                createdAt = OffsetDateTime.now(),
+            )
 
         val result = kotlinx.coroutines.runBlocking {
             useCase(postId, post)

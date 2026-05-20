@@ -6,6 +6,8 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
+import com.stuf.data.model.GradeBreakdownDtoApiResponse
+import com.stuf.data.model.GradePreviewRequestDto
 import com.stuf.data.model.IdRequestDtoApiResponse
 import com.stuf.data.model.SolutionListDtoApiResponse
 import com.stuf.data.model.SolutionStatus
@@ -14,6 +16,22 @@ import com.stuf.data.model.SubmitSolutionRequestDto
 import com.stuf.data.model.UpdateSolutionRequestDto
 
 interface SolutionApi {
+    /**
+     * POST api/solution/{solutionId}/preview
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param solutionId 
+     * @param gradePreviewRequestDto  (optional)
+     * @return [GradeBreakdownDtoApiResponse]
+     */
+    @POST("api/solution/{solutionId}/preview")
+    suspend fun apiSolutionSolutionIdPreviewPost(@Path("solutionId") solutionId: java.util.UUID, @Body gradePreviewRequestDto: GradePreviewRequestDto? = null): Response<GradeBreakdownDtoApiResponse>
+
     /**
      * POST api/solution/{solutionId}/review
      * 

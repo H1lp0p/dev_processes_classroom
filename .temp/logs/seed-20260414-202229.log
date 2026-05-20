@@ -1,0 +1,23 @@
+[2026-04-14 20:22:29] [INFO] Seeder started. DryRun=False. BaseUrl=http://37.21.130.4:5000
+[2026-04-14 20:22:29] [INFO] Auth bootstrap for student@demo.local
+[2026-04-14 20:22:31] [INFO] Auth bootstrap for teacher@demo.local
+[2026-04-14 20:22:33] [INFO] Auth bootstrap for alex@demo.local
+[2026-04-14 20:22:36] [INFO] Auth bootstrap for maria@demo.local
+[2026-04-14 20:22:38] [INFO] Auth bootstrap for oleg@demo.local
+[2026-04-14 20:22:40] [INFO] Auth bootstrap for anna@demo.local
+[2026-04-14 20:22:43] [INFO] Create course [Алгебра — 9 класс] by teacher@demo.local
+[2026-04-14 20:22:44] [INFO] Join course [Алгебра — 9 класс] as student@demo.local
+[2026-04-14 20:22:45] [INFO] Join course [Алгебра — 9 класс] as alex@demo.local
+[2026-04-14 20:22:46] [INFO] Join course [Алгебра — 9 класс] as maria@demo.local
+[2026-04-14 20:22:46] [INFO] Join course [Алгебра — 9 класс] as oleg@demo.local
+[2026-04-14 20:22:47] [INFO] Join course [Алгебра — 9 класс] as anna@demo.local
+[2026-04-14 20:22:49] [WARN] HTTP 400 for PUT /api/course/8b65f4af-d501-47a5-86ae-f9b6b6c354db/members/019d8c28-748f-7666-a233-9d71a9365dcb/role. Attempt 1/3. Body: {"type":1,"message":"Cannot change your own role","data":null}
+[2026-04-14 20:22:49] [INFO] Create course [Веб-разработка] by teacher@demo.local
+[2026-04-14 20:22:50] [INFO] Join course [Веб-разработка] as student@demo.local
+[2026-04-14 20:22:51] [INFO] Join course [Веб-разработка] as alex@demo.local
+[2026-04-14 20:22:51] [INFO] Join course [Веб-разработка] as maria@demo.local
+[2026-04-14 20:22:53] [WARN] HTTP 400 for PUT /api/course/8b5388f2-ab09-4fd4-8846-283549f0fc83/members/019d8c28-748f-7666-a233-9d71a9365dcb/role. Attempt 1/3. Body: {"type":1,"message":"Cannot change your own role","data":null}
+[2026-04-14 20:22:53] [INFO] Create course [Кружок программирования] by student@demo.local
+[2026-04-14 20:22:55] [INFO] Join course [Кружок программирования] as teacher@demo.local
+[2026-04-14 20:22:56] [WARN] HTTP 400 for PUT /api/course/5924a9cb-cff4-4701-932e-3d13bdf333bd/members/019d8c28-6b95-706c-a17d-00adea3d0bd5/role. Attempt 1/3. Body: {"type":1,"message":"Cannot change your own role","data":null}
+[2026-04-14 20:22:57] [ERROR] �� ������� ����� �������� "deadlineDaysFromNow" ��� ����� �������. ���������, ��� ��� ����������.

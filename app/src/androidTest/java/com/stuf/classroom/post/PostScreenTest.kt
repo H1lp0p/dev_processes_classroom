@@ -9,15 +9,19 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.stuf.classroom.ui.theme.ClassroomTheme
+import com.stuf.domain.model.AnnouncementPost
+import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseRole
-import com.stuf.domain.model.SolutionId
+import com.stuf.domain.model.PostId
+import com.stuf.domain.model.TaskDetails
+import com.stuf.domain.model.TaskPost
+import java.time.OffsetDateTime
+import java.util.UUID
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class PostScreenTest {
@@ -25,25 +29,43 @@ class PostScreenTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    private val cid: CourseId = CourseId(UUID.randomUUID())
+    private val pid: PostId = PostId(UUID.randomUUID())
+    private val t: OffsetDateTime = OffsetDateTime.now()
+
     @Test
     fun postScreen_shows_header_and_body_for_post() {
-        val state: PostUiState = PostUiState(
-            postTitle = "Post title",
-            postText = "Post body",
-            isTask = false,
-            currentUserRole = CourseRole.STUDENT,
-        )
+        val state: PostUiState =
+            PostUiState(
+                content =
+                    PostScreenContent.Announcement(
+                        AnnouncementPost(
+                            id = pid,
+                            courseId = cid,
+                            title = "Post title",
+                            text = "Post body",
+                            createdAt = t,
+                        ),
+                    ),
+                currentUserRole = CourseRole.STUDENT,
+            )
 
         composeRule.setContent {
             ClassroomTheme {
                 PostScreen(
                     state = state,
                     onRetry = {},
-                    onAttachSolutionClick = {},
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
                     onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = {},
                     onBackClick = {},
                 )
             }
@@ -54,57 +76,49 @@ class PostScreenTest {
         composeRule.onNodeWithTag("post_text").assertIsDisplayed()
         composeRule.onNodeWithTag("post_type_label").assertIsDisplayed()
 
-        // Для обычного поста кнопка прикрепления решения не отображается
         composeRule.onNodeWithTag("post_attach_solution_button")
             .assertDoesNotExist()
     }
 
     @Test
-    fun postScreen_shows_attach_solution_button_for_task_and_student() {
-        val stateStudent: PostUiState = PostUiState(
-            postTitle = "Task title",
-            postText = "Task body",
-            isTask = true,
-            currentUserRole = CourseRole.STUDENT,
-        )
+    fun postScreen_shows_individual_task_main_for_task_and_student() {
+        val stateStudent: PostUiState =
+            PostUiState(
+                content =
+                    PostScreenContent.Task(
+                        TaskPost(
+                            id = pid,
+                            courseId = cid,
+                            title = "Task title",
+                            text = "Task body",
+                            createdAt = t,
+                            taskDetails =
+                                TaskDetails(
+                                    deadline = null,
+                                    isMandatory = true,
+                                    maxScore = 5,
+                                ),
+                        ),
+                    ),
+                currentUserRole = CourseRole.STUDENT,
+            )
 
         composeRule.setContent {
             ClassroomTheme {
                 PostScreen(
                     state = stateStudent,
                     onRetry = {},
-                    onAttachSolutionClick = {},
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
                     onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = {},
-                    onBackClick = {},
-                )
-            }
-        }
-
-        composeRule.onNodeWithTag("post_attach_solution_button").assertIsDisplayed()
-    }
-
-    @Test
-    fun postScreen_hides_attach_solution_button_for_task_and_teacher() {
-        val stateTeacher: PostUiState = PostUiState(
-            postTitle = "Task title",
-            postText = "Task body",
-            isTask = true,
-            currentUserRole = CourseRole.TEACHER,
-        )
-
-        composeRule.setContent {
-            ClassroomTheme {
-                PostScreen(
-                    state = stateTeacher,
-                    onRetry = {},
-                    onAttachSolutionClick = {},
-                    onCommentSubmit = { _, _, _ -> },
-                    onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = {},
                     onBackClick = {},
                 )
             }
@@ -112,32 +126,110 @@ class PostScreenTest {
 
         composeRule.onNodeWithTag("post_attach_solution_button")
             .assertDoesNotExist()
+        composeRule.onNodeWithTag("individual_task_post_main").assertIsDisplayed()
+    }
+
+    @Test
+    fun postScreen_shows_individual_task_main_for_task_and_teacher() {
+        val stateTeacher: PostUiState =
+            PostUiState(
+                content =
+                    PostScreenContent.Task(
+                        TaskPost(
+                            id = pid,
+                            courseId = cid,
+                            title = "Task title",
+                            text = "Task body",
+                            createdAt = t,
+                            taskDetails =
+                                TaskDetails(
+                                    deadline = null,
+                                    isMandatory = true,
+                                    maxScore = 5,
+                                ),
+                        ),
+                    ),
+                currentUserRole = CourseRole.TEACHER,
+            )
+
+        composeRule.setContent {
+            ClassroomTheme {
+                PostScreen(
+                    state = stateTeacher,
+                    onRetry = {},
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
+                    onCommentSubmit = { _, _, _ -> },
+                    onLoadRepliesClick = {},
+                    onBackClick = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("post_attach_solution_button")
+            .assertDoesNotExist()
+        composeRule.onNodeWithTag("individual_task_post_main").assertIsDisplayed()
     }
 
     @Test
     fun postScreen_shows_comments_list() {
         val comments: List<CommentUi> = listOf(
-            CommentUi(id = "1", text = "First", authorName = "User 1"),
-            CommentUi(id = "2", text = "Second", authorName = "User 2"),
+            CommentUi(
+                id = "1",
+                authorId = "u1",
+                text = "First",
+                authorName = "User 1",
+                createdAtLabel = "1 янв., 12:00",
+                isOwn = false,
+            ),
+            CommentUi(
+                id = "2",
+                authorId = "u2",
+                text = "Second",
+                authorName = "User 2",
+                createdAtLabel = "1 янв., 12:00",
+                isOwn = false,
+            ),
         )
-        val state: PostUiState = PostUiState(
-            postTitle = "Post",
-            postText = "Body",
-            isTask = false,
-            currentUserRole = CourseRole.STUDENT,
-            comments = comments,
-        )
+        val state: PostUiState =
+            PostUiState(
+                content =
+                    PostScreenContent.Announcement(
+                        AnnouncementPost(
+                            id = pid,
+                            courseId = cid,
+                            title = "Post",
+                            text = "Body",
+                            createdAt = t,
+                        ),
+                    ),
+                currentUserRole = CourseRole.STUDENT,
+                comments = comments,
+            )
 
         composeRule.setContent {
             ClassroomTheme {
                 PostScreen(
                     state = state,
                     onRetry = {},
-                    onAttachSolutionClick = {},
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
                     onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = {},
                     onBackClick = {},
                 )
             }
@@ -154,32 +246,47 @@ class PostScreenTest {
         var lastIsPrivate: Boolean? = null
         var lastParentId: String? = null
 
-        val state: PostUiState = PostUiState(
-            postTitle = "Post",
-            postText = "Body",
-            isTask = false,
-            currentUserRole = CourseRole.STUDENT,
-        )
+        val state: PostUiState =
+            PostUiState(
+                content =
+                    PostScreenContent.Announcement(
+                        AnnouncementPost(
+                            id = pid,
+                            courseId = cid,
+                            title = "Post",
+                            text = "Body",
+                            createdAt = t,
+                        ),
+                    ),
+                currentUserRole = CourseRole.STUDENT,
+            )
 
         composeRule.setContent {
             ClassroomTheme {
                 PostScreen(
                     state = state,
                     onRetry = {},
-                    onAttachSolutionClick = {},
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
                     onCommentSubmit = { text, isPrivate, parentCommentId ->
                         lastText = text
                         lastIsPrivate = isPrivate
                         lastParentId = parentCommentId?.value
                     },
                     onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = {},
                     onBackClick = {},
                 )
             }
         }
 
+        composeRule.onNodeWithTag("post_new_comment_button").performClick()
         composeRule.onNodeWithTag("post_comment_input").performTextInput("Hello")
         composeRule.onNodeWithTag("post_comment_send_button").performClick()
 
@@ -189,109 +296,30 @@ class PostScreenTest {
     }
 
     @Test
-    fun postScreen_teacher_can_collapse_comments_and_see_solutions() {
-        val state: PostUiState = PostUiState(
-            postTitle = "Task",
-            postText = "Body",
-            isTask = true,
-            currentUserRole = CourseRole.TEACHER,
-            comments = listOf(
-                CommentUi(id = "1", text = "Comment", authorName = "User"),
-            ),
-            solutions = listOf(
-                SolutionUi(
-                    id = SolutionId(UUID.randomUUID()),
-                    studentName = "Student",
-                    status = "Pending",
-                ),
-            ),
-            areCommentsCollapsedForTeacher = false,
-        )
-
-        var toggleCalled = false
-
-        composeRule.setContent {
-            ClassroomTheme {
-                PostScreen(
-                    state = state,
-                    onRetry = {},
-                    onAttachSolutionClick = {},
-                    onCommentSubmit = { _, _, _ -> },
-                    onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = { toggleCalled = true },
-                    onSolutionClick = {},
-                    onBackClick = {},
-                )
-            }
-        }
-
-        composeRule.onNodeWithTag("post_teacher_toggle_comments_button").assertIsDisplayed()
-        composeRule.onNodeWithTag("post_solutions_list").assertIsDisplayed()
-        composeRule.onNodeWithTag("post_teacher_toggle_comments_button").performClick()
-        assertTrue(toggleCalled)
-    }
-
-    @Test
-    fun postScreen_teacher_can_open_solution_details() {
-        val solutionId: SolutionId = SolutionId(UUID.randomUUID())
-        val state: PostUiState = PostUiState(
-            postTitle = "Task",
-            postText = "Body",
-            isTask = true,
-            currentUserRole = CourseRole.TEACHER,
-            solutions = listOf(
-                SolutionUi(
-                    id = solutionId,
-                    studentName = "Student",
-                    status = "Pending",
-                ),
-            ),
-        )
-
-        var lastOpenedSolutionId: SolutionId? = null
-
-        composeRule.setContent {
-            ClassroomTheme {
-                PostScreen(
-                    state = state,
-                    onRetry = {},
-                    onAttachSolutionClick = {},
-                    onCommentSubmit = { _, _, _ -> },
-                    onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = { id -> lastOpenedSolutionId = id },
-                    onBackClick = {},
-                )
-            }
-        }
-
-        composeRule.onAllNodes(hasTestTag("post_solution_item"))[0].performClick()
-        assertEquals(solutionId, lastOpenedSolutionId)
-    }
-
-    @Test
     fun postScreen_shows_loading_and_error() {
-        val state: PostUiState = PostUiState(
-            postTitle = "Post",
-            postText = "Body",
-            isTask = false,
-            currentUserRole = CourseRole.STUDENT,
-            isLoading = true,
-            error = "Error",
-        )
-
         var retryCalled = false
 
         composeRule.setContent {
             ClassroomTheme {
                 PostScreen(
-                    state = state,
-                    onRetry = { retryCalled = true },
-                    onAttachSolutionClick = {},
+                    state =
+                        PostUiState(
+                            isLoadingPost = true,
+                            content = null,
+                            currentUserRole = CourseRole.STUDENT,
+                        ),
+                    onRetry = {},
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
                     onCommentSubmit = { _, _, _ -> },
                     onLoadRepliesClick = {},
-                    onToggleCommentsVisibility = {},
-                    onSolutionClick = {},
                     onBackClick = {},
                 )
             }
@@ -299,6 +327,34 @@ class PostScreenTest {
 
         composeRule.onNodeWithTag("post_loading_indicator")
             .assertIsDisplayed()
+
+        composeRule.setContent {
+            ClassroomTheme {
+                PostScreen(
+                    state =
+                        PostUiState(
+                            isLoadingPost = false,
+                            postLoadError = "Error",
+                            content = null,
+                            currentUserRole = CourseRole.STUDENT,
+                        ),
+                    onRetry = { retryCalled = true },
+                    onPickSolutionFile = {},
+                    onSubmitTeamSolution = {},
+                    onSubmitIndividualSolution = {},
+                    onRemovePendingTeamSolutionFile = {},
+                    onRemovePendingIndividualSolutionFile = {},
+                    onRemoveSavedTeamSolutionFile = {},
+                    onRemoveSavedIndividualSolutionFile = {},
+                    onJoinTeam = {},
+                    onLeaveTeam = {},
+                    onCommentSubmit = { _, _, _ -> },
+                    onLoadRepliesClick = {},
+                    onBackClick = {},
+                )
+            }
+        }
+
         composeRule.onNodeWithTag("post_error")
             .assertIsDisplayed()
         composeRule.onNodeWithTag("post_retry_button")
@@ -307,4 +363,3 @@ class PostScreenTest {
         assertTrue(retryCalled)
     }
 }
-

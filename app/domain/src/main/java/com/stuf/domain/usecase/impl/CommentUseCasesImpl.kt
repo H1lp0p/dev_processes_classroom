@@ -10,6 +10,8 @@ import com.stuf.domain.repository.CommentRepository
 import com.stuf.domain.usecase.AddCommentReply
 import com.stuf.domain.usecase.AddPostComment
 import com.stuf.domain.usecase.AddSolutionComment
+import com.stuf.domain.usecase.DeleteComment
+import com.stuf.domain.usecase.EditComment
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetPostComments
 import com.stuf.domain.usecase.GetSolutionComments
@@ -79,5 +81,25 @@ class AddCommentReplyUseCase @Inject constructor(
         }
         return repository.addCommentReply(commentId, trimmed)
     }
+}
+
+class EditCommentUseCase @Inject constructor(
+    private val repository: CommentRepository,
+) : EditComment {
+
+    override suspend fun invoke(commentId: CommentId, text: String): DomainResult<Unit> {
+        val trimmed: String = text.trim()
+        if (trimmed.isBlank()) {
+            return DomainResult.Failure(DomainError.Validation("Comment text must not be blank"))
+        }
+        return repository.editComment(commentId, trimmed)
+    }
+}
+
+class DeleteCommentUseCase @Inject constructor(
+    private val repository: CommentRepository,
+) : DeleteComment {
+    override suspend fun invoke(commentId: CommentId): DomainResult<Unit> =
+        repository.deleteComment(commentId)
 }
 

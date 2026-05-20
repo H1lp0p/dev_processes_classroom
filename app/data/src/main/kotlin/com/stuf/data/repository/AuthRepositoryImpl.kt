@@ -6,6 +6,7 @@ import com.stuf.data.auth.AuthTokenManager
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
 import com.stuf.data.model.ObjectApiResponse
+import com.stuf.data.model.UserChangePassword
 import com.stuf.data.model.UserLoginDto
 import com.stuf.data.model.UserRegisterDto
 import com.stuf.domain.common.DomainError
@@ -50,6 +51,32 @@ class AuthRepositoryImpl @Inject constructor(
         val storedSession = authSessionStorage.sessionFlow.first()
             ?: return DomainResult.Failure(DomainError.Unauthorized)
         return callAuthEndpoint { api.apiAuthRefreshPost(token = storedSession.refreshToken) }
+    }
+
+    override suspend fun changePassword(oldPassword: String, newPassword: String): DomainResult<Unit> {
+        val dto =
+            UserChangePassword(
+                oldPassword = oldPassword,
+                newPassword = newPassword,
+            )
+        val response = try {
+            api.apiAuthChangePasswordPost(dto)
+        } catch (e: IOException) {
+            return DomainResult.Failure(DomainError.Network(e))
+        } catch (e: Exception) {
+            return DomainResult.Failure(DomainError.Unknown(e))
+        }
+
+        if (!response.isSuccessful) {
+            return DomainResult.Failure(httpCodeToDomainError(response.code()))
+        }
+
+        val body = response.body() ?: return DomainResult.Failure(DomainError.Unknown())
+        return if (body.type == ApiResponseType.success) {
+            DomainResult.Success(Unit)
+        } else {
+            DomainResult.Failure(DomainError.Validation(body.message ?: "Не удалось сменить пароль"))
+        }
     }
 
     private suspend fun callAuthEndpoint(

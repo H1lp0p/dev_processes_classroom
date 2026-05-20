@@ -13,7 +13,7 @@ import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
+import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.UserId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -44,14 +44,12 @@ class CourseScreenTest {
     fun courseScreen_shows_basic_elements_on_course_tab_for_teacher() {
         val courseId = CourseId(UUID.fromString("00000000-0000-0000-0000-000000000500"))
         val posts = listOf(
-            Post(
+            AnnouncementPost(
                 id = PostId(UUID.fromString("00000000-0000-0000-0000-000000000501")),
                 courseId = courseId,
-                kind = PostKind.ANNOUNCEMENT,
                 title = "Post 1",
                 text = "Text",
                 createdAt = OffsetDateTime.now(),
-                taskDetails = null,
             ),
         )
         val members = listOf(
@@ -84,7 +82,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onBackClick = {},
@@ -104,8 +101,6 @@ class CourseScreenTest {
         composeRule.onNodeWithTag("course_posts_list").assertIsDisplayed()
         composeRule.onAllNodes(hasTestTag("course_post_item"))
             .assertCountEquals(1)
-
-        composeRule.onNodeWithTag("course_create_post_button").assertIsDisplayed()
     }
 
     @Test
@@ -133,7 +128,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onBackClick = {},
@@ -142,10 +136,9 @@ class CourseScreenTest {
             }
         }
 
-        composeRule.onNodeWithTag("course_tab_course").assertIsDisplayed()
-        // Вкладка пользователей недоступна для студента
-        composeRule.onNodeWithTag("course_tab_members")
-            .assertDoesNotExist()
+        // Нижней навигации нет: переключатель «Лента / Участники» только у преподавателя
+        composeRule.onNodeWithTag("course_tab_course").assertDoesNotExist()
+        composeRule.onNodeWithTag("course_tab_members").assertDoesNotExist()
     }
 
     @Test
@@ -188,7 +181,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onLeaveCourseClick = {},
@@ -213,14 +205,12 @@ class CourseScreenTest {
         val postId = PostId(UUID.fromString("00000000-0000-0000-0000-000000000701"))
 
         val posts = listOf(
-            Post(
+            AnnouncementPost(
                 id = postId,
                 courseId = courseId,
-                kind = PostKind.ANNOUNCEMENT,
                 title = "Post 1",
                 text = "Text",
                 createdAt = OffsetDateTime.now(),
-                taskDetails = null,
             ),
         )
         val state = CourseScreenUiState(
@@ -240,7 +230,6 @@ class CourseScreenTest {
 
         var lastSelectedTab: CourseTab? = null
         var lastPostClicked: PostId? = null
-        var createPostClicked = false
         var lastMemberRoleToggled: UserId? = null
         var lastMemberRemoved: UserId? = null
         var leaveClicked = false
@@ -251,7 +240,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = { lastSelectedTab = it },
                     onPostClick = { lastPostClicked = it },
-                    onCreatePostClick = { createPostClicked = true },
                     onMemberRoleToggleClick = { lastMemberRoleToggled = it },
                     onMemberRemoveClick = { lastMemberRemoved = it },
                     onBackClick = {},
@@ -261,12 +249,10 @@ class CourseScreenTest {
         }
 
         composeRule.onNodeWithTag("course_tab_members").performClick()
-        composeRule.onNodeWithTag("course_create_post_button").performClick()
         composeRule.onAllNodes(hasTestTag("course_post_item"))[0].performClick()
 
         assertEquals(CourseTab.MEMBERS, lastSelectedTab)
         assertEquals(postId, lastPostClicked)
-        assertTrue(createPostClicked)
         assertEquals(null, lastMemberRoleToggled)
         assertEquals(null, lastMemberRemoved)
         assertFalse(leaveClicked)
@@ -318,7 +304,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = { lastMemberRoleToggled = it },
                     onMemberRemoveClick = { lastMemberRemoved = it },
                     onBackClick = {},
@@ -365,7 +350,6 @@ class CourseScreenTest {
                     state = state,
                     onTabSelected = {},
                     onPostClick = {},
-                    onCreatePostClick = {},
                     onMemberRoleToggleClick = {},
                     onMemberRemoveClick = {},
                     onBackClick = {},

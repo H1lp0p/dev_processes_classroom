@@ -24,6 +24,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "backend"
+    productFlavors {
+        create("api") {
+            dimension = "backend"
+            isDefault = true
+        }
+        create("offline") {
+            dimension = "backend"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -48,6 +59,7 @@ android {
 dependencies {
     implementation(project(":app:data"))
     implementation(project(":app:domain"))
+    implementation(project(":app:grading-domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

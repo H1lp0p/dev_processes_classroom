@@ -7,13 +7,11 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.stuf.domain.model.PostId
 import com.stuf.domain.model.UserId
-import java.util.UUID
 
 @Composable
 fun CourseRoute(
     viewModel: CourseScreenViewModel = hiltViewModel(),
     onPostClick: (PostId) -> Unit,
-    onCreatePostClick: () -> Unit,
     onLeaveCourse: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -28,7 +26,6 @@ fun CourseRoute(
         onPostClick = { postId: PostId ->
             onPostClick(postId)
         },
-        onCreatePostClick = onCreatePostClick,
         onMemberRoleToggleClick = { userId: UserId ->
             viewModel.onChangeMemberRoleClick(userId)
         },

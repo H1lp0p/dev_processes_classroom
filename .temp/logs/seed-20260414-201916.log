@@ -1,0 +1,29 @@
+[2026-04-14 20:19:16] [INFO] Seeder started. DryRun=True. BaseUrl=http://37.21.130.4:5000
+[2026-04-14 20:19:16] [INFO] Auth bootstrap for student@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/register body={"email":"student@demo.local","credentials":"Студент Демо","password":"ClassroomDemo2026!"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/login body={"password":"ClassroomDemo2026!","email":"student@demo.local"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/users body={}
+[2026-04-14 20:19:16] [INFO] Auth bootstrap for teacher@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/register body={"email":"teacher@demo.local","credentials":"Учитель Иванова","password":"ClassroomDemo2026!"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/login body={"password":"ClassroomDemo2026!","email":"teacher@demo.local"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/users body={}
+[2026-04-14 20:19:16] [INFO] Auth bootstrap for alex@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/register body={"email":"alex@demo.local","credentials":"Алексей К.","password":"ClassroomDemo2026!"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/login body={"password":"ClassroomDemo2026!","email":"alex@demo.local"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/users body={}
+[2026-04-14 20:19:16] [INFO] Auth bootstrap for maria@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/register body={"email":"maria@demo.local","credentials":"Мария С.","password":"ClassroomDemo2026!"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/login body={"password":"ClassroomDemo2026!","email":"maria@demo.local"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/users body={}
+[2026-04-14 20:19:16] [INFO] Auth bootstrap for oleg@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/register body={"email":"oleg@demo.local","credentials":"Олег В.","password":"ClassroomDemo2026!"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/login body={"password":"ClassroomDemo2026!","email":"oleg@demo.local"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/users body={}
+[2026-04-14 20:19:16] [INFO] Auth bootstrap for anna@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/register body={"email":"anna@demo.local","credentials":"Анна Л.","password":"ClassroomDemo2026!"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/auth/login body={"password":"ClassroomDemo2026!","email":"anna@demo.local"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/users body={}
+[2026-04-14 20:19:16] [INFO] Create course [Алгебра — 9 класс] by teacher@demo.local
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] POST http://37.21.130.4:5000/api/course body={"title":"Алгебра — 9 класс"}
+[2026-04-14 20:19:16] [DEBUG] [DRY-RUN] GET http://37.21.130.4:5000/api/course/976ac64a-acb8-45e2-bb0e-3f675bc38b6d body={}
+[2026-04-14 20:19:16] [ERROR] Invite code missing for course Алгебра — 9 класс

@@ -55,6 +55,10 @@ class RegisterViewModelTest {
         override suspend fun refresh(): DomainResult<com.stuf.domain.repository.AuthSession> {
             error("Not used in RegisterViewModel tests")
         }
+
+        override suspend fun changePassword(oldPassword: String, newPassword: String): DomainResult<Unit> {
+            error("Not used in RegisterViewModel tests")
+        }
     }
 
     private class FakeAuthManager : AuthManager {

@@ -1,6 +1,5 @@
 package com.stuf.classroom.course
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,85 +7,89 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.stuf.domain.model.CourseMember
+import com.stuf.classroom.course.components.CourseCourseTabContent
+import com.stuf.classroom.course.components.CourseMembersTabContent
+import com.stuf.classroom.course.components.CourseScreenTopBar
 import com.stuf.domain.model.CourseRole
-import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
-import com.stuf.domain.model.PostKind
 import com.stuf.domain.model.UserId
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseScreen(
     state: CourseScreenUiState,
     onTabSelected: (CourseTab) -> Unit,
     onPostClick: (PostId) -> Unit,
-    onCreatePostClick: () -> Unit,
     onMemberRoleToggleClick: (UserId) -> Unit,
     onMemberRemoveClick: (UserId) -> Unit,
     onBackClick: () -> Unit,
     onLeaveCourseClick: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    val snackbarHostState = remember { SnackbarHostState() }
+    val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
     ) {
-        // Кнопка выхода в правом верхнем углу
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                )
+            CourseScreenTopBar(
+                onBackClick = onBackClick,
+                onLeaveCourseClick = onLeaveCourseClick,
+            )
+
+            if (state.currentUserRole == CourseRole.TEACHER) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilterChip(
+                        selected = state.selectedTab == CourseTab.COURSE,
+                        onClick = { onTabSelected(CourseTab.COURSE) },
+                        label = { Text("Лента") },
+                        modifier = Modifier.testTag("course_tab_course"),
+                    )
+                    FilterChip(
+                        selected = state.selectedTab == CourseTab.MEMBERS,
+                        onClick = { onTabSelected(CourseTab.MEMBERS) },
+                        label = { Text("Пользователи") },
+                        modifier = Modifier.testTag("course_tab_members"),
+                    )
+                }
             }
 
-            TextButton(
-                onClick = onLeaveCourseClick,
-                modifier = Modifier.testTag("course_leave_button"),
+            Box(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
             ) {
-                Text("Покинуть курс")
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-        ) {
             val effectiveTab: CourseTab =
                 if (state.currentUserRole == CourseRole.TEACHER) {
                     state.selectedTab
@@ -95,13 +98,17 @@ fun CourseScreen(
                 }
 
             when (effectiveTab) {
-                CourseTab.COURSE -> CourseTabContent(
+                CourseTab.COURSE -> CourseCourseTabContent(
                     state = state,
                     onPostClick = onPostClick,
-                    onCreatePostClick = onCreatePostClick,
+                    onHeaderClick = {
+                        val code = state.inviteCode ?: return@CourseCourseTabContent
+                        clipboardManager.setText(AnnotatedString(code))
+                        scope.launch { snackbarHostState.showSnackbar("Код скопирован в буфер") }
+                    },
                 )
 
-                CourseTab.MEMBERS -> MembersTabContent(
+                CourseTab.MEMBERS -> CourseMembersTabContent(
                     state = state,
                     onMemberRoleToggleClick = onMemberRoleToggleClick,
                     onMemberRemoveClick = onMemberRemoveClick,
@@ -140,232 +147,11 @@ fun CourseScreen(
                         .testTag("course_error"),
                 )
             }
-        }
-
-        NavigationBar {
-            NavigationBarItem(
-                selected = state.selectedTab == CourseTab.COURSE,
-                onClick = { onTabSelected(CourseTab.COURSE) },
-                icon = { },
-                label = { Text("Курс") },
-                modifier = Modifier.testTag("course_tab_course"),
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter),
             )
-
-            if (state.currentUserRole == CourseRole.TEACHER) {
-                NavigationBarItem(
-                    selected = state.selectedTab == CourseTab.MEMBERS,
-                    onClick = { onTabSelected(CourseTab.MEMBERS) },
-                    icon = { },
-                    label = { Text("Пользователи") },
-                    modifier = Modifier.testTag("course_tab_members"),
-                )
-            }
+        }
         }
     }
 }
-
-@Composable
-private fun CourseTabContent(
-    state: CourseScreenUiState,
-    onPostClick: (PostId) -> Unit,
-    onCreatePostClick: () -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("course_header_card"),
-            colors = CardDefaults.cardColors(),
-            elevation = CardDefaults.cardElevation(),
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = state.courseTitle,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.testTag("course_title"),
-                )
-                state.inviteCode?.let { code ->
-                    Text(
-                        text = "Код: $code",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.testTag("course_invite_code"),
-                    )
-                }
-                state.currentUserRole?.let { role ->
-                    val roleLabel: String = when (role) {
-                        CourseRole.TEACHER -> "Учитель"
-                        CourseRole.STUDENT -> "Ученик"
-                    }
-                    Text(
-                        text = roleLabel,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.testTag("course_user_role"),
-                    )
-                }
-            }
-        }
-
-        Button(
-            onClick = onCreatePostClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("course_create_post_button"),
-        ) {
-            Text("Создать пост")
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("course_posts_list"),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(state.posts) { post: Post ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onPostClick(post.id) }
-                        .testTag("course_post_item"),
-                    colors = CardDefaults.cardColors(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = post.title,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        val typeLabel: String = when (post.kind) {
-                            PostKind.ANNOUNCEMENT -> "Пост"
-                            PostKind.MATERIAL -> "Материал"
-                            PostKind.TASK -> "Задача"
-                        }
-                        Text(
-                            text = typeLabel,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MembersTabContent(
-    state: CourseScreenUiState,
-    onMemberRoleToggleClick: (UserId) -> Unit,
-    onMemberRemoveClick: (UserId) -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .testTag("course_members_list"),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(state.members) { member: CourseMember ->
-                val isMenuExpanded: MutableState<Boolean> = remember { mutableStateOf(false) }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("course_member_item")
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        val isCreator: Boolean = member.id == state.courseAuthorId
-
-                        // TODO
-                        val isCurrentUser: Boolean = false
-
-                        val suffixes = buildList {
-                            if (isCreator) add("[Создатель]")
-                            if (isCurrentUser) add("[Вы]")
-                        }
-                        val nameText: String =
-                            if (suffixes.isNotEmpty()) {
-                                member.credentials + " " + suffixes.joinToString(" ")
-                            } else {
-                                member.credentials
-                            }
-
-                        Text(
-                            text = nameText,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        val roleLabel: String = when (member.role) {
-                            CourseRole.TEACHER -> "Учитель"
-                            CourseRole.STUDENT -> "Студент"
-                        }
-                        Text(
-                            text = roleLabel,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.testTag("course_member_role"),
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (state.currentUserRole == CourseRole.TEACHER &&
-                            member.id != state.courseAuthorId
-                        ) {
-                            IconButton(
-                                onClick = { isMenuExpanded.value = true },
-                                modifier = Modifier.testTag("course_member_menu_button"),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.MoreVert,
-                                    contentDescription = null,
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = isMenuExpanded.value,
-                                onDismissRequest = { isMenuExpanded.value = false },
-                            ) {
-                                val roleActionText: String = when (member.role) {
-                                    CourseRole.TEACHER -> "Сделать учеником"
-                                    CourseRole.STUDENT -> "Назначить учителем"
-                                }
-                                DropdownMenuItem(
-                                    text = { Text(roleActionText) },
-                                    onClick = {
-                                        isMenuExpanded.value = false
-                                        onMemberRoleToggleClick(member.id)
-                                    },
-                                    modifier = Modifier.testTag("course_member_toggle_role_menu_item"),
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Удалить из курса") },
-                                    onClick = {
-                                        isMenuExpanded.value = false
-                                        onMemberRemoveClick(member.id)
-                                    },
-                                    modifier = Modifier.testTag("course_member_remove_menu_item"),
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-

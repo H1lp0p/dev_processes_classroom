@@ -1,5 +1,6 @@
 package com.stuf.data.repository
 
+import android.util.Log
 import com.stuf.data.api.SolutionApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
@@ -9,6 +10,12 @@ import com.stuf.data.model.SolutionStatus as ApiSolutionStatus
 import com.stuf.data.model.StudentSolutionDetailsDto
 import com.stuf.data.model.SubmitSolutionRequestDto
 import com.stuf.data.model.UpdateSolutionRequestDto
+import com.stuf.data.repository.mappers.toDomain
+import com.stuf.data.repository.mappers.toEvaluationDto
+import com.stuf.data.repository.mappers.toGradePreviewRequestDto
+import com.stuf.data.repository.mappers.toSelfAssessmentDraft
+import com.stuf.domain.model.GradeBreakdown
+import com.stuf.grading.domain.model.SelfAssessmentDraft
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.FileInfo
@@ -124,6 +131,95 @@ class SolutionRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun submitSelfAssessment(
+        taskId: TaskId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<Unit> {
+        val current =
+            when (val loaded = getUserSolution(taskId)) {
+                is DomainResult.Success -> loaded.value
+                is DomainResult.Failure -> return loaded
+            }
+        val solution =
+            current ?: return DomainResult.Failure(DomainError.Validation("Сначала сдайте решение по заданию"))
+        if (solution.status == SolutionStatus.CHECKED) {
+            return DomainResult.Failure(DomainError.Validation("Решение уже проверено — самооценку изменить нельзя"))
+        }
+        val dto =
+            SubmitSolutionRequestDto(
+                text = solution.text,
+                files = solution.files.mapNotNull { runCatching { UUID.fromString(it.id) }.getOrNull() },
+                selfAssessment = draft.toEvaluationDto(),
+            )
+        val response = safeCall { api.apiTaskIdSolutionPut(taskId.value, dto) }
+        return when (response) {
+            is DomainResult.Success -> {
+                val body = response.value
+                if (body.type != ApiResponseType.success) {
+                    DomainResult.Failure(DomainError.Validation(body.message ?: "Не удалось сохранить самооценку"))
+                } else {
+                    DomainResult.Success(Unit)
+                }
+            }
+            is DomainResult.Failure -> response
+        }
+    }
+
+    override suspend fun deleteSelfAssessment(taskId: TaskId): DomainResult<Unit> {
+        val current =
+            when (val loaded = getUserSolution(taskId)) {
+                is DomainResult.Success -> loaded.value
+                is DomainResult.Failure -> return loaded
+            }
+        val solution =
+            current ?: return DomainResult.Failure(DomainError.Validation("Сначала сдайте решение по заданию"))
+        if (solution.status == SolutionStatus.CHECKED) {
+            return DomainResult.Failure(DomainError.Validation("Решение уже проверено — самооценку удалить нельзя"))
+        }
+        val dto =
+            SubmitSolutionRequestDto(
+                text = solution.text,
+                files = solution.files.mapNotNull { runCatching { UUID.fromString(it.id) }.getOrNull() },
+                selfAssessment = null,
+            )
+        val response = safeCall { api.apiTaskIdSolutionPut(taskId.value, dto) }
+        return when (response) {
+            is DomainResult.Success -> {
+                val body = response.value
+                if (body.type != ApiResponseType.success) {
+                    DomainResult.Failure(DomainError.Validation(body.message ?: "Не удалось удалить самооценку"))
+                } else {
+                    DomainResult.Success(Unit)
+                }
+            }
+            is DomainResult.Failure -> response
+        }
+    }
+
+    override suspend fun previewGrade(
+        solutionId: SolutionId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<GradeBreakdown> {
+        val response =
+            safeCall {
+                api.apiSolutionSolutionIdPreviewPost(
+                    solutionId.value,
+                    draft.toGradePreviewRequestDto(),
+                )
+            }
+        return when (response) {
+            is DomainResult.Success -> {
+                val body = response.value
+                if (body.type != ApiResponseType.success || body.data == null) {
+                    DomainResult.Failure(DomainError.Validation(body.message ?: "Preview failed"))
+                } else {
+                    DomainResult.Success(body.data.toDomain())
+                }
+            }
+            is DomainResult.Failure -> response
+        }
+    }
+
     override suspend fun reviewSolution(solutionId: SolutionId, review: Review): DomainResult<Unit> {
         val dto = UpdateSolutionRequestDto(
             score = review.score.value,
@@ -147,6 +243,15 @@ class SolutionRepositoryImpl @Inject constructor(
         }
 
         if (!response.isSuccessful) {
+            val serverMessage: String =
+                runCatching { response.errorBody()?.string() }
+                    .getOrNull()
+                    ?.takeIf { it.isNotBlank() }
+                    ?: response.message()
+            Log.e(
+                "SolutionRepository",
+                "HTTP ${response.code()} while calling Solution API. message=$serverMessage",
+            )
             return DomainResult.Failure(httpCodeToDomainError(response.code()))
         }
 
@@ -170,6 +275,7 @@ class SolutionRepositoryImpl @Inject constructor(
             score = scoreDomain,
             status = domainStatus,
             updatedAt = updatedDate,
+            selfAssessment = selfAssessment?.toSelfAssessmentDraft(),
         )
     }
 
