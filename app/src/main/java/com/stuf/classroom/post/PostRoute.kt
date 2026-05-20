@@ -66,6 +66,21 @@ fun PostRoute(
         viewModel.onRetry()
     }
 
+    val refreshTaskSectionFlow =
+        remember(backStackEntry) {
+            backStackEntry.savedStateHandle.getStateFlow(
+                PostScreenViewModel.REFRESH_TASK_SECTION_KEY,
+                false,
+            )
+        }
+    val shouldRefreshTaskSection by refreshTaskSectionFlow.collectAsState()
+    LaunchedEffect(shouldRefreshTaskSection) {
+        if (shouldRefreshTaskSection) {
+            viewModel.refreshTaskSection()
+            backStackEntry.savedStateHandle[PostScreenViewModel.REFRESH_TASK_SECTION_KEY] = false
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.attachmentDownloadEvents.collect { event ->
             when (event) {
@@ -142,17 +157,31 @@ fun PostRoute(
             onDownloadAttachment = { fileId: UUID -> viewModel.downloadAttachment(fileId) },
             onOpenGradeDistribution = {
                 val st = viewModel.uiState.value
-                val teamId = st.teamTask?.myTeam?.id ?: return@PostScreen
-                val post =
-                    (st.content as? PostScreenContent.TeamTask)?.post
-                        ?: return@PostScreen
-                navController.navigate(
-                    ClassroomRoutes.gradeDistribution(
-                        teamId = teamId,
-                        postId = post.id,
-                        role = st.currentUserRole,
-                    ),
-                )
+                val teamId = st.teamTask?.myTeam?.id
+                val post = (st.content as? PostScreenContent.TeamTask)?.post
+                if (teamId != null && post != null) {
+                    navController.navigate(
+                        ClassroomRoutes.gradeDistribution(
+                            teamId = teamId,
+                            postId = post.id,
+                            role = st.currentUserRole,
+                        ),
+                    )
+                }
+            },
+            onOpenSelfAssessment = {
+                val st = viewModel.uiState.value
+                when (val c = st.content) {
+                    is PostScreenContent.Task ->
+                        navController.navigate(
+                            ClassroomRoutes.selfAssessment(c.post.id, st.currentUserRole),
+                        )
+                    is PostScreenContent.TeamTask ->
+                        navController.navigate(
+                            ClassroomRoutes.selfAssessment(c.post.id, st.currentUserRole),
+                        )
+                    else -> Unit
+                }
             },
             onBackClick = { navController.popBackStack() },
         )

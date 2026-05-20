@@ -50,13 +50,15 @@ interface TeamApi {
      * 
      * Responses:
      *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
      *
      * @param teamId 
      * @param body  (optional)
-     * @return [Unit]
+     * @return [ObjectApiResponse]
      */
     @POST("api/teacher/teams/{teamId}/fixed-captain")
-    suspend fun apiTeacherTeamsTeamIdFixedCaptainPost(@Path("teamId") teamId: java.util.UUID, @Body body: java.util.UUID? = null): Response<Unit>
+    suspend fun apiTeacherTeamsTeamIdFixedCaptainPost(@Path("teamId") teamId: java.util.UUID, @Body body: java.util.UUID? = null): Response<ObjectApiResponse>
 
     /**
      * DELETE api/teacher/teams/{teamId}/remove-student/{studentId}

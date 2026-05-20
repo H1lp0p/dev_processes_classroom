@@ -64,7 +64,12 @@ import com.stuf.classroom.post.components.PostFileAttachmentCard
 import com.stuf.classroom.post.components.PostCommentItem
 import com.stuf.classroom.post.components.PostScreenCommentsDivider
 import com.stuf.classroom.post.components.PostScreenTopBar
+import com.stuf.classroom.post.components.PostTaskGradingSection
+import com.stuf.classroom.post.components.resolveSavedSelfAssessmentDraft
+import com.stuf.classroom.post.components.teamSelfAssessmentProgress
+import com.stuf.domain.model.SolutionStatus
 import com.stuf.classroom.post.components.PostScreenTeamTaskSection
+import com.stuf.domain.model.selfAssessmentPostInfo
 import com.stuf.domain.model.FileInfo
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.TeamCaptainSelectionMode
@@ -104,6 +109,7 @@ internal fun TeamTaskPostScreen(
     onRemovePendingTeamSolutionFile: (String) -> Unit,
     onRemoveSavedTeamSolutionFile: (String) -> Unit,
     onOpenGradeDistribution: () -> Unit,
+    onOpenSelfAssessment: () -> Unit = {},
     onDownloadAttachment: (UUID) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -318,18 +324,6 @@ internal fun TeamTaskPostScreen(
                         }
                     }
                 }
-                if (myTeam != null && teamTask.solution?.score != null && showStudentActions) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedButton(
-                        onClick = onOpenGradeDistribution,
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .testTag("team_task_grade_distribution_button"),
-                    ) {
-                        Text("Распределение оценок")
-                    }
-                }
                 if (myTeam != null) {
                     Spacer(modifier = Modifier.height(16.dp))
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -375,6 +369,36 @@ internal fun TeamTaskPostScreen(
                         onRemoveSavedFile = onRemoveSavedTeamSolutionFile,
                         onDownloadAttachment = onDownloadAttachment,
                     )
+                    val selfAssessmentInfo = post.selfAssessmentPostInfo()
+                    val showGradingSection =
+                        showStudentActions &&
+                            (
+                                selfAssessmentInfo.isConfigured ||
+                                    (myTeam != null && teamTask.solution?.score != null)
+                            )
+                    if (showGradingSection) {
+                        val (submittedCount, totalCount) = teamSelfAssessmentProgress(teamTask.solution)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PostTaskGradingSection(
+                            rubric = post.gradingRubric,
+                            selfAssessmentInfo = selfAssessmentInfo,
+                            savedSelfAssessmentDraft =
+                                resolveSavedSelfAssessmentDraft(
+                                    isTeamTask = true,
+                                    currentUserId = teamTask.currentUserId ?: state.currentUserId,
+                                    individualSolution = null,
+                                    teamSolution = teamTask.solution,
+                                ),
+                            hasSolution = teamTask.solution != null,
+                            isTeamTask = true,
+                            isSolutionChecked = teamTask.solution?.status == SolutionStatus.CHECKED,
+                            showGradeDistribution = teamTask.solution?.score != null,
+                            teamSelfAssessmentSubmittedCount = submittedCount,
+                            teamSelfAssessmentTotalCount = totalCount,
+                            onOpenSelfAssessment = onOpenSelfAssessment,
+                            onOpenGradeDistribution = onOpenGradeDistribution,
+                        )
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Приватные комментарии",

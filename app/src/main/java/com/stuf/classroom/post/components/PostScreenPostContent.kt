@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,8 +50,12 @@ import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.TaskPost
+import com.stuf.domain.model.SelfAssessmentPostInfo
 import com.stuf.domain.model.TeamCaptainSelectionMode
+import com.stuf.domain.model.navigationBlockMessage
 import com.stuf.domain.model.TeamTaskPost
+import com.stuf.domain.model.detailLines
+import com.stuf.domain.model.selfAssessmentPostInfo
 import com.stuf.domain.model.typeLabelForScreen
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -133,6 +138,7 @@ internal fun PostScreenTaskSection(
     modifier: Modifier = Modifier,
     onAttachmentDownload: (fileId: UUID) -> Unit = {},
 ) {
+    val selfAssessmentInfo = post.selfAssessmentPostInfo()
     Column(modifier = modifier) {
         PostHeaderUserCourseCard(
             title = post.title,
@@ -145,6 +151,7 @@ internal fun PostScreenTaskSection(
             deadline = post.taskDetails.deadline,
             teamCompositionLabel = null,
             maxScore = post.taskDetails.maxScore,
+            selfAssessmentInfo = selfAssessmentInfo,
         )
         Spacer(modifier = Modifier.height(16.dp))
         PostTaskScoreLine(
@@ -183,6 +190,7 @@ internal fun PostScreenTeamTaskSection(
     modifier: Modifier = Modifier,
     onAttachmentDownload: (fileId: UUID) -> Unit = {},
 ) {
+    val selfAssessmentInfo = post.selfAssessmentPostInfo()
     Column(modifier = modifier) {
         PostHeaderUserCourseCard(
             title = post.title,
@@ -196,6 +204,7 @@ internal fun PostScreenTeamTaskSection(
             teamCompositionLabel = teamCompositionRulesLabel(post),
             maxScore = post.taskDetails.maxScore,
             extraDetails = teamTaskFlagsDetails(post),
+            selfAssessmentInfo = selfAssessmentInfo,
         )
         Spacer(modifier = Modifier.height(16.dp))
         PostTaskScoreLine(
@@ -279,6 +288,7 @@ private fun PostHeaderDetailsCollapsible(
     teamCompositionLabel: String?,
     maxScore: Int?,
     extraDetails: List<String> = emptyList(),
+    selfAssessmentInfo: SelfAssessmentPostInfo? = null,
     modifier: Modifier = Modifier,
 ) {
     var expanded: Boolean by rememberSaveable { mutableStateOf(false) }
@@ -381,6 +391,20 @@ private fun PostHeaderDetailsCollapsible(
                             color = detailColor,
                         )
                     }
+                    if (selfAssessmentInfo != null) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                        selfAssessmentInfo.detailLines(formatter).forEach { line ->
+                            Text(
+                                text = line,
+                                modifier = Modifier.testTag("post_self_assessment_detail"),
+                                style = detailTextStyle,
+                                color = detailColor,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -453,6 +477,48 @@ internal fun PostFileAttachmentCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
             )
+        }
+    }
+}
+
+@Composable
+internal fun PostSelfAssessmentEntry(
+    info: SelfAssessmentPostInfo,
+    hasSolution: Boolean,
+    isTeamTask: Boolean,
+    isSolutionChecked: Boolean,
+    onOpenSelfAssessment: () -> Unit,
+    buttonLabel: String = "Самооценка по критериям",
+    modifier: Modifier = Modifier,
+) {
+    if (!info.isConfigured) return
+    val blockMessage =
+        info.navigationBlockMessage(
+            hasSolution = hasSolution,
+            isTeamTask = isTeamTask,
+            isSolutionChecked = isSolutionChecked,
+        )
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        if (blockMessage != null) {
+            Text(
+                text = blockMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("post_self_assessment_blocked_hint"),
+            )
+        } else {
+            OutlinedButton(
+                onClick = onOpenSelfAssessment,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .testTag("post_open_self_assessment_button"),
+            ) {
+                Text(buttonLabel)
+            }
         }
     }
 }

@@ -15,7 +15,9 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.EvaluationDto
 import com.stuf.data.model.FileDto
+import com.stuf.data.model.GradeBreakdownDto
 import com.stuf.data.model.SolutionStatus
 
 import com.squareup.moshi.Json
@@ -30,6 +32,9 @@ import com.squareup.moshi.JsonClass
  * @param text 
  * @param files 
  * @param score 
+ * @param selfAssessment 
+ * @param teacherEvaluation 
+ * @param breakdown 
  */
 
 
@@ -51,7 +56,16 @@ data class StudentSolutionDetailsDto (
     val files: kotlin.collections.List<FileDto>? = null,
 
     @Json(name = "score")
-    val score: kotlin.Int? = null
+    val score: kotlin.Int? = null,
+
+    @Json(name = "selfAssessment")
+    val selfAssessment: EvaluationDto? = null,
+
+    @Json(name = "teacherEvaluation")
+    val teacherEvaluation: EvaluationDto? = null,
+
+    @Json(name = "breakdown")
+    val breakdown: GradeBreakdownDto? = null
 
 ) {
 

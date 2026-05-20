@@ -28,60 +28,69 @@ internal fun CourseCourseTabContent(
     onPostClick: (PostId) -> Unit,
     onHeaderClick: () -> Unit = {},
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
+    val onPrimaryMuted = onPrimary.copy(alpha = 0.85f)
+
+    LazyColumn(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .testTag("course_posts_list"),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("course_header_card")
-                .clickable(onClick = onHeaderClick),
-            colors = CardDefaults.cardColors(),
-            elevation = CardDefaults.cardElevation(),
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+        item(key = "course_header") {
+            Card(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .testTag("course_header_card")
+                        .clickable(onClick = onHeaderClick),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = onPrimary,
+                    ),
+                elevation = CardDefaults.cardElevation(),
             ) {
-                Text(
-                    text = state.courseTitle,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.testTag("course_title"),
-                )
-                state.inviteCode?.let { code ->
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     Text(
-                        text = "Код: $code",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.testTag("course_invite_code"),
+                        text = state.courseTitle,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = onPrimary,
+                        modifier = Modifier.testTag("course_title"),
                     )
-                }
-                state.currentUserRole?.let { role ->
-                    val roleLabel: String = when (role) {
-                        CourseRole.TEACHER -> "Учитель"
-                        CourseRole.STUDENT -> "Ученик"
+                    state.inviteCode?.let { code ->
+                        Text(
+                            text = "Код: $code",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = onPrimaryMuted,
+                            modifier = Modifier.testTag("course_invite_code"),
+                        )
                     }
-                    Text(
-                        text = roleLabel,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.testTag("course_user_role"),
-                    )
+                    state.currentUserRole?.let { role ->
+                        val roleLabel: String =
+                            when (role) {
+                                CourseRole.TEACHER -> "Учитель"
+                                CourseRole.STUDENT -> "Ученик"
+                            }
+                        Text(
+                            text = roleLabel,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = onPrimaryMuted,
+                            modifier = Modifier.testTag("course_user_role"),
+                        )
+                    }
                 }
             }
         }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("course_posts_list"),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(state.posts) { post: Post ->
-                CourseFeedPostItem(
-                    post = post,
-                    onPostClick = onPostClick,
-                )
-            }
+        items(state.posts, key = { it.id.value }) { post: Post ->
+            CourseFeedPostItem(
+                post = post,
+                onPostClick = onPostClick,
+            )
         }
     }
 }

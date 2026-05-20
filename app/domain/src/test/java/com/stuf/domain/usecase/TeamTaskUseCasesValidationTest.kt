@@ -83,6 +83,7 @@ class TeamTaskUseCasesValidationTest {
                 override suspend fun joinTeam(teamId: TeamId) = error("unused")
                 override suspend fun leaveTeam(teamId: TeamId) = error("unused")
                 override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId) = error("unused")
+                override suspend fun voteCaptain(teamId: TeamId, candidateId: UserId) = error("unused")
                 override suspend fun isCaptain(teamId: TeamId) = DomainResult.Success(true)
             }
 
@@ -145,6 +146,7 @@ class TeamTaskUseCasesValidationTest {
                 override suspend fun joinTeam(teamId: TeamId) = error("unused")
                 override suspend fun leaveTeam(teamId: TeamId) = error("unused")
                 override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId) = error("unused")
+                override suspend fun voteCaptain(teamId: TeamId, candidateId: UserId) = error("unused")
                 override suspend fun isCaptain(teamId: TeamId) = DomainResult.Success(false)
             }
 
@@ -169,6 +171,7 @@ class TeamTaskUseCasesValidationTest {
                 override suspend fun joinTeam(teamId: TeamId) = error("unused")
                 override suspend fun leaveTeam(teamId: TeamId) = error("unused")
                 override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId) = error("unused")
+                override suspend fun voteCaptain(teamId: TeamId, candidateId: UserId) = error("unused")
                 override suspend fun isCaptain(teamId: TeamId) = DomainResult.Success(false)
             }
 
@@ -179,9 +182,22 @@ class TeamTaskUseCasesValidationTest {
                     taskId: TaskId,
                     text: String?,
                     fileIds: List<String>,
+                    selfAssessment: com.stuf.grading.domain.model.SelfAssessmentDraft?,
                 ) = error("unused")
 
                 override suspend fun deleteTeamSolution(taskId: TaskId) = error("unused")
+
+                override suspend fun submitSelfAssessment(
+                    taskId: TaskId,
+                    draft: com.stuf.grading.domain.model.SelfAssessmentDraft,
+                ) = error("unused")
+
+                override suspend fun deleteSelfAssessment(taskId: TaskId) = error("unused")
+
+                override suspend fun previewTeamGrade(
+                    solutionId: com.stuf.domain.model.SolutionId,
+                    draft: com.stuf.grading.domain.model.SelfAssessmentDraft,
+                ) = error("unused")
             }
 
         val useCase: SubmitTeamTaskSolution = SubmitTeamTaskSolutionUseCase(solRepo, teamRepo)
@@ -202,6 +218,7 @@ class TeamTaskUseCasesValidationTest {
                 override suspend fun joinTeam(teamId: TeamId) = error("unused")
                 override suspend fun leaveTeam(teamId: TeamId) = error("unused")
                 override suspend fun transferCaptain(teamId: TeamId, toUserId: UserId) = error("unused")
+                override suspend fun voteCaptain(teamId: TeamId, candidateId: UserId) = error("unused")
                 override suspend fun isCaptain(teamId: TeamId) = DomainResult.Success(true)
             }
 
@@ -212,9 +229,22 @@ class TeamTaskUseCasesValidationTest {
                     taskId: TaskId,
                     text: String?,
                     fileIds: List<String>,
+                    selfAssessment: com.stuf.grading.domain.model.SelfAssessmentDraft?,
                 ) = error("unused")
 
                 override suspend fun deleteTeamSolution(taskId: TaskId) = error("unused")
+
+                override suspend fun submitSelfAssessment(
+                    taskId: TaskId,
+                    draft: com.stuf.grading.domain.model.SelfAssessmentDraft,
+                ) = error("unused")
+
+                override suspend fun deleteSelfAssessment(taskId: TaskId) = error("unused")
+
+                override suspend fun previewTeamGrade(
+                    solutionId: com.stuf.domain.model.SolutionId,
+                    draft: com.stuf.grading.domain.model.SelfAssessmentDraft,
+                ) = error("unused")
             }
 
         val useCase: SubmitTeamTaskSolution = SubmitTeamTaskSolutionUseCase(solRepo, teamRepo)

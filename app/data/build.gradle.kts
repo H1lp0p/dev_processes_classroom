@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "API_BASE_URL", "\"http://37.21.130.4:5000\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://176.209.147.7:5000\"")
     }
 
     flavorDimensions += "backend"
@@ -59,6 +59,7 @@ android {
 dependencies {
     // api: Hilt @Binds use domain interfaces as return types; consumers need them on compile/KSP classpath
     api(project(":app:domain"))
+    implementation(project(":app:grading-domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -83,7 +84,7 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api_v4.json")
+    inputSpec.set("$projectDir/classroom_api_v6.json")
 
     outputDir.set("$projectDir")
 

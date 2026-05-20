@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/app/data" />
             <option value="$PROJECT_DIR$/app/domain" />
+            <option value="$PROJECT_DIR$/app/grading-domain" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -10,8 +10,11 @@ import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.TaskId
 import com.stuf.domain.model.Team
 import com.stuf.domain.model.TeamId
+import com.stuf.domain.model.GradeBreakdown
 import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
+import com.stuf.grading.domain.model.SelfAssessmentDraft
+import com.stuf.grading.domain.preview.RubricPreviewEngine
 import com.stuf.domain.repository.CurrentUserRepository
 import com.stuf.domain.repository.GradeDistributionRepository
 import com.stuf.domain.repository.TeamRepository
@@ -49,6 +52,7 @@ class DemoTeamRepository @Inject constructor(
 @Singleton
 class DemoTeamSolutionRepository @Inject constructor(
     private val store: DemoDataStore,
+    private val currentUserRepository: CurrentUserRepository,
 ) : TeamSolutionRepository {
 
     override suspend fun getTeamSolution(taskId: TaskId): DomainResult<TeamTaskSolution?> =
@@ -58,11 +62,64 @@ class DemoTeamSolutionRepository @Inject constructor(
         taskId: TaskId,
         text: String?,
         fileIds: List<String>,
+        selfAssessment: SelfAssessmentDraft?,
     ): DomainResult<SolutionId> =
         store.demoSubmitTeamSolution(taskId, text, fileIds)
 
     override suspend fun deleteTeamSolution(taskId: TaskId): DomainResult<Unit> =
         DomainResult.Success(Unit)
+
+    override suspend fun submitSelfAssessment(
+        taskId: TaskId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<Unit> {
+        val userId =
+            when (val u = currentUserRepository.getCurrentUser()) {
+                is DomainResult.Success -> u.value.id
+                is DomainResult.Failure ->
+                    return DomainResult.Failure(DomainError.Validation("Не удалось определить пользователя"))
+            }
+        return store.demoSubmitSelfAssessment(taskId, userId, draft)
+    }
+
+    override suspend fun deleteSelfAssessment(taskId: TaskId): DomainResult<Unit> {
+        val userId =
+            when (val u = currentUserRepository.getCurrentUser()) {
+                is DomainResult.Success -> u.value.id
+                is DomainResult.Failure ->
+                    return DomainResult.Failure(DomainError.Validation("Не удалось определить пользователя"))
+            }
+        return store.demoDeleteSelfAssessment(taskId, userId)
+    }
+
+    override suspend fun previewTeamGrade(
+        solutionId: SolutionId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<GradeBreakdown> {
+        val taskId =
+            store.findTaskIdBySolutionId(solutionId)
+                ?: return DomainResult.Failure(DomainError.NotFound)
+        val rubric =
+            store.findGradingRubric(taskId)
+                ?: return DomainResult.Failure(DomainError.Validation("Рубрика не найдена"))
+        val preview = RubricPreviewEngine.preview(rubric, draft)
+        val weightedSum = preview.weightedContributions.sumOf { it.contribution }
+        return DomainResult.Success(
+            GradeBreakdown(
+                baseTeacherScore = weightedSum,
+                baseStudentScore = weightedSum,
+                baseScore = preview.scoreAfterModifiers,
+                afterQualityCoefficient = preview.scoreAfterModifiers,
+                latePenalty = 0.0,
+                afterLatePenalty = preview.scoreAfterModifiers,
+                afterBlocking = preview.scoreAfterBlocking,
+                finalScore = preview.finalScore,
+                expiredDays = 0,
+                thresholdApplied = preview.zeroedByFailThreshold || preview.boostedToMaxBySuccessThreshold,
+                thresholdReason = null,
+            ),
+        )
+    }
 }
 
 @Singleton
