@@ -24,6 +24,7 @@ import com.stuf.classroom.post.PostRoute
 import com.stuf.classroom.profile.ChangePasswordRoute
 import com.stuf.classroom.profile.EditProfileRoute
 import com.stuf.classroom.profile.ProfileRoute
+import com.stuf.classroom.selfassessment.SelfAssessmentRoute
 import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.UserCourse
@@ -117,6 +118,19 @@ fun ClassroomNavHost(
                 ),
         ) { backStackEntry ->
             GradeDistributionRoute(
+                navController = navController,
+                backStackEntry = backStackEntry,
+            )
+        }
+        composable(
+            route = ClassroomRoutes.SELF_ASSESSMENT,
+            arguments =
+                listOf(
+                    navArgument("postId") { type = NavType.StringType },
+                    navArgument("role") { type = NavType.StringType },
+                ),
+        ) { backStackEntry ->
+            SelfAssessmentRoute(
                 navController = navController,
                 backStackEntry = backStackEntry,
             )

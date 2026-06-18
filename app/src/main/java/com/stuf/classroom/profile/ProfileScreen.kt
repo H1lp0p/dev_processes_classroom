@@ -73,33 +73,46 @@ fun ProfileScreen(
                     }
                 }
                 else -> {
-                    Text(
-                        text = state.user?.credentials ?: "—",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = state.user?.email ?: "—",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    OutlinedButton(
-                        onClick = onEditProfile,
-                        modifier = Modifier.fillMaxWidth(),
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
                     ) {
-                        Text("Редактировать профиль")
-                    }
-                    Button(
-                        onClick = onChangePassword,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Сменить пароль")
-                    }
-                    OutlinedButton(
-                        onClick = onLogout,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Выйти")
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Text(
+                                text = state.user?.credentials ?: "—",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = state.user?.email ?: "—",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = onEditProfile,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text("Редактировать профиль")
+                            }
+                            Button(
+                                onClick = onChangePassword,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text("Сменить пароль")
+                            }
+                            OutlinedButton(
+                                onClick = onLogout,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text("Выйти")
+                            }
+                        }
                     }
                 }
             }

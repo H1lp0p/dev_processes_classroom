@@ -44,6 +44,19 @@ private class FakeReviewSolutionRepository : SolutionRepository {
         lastReviewArgs = Pair(solutionId, review)
         return DomainResult.Success(Unit)
     }
+
+    override suspend fun submitSelfAssessment(
+        taskId: com.stuf.domain.model.TaskId,
+        draft: com.stuf.grading.domain.model.SelfAssessmentDraft,
+    ): DomainResult<Unit> = error("Not needed in this fake")
+
+    override suspend fun deleteSelfAssessment(taskId: com.stuf.domain.model.TaskId): DomainResult<Unit> =
+        error("Not needed in this fake")
+
+    override suspend fun previewGrade(
+        solutionId: SolutionId,
+        draft: com.stuf.grading.domain.model.SelfAssessmentDraft,
+    ): DomainResult<com.stuf.domain.model.GradeBreakdown> = error("Not needed in this fake")
 }
 
 class ReviewSolutionUseCaseTest {

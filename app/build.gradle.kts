@@ -59,6 +59,7 @@ android {
 dependencies {
     implementation(project(":app:data"))
     implementation(project(":app:domain"))
+    implementation(project(":app:grading-domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

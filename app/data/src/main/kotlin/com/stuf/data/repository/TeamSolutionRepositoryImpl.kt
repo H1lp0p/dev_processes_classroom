@@ -5,13 +5,19 @@ import com.stuf.data.api.TeamSolutionApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.data.model.ApiResponseType
 import com.stuf.data.model.SubmitTeamSolutionRequestDto
+import com.stuf.data.repository.mappers.toDomain
+import com.stuf.data.repository.mappers.toEvaluationDto
+import com.stuf.data.repository.mappers.toGradePreviewRequestDto
+import com.stuf.data.repository.mappers.toSubmitSelfAssessmentDto
 import com.stuf.data.repository.mappers.toTeamTaskSolution
 import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
+import com.stuf.domain.model.GradeBreakdown
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.TaskId
 import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.repository.TeamSolutionRepository
+import com.stuf.grading.domain.model.SelfAssessmentDraft
 import org.json.JSONObject
 import retrofit2.Response
 import java.io.IOException
@@ -70,11 +76,13 @@ class TeamSolutionRepositoryImpl @Inject constructor(
         taskId: TaskId,
         text: String?,
         fileIds: List<String>,
+        selfAssessment: SelfAssessmentDraft?,
     ): DomainResult<SolutionId> {
         val dto =
             SubmitTeamSolutionRequestDto(
                 text = text,
                 files = fileIds.map { UUID.fromString(it) },
+                selfAssessment = selfAssessment?.toEvaluationDto(),
             )
         val response =
             safeCall { api.apiTeamTaskTaskIdSolutionPut(taskId.value, dto) }
@@ -105,6 +113,65 @@ class TeamSolutionRepositoryImpl @Inject constructor(
             is DomainResult.Failure -> response
         }
     }
+
+    override suspend fun submitSelfAssessment(
+        taskId: TaskId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<Unit> {
+        val response =
+            safeCall {
+                api.apiTeamTaskTaskIdSelfAssessmentPut(
+                    taskId.value,
+                    draft.toSubmitSelfAssessmentDto(),
+                )
+            }
+        return mapIdResponse(response, "Не удалось сохранить самооценку")
+    }
+
+    override suspend fun deleteSelfAssessment(taskId: TaskId): DomainResult<Unit> {
+        val response = safeCall { api.apiTeamTaskTaskIdSelfAssessmentDelete(taskId.value) }
+        return mapIdResponse(response, "Не удалось удалить самооценку")
+    }
+
+    override suspend fun previewTeamGrade(
+        solutionId: SolutionId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<GradeBreakdown> {
+        val response =
+            safeCall {
+                api.apiTeamSolutionSolutionIdPreviewPost(
+                    solutionId.value,
+                    draft.toGradePreviewRequestDto(),
+                )
+            }
+        return when (response) {
+            is DomainResult.Success -> {
+                val body = response.value
+                if (body.type != ApiResponseType.success || body.data == null) {
+                    DomainResult.Failure(DomainError.Validation(body.message ?: "Preview failed"))
+                } else {
+                    DomainResult.Success(body.data.toDomain())
+                }
+            }
+            is DomainResult.Failure -> response
+        }
+    }
+
+    private fun mapIdResponse(
+        response: DomainResult<com.stuf.data.model.IdRequestDtoApiResponse>,
+        errorMessage: String,
+    ): DomainResult<Unit> =
+        when (response) {
+            is DomainResult.Success -> {
+                val body = response.value
+                if (body.type != ApiResponseType.success) {
+                    DomainResult.Failure(DomainError.Validation(body.message ?: errorMessage))
+                } else {
+                    DomainResult.Success(Unit)
+                }
+            }
+            is DomainResult.Failure -> response
+        }
 
     private suspend fun <T> safeCall(block: suspend () -> Response<T>): DomainResult<T> {
         val response =

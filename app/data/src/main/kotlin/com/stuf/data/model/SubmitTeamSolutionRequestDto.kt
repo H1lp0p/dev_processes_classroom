@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.EvaluationDto
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -24,6 +25,7 @@ import com.squareup.moshi.JsonClass
  *
  * @param text 
  * @param files 
+ * @param selfAssessment 
  */
 
 
@@ -33,7 +35,10 @@ data class SubmitTeamSolutionRequestDto (
     val text: kotlin.String? = null,
 
     @Json(name = "files")
-    val files: kotlin.collections.List<java.util.UUID>? = null
+    val files: kotlin.collections.List<java.util.UUID>? = null,
+
+    @Json(name = "selfAssessment")
+    val selfAssessment: EvaluationDto? = null
 
 ) {
 

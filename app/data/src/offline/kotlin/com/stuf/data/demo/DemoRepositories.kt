@@ -12,8 +12,10 @@ import com.stuf.domain.model.FileInfo
 import com.stuf.domain.model.GradeTable
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostId
+import com.stuf.domain.model.GradeBreakdown
 import com.stuf.domain.model.Review
 import com.stuf.domain.model.Solution
+import com.stuf.grading.domain.model.SelfAssessmentDraft
 import com.stuf.domain.model.SolutionId
 import com.stuf.domain.model.SolutionStatus
 import com.stuf.domain.model.TaskId
@@ -146,6 +148,19 @@ class DemoSolutionRepository @Inject constructor(
         }
         return DomainResult.Success(Unit)
     }
+
+    override suspend fun submitSelfAssessment(
+        taskId: TaskId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<Unit> = store.demoSubmitIndividualSelfAssessment(taskId, draft)
+
+    override suspend fun deleteSelfAssessment(taskId: TaskId): DomainResult<Unit> =
+        store.demoDeleteIndividualSelfAssessment(taskId)
+
+    override suspend fun previewGrade(
+        solutionId: SolutionId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<GradeBreakdown> = store.demoPreviewIndividualGrade(solutionId, draft)
 }
 
 @Singleton

@@ -48,9 +48,13 @@ import androidx.compose.ui.unit.dp
 import com.stuf.classroom.post.components.PostCommentItem
 import com.stuf.classroom.post.components.PostFileAttachmentCard
 import com.stuf.classroom.post.components.PostScreenCommentsDivider
+import com.stuf.classroom.post.components.PostTaskGradingSection
+import com.stuf.classroom.post.components.resolveSavedSelfAssessmentDraft
+import com.stuf.domain.model.SolutionStatus
 import com.stuf.classroom.post.components.PostScreenTaskSection
 import com.stuf.classroom.post.components.PostScreenTopBar
 import com.stuf.domain.model.CommentId
+import com.stuf.domain.model.selfAssessmentPostInfo
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.FileInfo
 import com.stuf.domain.model.PostAttachment
@@ -78,6 +82,7 @@ internal fun IndividualTaskPostScreen(
     onRemovePendingIndividualSolutionFile: (String) -> Unit,
     onRemoveSavedIndividualSolutionFile: (String) -> Unit,
     onDownloadAttachment: (UUID) -> Unit = {},
+    onOpenSelfAssessment: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val ind: IndividualTaskPostState = state.individualTask ?: IndividualTaskPostState()
@@ -182,6 +187,29 @@ internal fun IndividualTaskPostScreen(
                         onRemoveSavedFile = onRemoveSavedIndividualSolutionFile,
                         onDownloadAttachment = onDownloadAttachment,
                     )
+                    val selfAssessmentInfo = post.selfAssessmentPostInfo()
+                    if (selfAssessmentInfo.isConfigured) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PostTaskGradingSection(
+                            rubric = post.gradingRubric,
+                            selfAssessmentInfo = selfAssessmentInfo,
+                            savedSelfAssessmentDraft =
+                                resolveSavedSelfAssessmentDraft(
+                                    isTeamTask = false,
+                                    currentUserId = ind.currentUserId ?: state.currentUserId,
+                                    individualSolution = ind.solution,
+                                    teamSolution = null,
+                                ),
+                            hasSolution = ind.solution != null,
+                            isTeamTask = false,
+                            isSolutionChecked = ind.solution?.status == SolutionStatus.CHECKED,
+                            showGradeDistribution = false,
+                            teamSelfAssessmentSubmittedCount = 0,
+                            teamSelfAssessmentTotalCount = 0,
+                            onOpenSelfAssessment = onOpenSelfAssessment,
+                            onOpenGradeDistribution = {},
+                        )
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }

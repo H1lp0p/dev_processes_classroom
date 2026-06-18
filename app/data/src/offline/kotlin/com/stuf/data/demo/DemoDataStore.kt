@@ -35,7 +35,10 @@ import com.stuf.domain.model.TeamId
 import com.stuf.domain.model.TeamMember
 import com.stuf.domain.model.TeamMemberRole
 import com.stuf.domain.model.TeamTaskSolution
+import com.stuf.domain.model.MemberSelfAssessment
 import com.stuf.domain.common.DomainError
+import com.stuf.grading.domain.model.SelfAssessmentDraft
+import com.stuf.grading.domain.preview.RubricPreviewEngine
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.UserCourse
 import com.stuf.domain.model.UserId
@@ -69,6 +72,7 @@ class DemoDataStore @Inject constructor() {
     private val teamsByAssignment = mutableMapOf<PostId, MutableList<Team>>()
     private val myTeamByAssignment = mutableMapOf<PostId, Team?>()
     private val teamTaskSolutionsByTask = mutableMapOf<TaskId, TeamTaskSolution>()
+    private val selfAssessmentsByTask = mutableMapOf<TaskId, MutableMap<UserId, SelfAssessmentDraft>>()
 
     private data class DemoGradeDistributionBucket(
         var teamRawScore: Double,
@@ -103,14 +107,22 @@ class DemoDataStore @Inject constructor() {
             inviteCode = "CODE7",
             authorId = DemoIds.userStudent,
         )
+        courses[DemoIds.courseMobile] = Course(
+            id = DemoIds.courseMobile,
+            title = "Мобильная разработка",
+            inviteCode = "MOB42",
+            authorId = DemoIds.userTeacher,
+        )
         inviteToCourse["ALG2025"] = DemoIds.courseAlgebra
         inviteToCourse["WEB101"] = DemoIds.courseWeb
         inviteToCourse["CODE7"] = DemoIds.courseTeacherClub
+        inviteToCourse["MOB42"] = DemoIds.courseMobile
 
         userCourses.clear()
         userCourses.add(UserCourse(DemoIds.courseAlgebra, "Алгебра — 9 класс", CourseRole.STUDENT))
         userCourses.add(UserCourse(DemoIds.courseWeb, "Веб-разработка", CourseRole.STUDENT))
         userCourses.add(UserCourse(DemoIds.courseTeacherClub, "Кружок программирования", CourseRole.TEACHER))
+        userCourses.add(UserCourse(DemoIds.courseMobile, "Мобильная разработка", CourseRole.STUDENT))
 
         members.clear()
         members[DemoIds.courseAlgebra] = mutableListOf(
@@ -124,6 +136,14 @@ class DemoDataStore @Inject constructor() {
         members[DemoIds.courseTeacherClub] = mutableListOf(
             member(DemoIds.userStudent, "Вы (преподаватель)", "student@demo.local", CourseRole.TEACHER),
             member(DemoIds.userTeacher, "Ученик для демо", "teacher@demo.local", CourseRole.STUDENT),
+        )
+        members[DemoIds.courseMobile] = mutableListOf(
+            member(DemoIds.userTeacher, "Учитель Иванова", "teacher@demo.local", CourseRole.TEACHER),
+            member(DemoIds.userStudent, "Студент Демо", "student@demo.local", CourseRole.STUDENT),
+            member(DemoIds.userPeerAlex, "Алексей К.", "alex@demo.local", CourseRole.STUDENT),
+            member(DemoIds.userPeerMaria, "Мария С.", "maria@demo.local", CourseRole.STUDENT),
+            member(DemoIds.userPeerOleg, "Олег В.", "oleg@demo.local", CourseRole.STUDENT),
+            member(DemoIds.userPeerAnna, "Анна Л.", "anna@demo.local", CourseRole.STUDENT),
         )
 
         val welcome =
@@ -148,7 +168,7 @@ class DemoDataStore @Inject constructor() {
                         maxScore = 5,
                     ),
                 assignedScore = Score(4),
-            )
+            ).withGradingRubric()
         val materialAlgebra =
             MaterialPost(
                 id = DemoIds.postMaterialAlgebra,
@@ -186,7 +206,7 @@ class DemoDataStore @Inject constructor() {
                 allowLeaveTeam = true,
                 allowStudentTransferCaptain = false,
                 assignedScore = Score(8),
-            )
+            ).withGradingRubric()
         val webLab =
             TaskPost(
                 id = DemoIds.postWebLab,
@@ -196,7 +216,7 @@ class DemoDataStore @Inject constructor() {
                 createdAt = t,
                 taskDetails = TaskDetails(deadline = t.plusDays(14), isMandatory = false, maxScore = 10),
                 assignedScore = Score(9),
-            )
+            ).withGradingRubric()
         val teamWebSprint =
             TeamTaskPost(
                 id = DemoIds.postTeamWebSprint,
@@ -223,7 +243,7 @@ class DemoDataStore @Inject constructor() {
                 allowLeaveTeam = false,
                 allowStudentTransferCaptain = false,
                 assignedScore = Score(7),
-            )
+            ).withGradingRubric()
         val teamWebCaptainDraft =
             TeamTaskPost(
                 id = DemoIds.postTeamWebCaptainDraft,
@@ -248,7 +268,7 @@ class DemoDataStore @Inject constructor() {
                 allowJoinTeam = false,
                 allowLeaveTeam = true,
                 allowStudentTransferCaptain = true,
-            )
+            ).withGradingRubric()
         val teamOverdue =
             TeamTaskPost(
                 id = DemoIds.postTeamOverdue,
@@ -274,7 +294,48 @@ class DemoDataStore @Inject constructor() {
                 allowLeaveTeam = false,
                 allowStudentTransferCaptain = false,
                 assignedScore = Score(5),
+            ).withGradingRubric()
+        val mobileWelcome =
+            AnnouncementPost(
+                id = DemoIds.postMobileWelcome,
+                courseId = DemoIds.courseMobile,
+                title = "Мобильный курс — старт",
+                text = "Демо четвёртого курса: командные задания с разными сценариями самооценки.",
+                createdAt = t.minusHours(3),
             )
+        val mobileLab =
+            TaskPost(
+                id = DemoIds.postMobileLab,
+                courseId = DemoIds.courseMobile,
+                title = "Лабораторная: экран списка",
+                text = "Реализуйте список на Compose.",
+                createdAt = t.minusHours(2),
+                taskDetails = TaskDetails(deadline = t.plusDays(12), isMandatory = true, maxScore = 10),
+            ).withGradingRubric()
+        val teamMobilePartial =
+            TeamTaskPost(
+                id = DemoIds.postTeamMobilePartial,
+                courseId = DemoIds.courseMobile,
+                title = "Командный модуль: часть самооценок сдана",
+                text = "Demo: решение есть; Алексей и Мария уже сдали самооценку, вы — нет.",
+                createdAt = t.minusHours(1),
+                taskDetails = TaskDetails(deadline = t.plusDays(5), isMandatory = true, maxScore = 10),
+                minTeamSize = 2,
+                maxTeamSize = 4,
+                allowJoinTeam = false,
+                allowLeaveTeam = false,
+            ).withGradingRubric()
+        val teamMobileNoSa =
+            TeamTaskPost(
+                id = DemoIds.postTeamMobileNoSa,
+                courseId = DemoIds.courseMobile,
+                title = "Командное задание без самооценки",
+                text = "Demo: studentScoreWeight = 0 — кнопка самооценки не должна вести на форму.",
+                createdAt = t,
+                taskDetails = TaskDetails(deadline = t.plusDays(20), isMandatory = false, maxScore = 10),
+                minTeamSize = 1,
+                maxTeamSize = 3,
+            ).withGradingRubric()
         val clubWelcome =
             AnnouncementPost(
                 id = DemoIds.postClubWelcome,
@@ -288,6 +349,8 @@ class DemoDataStore @Inject constructor() {
         postsByCourse[DemoIds.courseWeb] =
             mutableListOf(webLab, teamWebSprint, teamWebCaptainDraft, teamOverdue)
         postsByCourse[DemoIds.courseTeacherClub] = mutableListOf(clubWelcome)
+        postsByCourse[DemoIds.courseMobile] =
+            mutableListOf(mobileWelcome, mobileLab, teamMobilePartial, teamMobileNoSa)
         listOf(
             welcome,
             homework,
@@ -298,6 +361,10 @@ class DemoDataStore @Inject constructor() {
             teamWebCaptainDraft,
             teamOverdue,
             clubWelcome,
+            mobileWelcome,
+            mobileLab,
+            teamMobilePartial,
+            teamMobileNoSa,
         ).forEach {
             postsById[it.id] = it
         }
@@ -373,6 +440,7 @@ class DemoDataStore @Inject constructor() {
         teamsByAssignment.clear()
         myTeamByAssignment.clear()
         teamTaskSolutionsByTask.clear()
+        selfAssessmentsByTask.clear()
         gradeDistributions.clear()
 
         val teamFull =
@@ -490,6 +558,95 @@ class DemoDataStore @Inject constructor() {
                 votes = mutableMapOf(),
                 distributionChanged = true,
             )
+
+        val mobileTeam =
+            Team(
+                id = DemoIds.teamMobilePartial,
+                name = "Mobile Squad",
+                members =
+                    listOf(
+                        TeamMember(DemoIds.userStudent, "Студент Демо", TeamMemberRole.LEADER),
+                        TeamMember(DemoIds.userPeerAlex, "Алексей К.", TeamMemberRole.MEMBER),
+                        TeamMember(DemoIds.userPeerMaria, "Мария С.", TeamMemberRole.MEMBER),
+                    ),
+            )
+        teamsByAssignment[DemoIds.postTeamMobilePartial] = mutableListOf(mobileTeam)
+        myTeamByAssignment[DemoIds.postTeamMobilePartial] = mobileTeam
+        teamsByAssignment[DemoIds.postTeamMobileNoSa] =
+            mutableListOf(
+                Team(
+                    id = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa21")),
+                    name = "Без самооценки",
+                    members =
+                        listOf(
+                            TeamMember(DemoIds.userPeerOleg, "Олег В.", TeamMemberRole.LEADER),
+                            TeamMember(DemoIds.userPeerAnna, "Анна Л.", TeamMemberRole.MEMBER),
+                        ),
+                ),
+            )
+        myTeamByAssignment[DemoIds.postTeamMobileNoSa] = null
+
+        val mobileTaskId = TaskId(DemoIds.postTeamMobilePartial.value)
+        teamTaskSolutionsByTask[mobileTaskId] =
+            TeamTaskSolution(
+                id = DemoIds.solutionTeamMobilePartial,
+                taskId = mobileTaskId,
+                text = "Решение: навигация и список курсов на Compose.",
+                files = emptyList(),
+                score = null,
+                status = SolutionStatus.PENDING,
+                updatedAt = now,
+                team = mobileTeam,
+                submittedBy = UserRef(DemoIds.userStudent, "Студент Демо"),
+            )
+        val mobileRubric = DemoGradingRubrics.rubricForPost(DemoIds.postTeamMobilePartial.value.toString())
+        val alexDraft = RubricPreviewEngine.defaultDraft(mobileRubric).copy(
+            weightedScores =
+                mobileRubric.criteria
+                    .filterIsInstance<com.stuf.grading.domain.model.CriterionDefinition.Weighted>()
+                    .associate { it.id to it.maxScore * 0.8 },
+        )
+        val mariaDraft = RubricPreviewEngine.defaultDraft(mobileRubric)
+        selfAssessmentsByTask[mobileTaskId] =
+            mutableMapOf(
+                DemoIds.userPeerAlex to alexDraft,
+                DemoIds.userPeerMaria to mariaDraft,
+            )
+    }
+
+    private fun TaskPost.withGradingRubric(): TaskPost {
+        val rubric = DemoGradingRubrics.rubricForPost(id.value.toString())
+        return copy(gradingRubric = rubric.takeIf { it.studentScoreWeight > 0 })
+    }
+
+    private fun TeamTaskPost.withGradingRubric(): TeamTaskPost {
+        val rubric = DemoGradingRubrics.rubricForPost(id.value.toString())
+        return copy(gradingRubric = rubric.takeIf { it.studentScoreWeight > 0 })
+    }
+
+    private fun enrichTeamSolution(solution: TeamTaskSolution): TeamTaskSolution {
+        val byUser = selfAssessmentsByTask[solution.taskId].orEmpty()
+        val assessments =
+            solution.team.members.map { member ->
+                MemberSelfAssessment(
+                    userId = member.userId,
+                    credentials = member.credentials,
+                    evaluation = byUser[member.userId],
+                )
+            }
+        return solution.copy(memberSelfAssessments = assessments)
+    }
+
+    fun findTaskIdBySolutionId(solutionId: SolutionId): TaskId? =
+        teamTaskSolutionsByTask.entries.firstOrNull { it.value.id == solutionId }?.key
+
+    fun findGradingRubric(taskId: TaskId): com.stuf.grading.domain.model.TaskGradingRubric? {
+        val post = postsById[PostId(taskId.value)]
+        return when (post) {
+            is TaskPost -> post.gradingRubric
+            is TeamTaskPost -> post.gradingRubric
+            else -> null
+        }
     }
 
     private fun findTeamSlot(teamId: TeamId): Triple<PostId, Int, Team>? {
@@ -515,8 +672,87 @@ class DemoDataStore @Inject constructor() {
 
     suspend fun getTeamTaskSolution(taskId: TaskId): TeamTaskSolution? =
         mutex.withLock {
-            teamTaskSolutionsByTask[taskId]
+            teamTaskSolutionsByTask[taskId]?.let(::enrichTeamSolution)
         }
+
+    suspend fun demoSubmitSelfAssessment(
+        taskId: TaskId,
+        userId: UserId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<Unit> =
+        mutex.withLock {
+            if (teamTaskSolutionsByTask[taskId] == null) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Сначала команда должна сдать решение"),
+                )
+            }
+            val bucket = selfAssessmentsByTask.getOrPut(taskId) { mutableMapOf() }
+            bucket[userId] = draft
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoDeleteSelfAssessment(taskId: TaskId, userId: UserId): DomainResult<Unit> =
+        mutex.withLock {
+            selfAssessmentsByTask[taskId]?.remove(userId)
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoSubmitIndividualSelfAssessment(
+        taskId: TaskId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<Unit> =
+        mutex.withLock {
+            val sol =
+                solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent }
+                    ?: return@withLock DomainResult.Failure(
+                        DomainError.Validation("Сначала сдайте решение по заданию"),
+                    )
+            if (sol.status == SolutionStatus.CHECKED) {
+                return@withLock DomainResult.Failure(
+                    DomainError.Validation("Решение уже проверено"),
+                )
+            }
+            solutionsByTask[taskId] = sol.copy(selfAssessment = draft)
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoDeleteIndividualSelfAssessment(taskId: TaskId): DomainResult<Unit> =
+        mutex.withLock {
+            val sol =
+                solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent }
+                    ?: return@withLock DomainResult.Failure(DomainError.NotFound)
+            solutionsByTask[taskId] = sol.copy(selfAssessment = null)
+            DomainResult.Success(Unit)
+        }
+
+    suspend fun demoPreviewIndividualGrade(
+        solutionId: SolutionId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<GradeBreakdown> {
+        val taskId =
+            solutionsByTask.entries.find { it.value.id == solutionId }?.key
+                ?: return DomainResult.Failure(DomainError.NotFound)
+        val rubric =
+            findGradingRubric(taskId)
+                ?: return DomainResult.Failure(DomainError.Validation("Рубрика не найдена"))
+        val preview = RubricPreviewEngine.preview(rubric, draft)
+        val weightedSum = preview.weightedContributions.sumOf { it.contribution }
+        return DomainResult.Success(
+            GradeBreakdown(
+                baseTeacherScore = weightedSum,
+                baseStudentScore = weightedSum,
+                baseScore = preview.scoreAfterModifiers,
+                afterQualityCoefficient = preview.scoreAfterModifiers,
+                latePenalty = 0.0,
+                afterLatePenalty = preview.scoreAfterModifiers,
+                afterBlocking = preview.scoreAfterBlocking,
+                finalScore = preview.finalScore,
+                expiredDays = 0,
+                thresholdApplied = preview.zeroedByFailThreshold || preview.boostedToMaxBySuccessThreshold,
+                thresholdReason = null,
+            ),
+        )
+    }
 
     suspend fun demoJoinTeam(teamId: TeamId): DomainResult<Unit> =
         mutex.withLock {

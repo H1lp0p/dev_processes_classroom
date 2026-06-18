@@ -79,6 +79,7 @@ fun PostScreen(
     onVoteCaptain: (TeamId, UserId) -> Unit = { _, _ -> },
     onTransferCaptain: (TeamId, UserId) -> Unit = { _, _ -> },
     onOpenGradeDistribution: () -> Unit = {},
+    onOpenSelfAssessment: () -> Unit = {},
     onDownloadAttachment: (UUID) -> Unit = {},
     onCommentSubmit: (text: String, isPrivate: Boolean, parentCommentId: CommentId?) -> Unit,
     onEditComment: (commentId: CommentId, text: String, isPrivate: Boolean) -> Unit = { _, _, _ -> },
@@ -137,6 +138,7 @@ fun PostScreen(
                     onRemovePendingTeamSolutionFile = onRemovePendingTeamSolutionFile,
                     onRemoveSavedTeamSolutionFile = onRemoveSavedTeamSolutionFile,
                     onOpenGradeDistribution = onOpenGradeDistribution,
+                    onOpenSelfAssessment = onOpenSelfAssessment,
                     onDownloadAttachment = onDownloadAttachment,
                 )
             }
@@ -164,6 +166,7 @@ fun PostScreen(
                     onRemovePendingIndividualSolutionFile = onRemovePendingIndividualSolutionFile,
                     onRemoveSavedIndividualSolutionFile = onRemoveSavedIndividualSolutionFile,
                     onDownloadAttachment = onDownloadAttachment,
+                    onOpenSelfAssessment = onOpenSelfAssessment,
                 )
             }
             else -> {

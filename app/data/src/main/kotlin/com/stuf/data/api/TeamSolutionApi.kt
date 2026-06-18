@@ -6,14 +6,33 @@ import retrofit2.Response
 import okhttp3.RequestBody
 import com.squareup.moshi.Json
 
+import com.stuf.data.model.GradeBreakdownDtoApiResponse
+import com.stuf.data.model.GradePreviewRequestDto
 import com.stuf.data.model.IdRequestDtoApiResponse
 import com.stuf.data.model.SolutionStatus
 import com.stuf.data.model.StudentTeamSolutionDetailsDtoApiResponse
+import com.stuf.data.model.SubmitSelfAssessmentDto
 import com.stuf.data.model.SubmitTeamSolutionRequestDto
 import com.stuf.data.model.TeamSolutionListDtoApiResponse
 import com.stuf.data.model.UpdateTeamSolutionRequestDto
 
 interface TeamSolutionApi {
+    /**
+     * POST api/team-solution/{solutionId}/preview
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param solutionId 
+     * @param gradePreviewRequestDto  (optional)
+     * @return [GradeBreakdownDtoApiResponse]
+     */
+    @POST("api/team-solution/{solutionId}/preview")
+    suspend fun apiTeamSolutionSolutionIdPreviewPost(@Path("solutionId") solutionId: java.util.UUID, @Body gradePreviewRequestDto: GradePreviewRequestDto? = null): Response<GradeBreakdownDtoApiResponse>
+
     /**
      * POST api/team-solution/{solutionId}/review
      * 
@@ -29,6 +48,37 @@ interface TeamSolutionApi {
      */
     @POST("api/team-solution/{solutionId}/review")
     suspend fun apiTeamSolutionSolutionIdReviewPost(@Path("solutionId") solutionId: java.util.UUID, @Body updateTeamSolutionRequestDto: UpdateTeamSolutionRequestDto? = null): Response<IdRequestDtoApiResponse>
+
+    /**
+     * DELETE api/team-task/{taskId}/self-assessment
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param taskId 
+     * @return [IdRequestDtoApiResponse]
+     */
+    @DELETE("api/team-task/{taskId}/self-assessment")
+    suspend fun apiTeamTaskTaskIdSelfAssessmentDelete(@Path("taskId") taskId: java.util.UUID): Response<IdRequestDtoApiResponse>
+
+    /**
+     * PUT api/team-task/{taskId}/self-assessment
+     * 
+     * 
+     * Responses:
+     *  - 200: OK
+     *  - 401: Unauthorized
+     *  - 403: Forbidden
+     *
+     * @param taskId 
+     * @param submitSelfAssessmentDto  (optional)
+     * @return [IdRequestDtoApiResponse]
+     */
+    @PUT("api/team-task/{taskId}/self-assessment")
+    suspend fun apiTeamTaskTaskIdSelfAssessmentPut(@Path("taskId") taskId: java.util.UUID, @Body submitSelfAssessmentDto: SubmitSelfAssessmentDto? = null): Response<IdRequestDtoApiResponse>
 
     /**
      * DELETE api/team-task/{taskId}/solution

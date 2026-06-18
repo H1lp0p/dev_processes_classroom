@@ -1,0 +1,29 @@
+{
+  "courseTitle": "Курс: тест самооценки",
+  "taskTitle": "Тестовое задание с самооценкой",
+  "taskText": "Задание для проверки экрана самооценки в приложении. Срок сдачи и срок самооценки совпадают.",
+  "registerDisplayName": "Пользователь Example",
+  "criteria": [
+    {
+      "type": "weighted",
+      "title": "Правильность решения",
+      "orderIndex": 0,
+      "maxScore": 5.0,
+      "weight": 0.65
+    },
+    {
+      "type": "weighted",
+      "title": "Пояснение хода решения",
+      "orderIndex": 1,
+      "maxScore": 3.0,
+      "weight": 0.35
+    },
+    {
+      "type": "bonusPenalty",
+      "title": "Дополнительный способ решения",
+      "orderIndex": 2,
+      "score": 0.5,
+      "direction": "add"
+    }
+  ]
+}

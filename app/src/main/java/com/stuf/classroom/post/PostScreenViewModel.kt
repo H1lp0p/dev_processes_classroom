@@ -91,6 +91,10 @@ class PostScreenViewModel @Inject constructor(
     @MainDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
+    companion object {
+        const val REFRESH_TASK_SECTION_KEY = "refresh_post_task_section"
+    }
+
     private val currentUserRole: CourseRole? =
         when (savedStateHandle.get<String>("role")?.lowercase()) {
             "teacher" -> CourseRole.TEACHER
@@ -119,6 +123,17 @@ class PostScreenViewModel @Inject constructor(
         viewModelScope.launch(dispatcher) {
             val url = buildFileDownloadUrl(apiBaseUrl, fileId)
             _attachmentDownloadEvents.emit(AttachmentDownloadUiEvent.OpenUrl(url))
+        }
+    }
+
+    /** Перезагрузка решения / самооценки после возврата с экрана самооценки. */
+    fun refreshTaskSection() {
+        viewModelScope.launch(dispatcher) {
+            when (val content = _uiState.value.content) {
+                is PostScreenContent.TeamTask -> loadTeamTaskSection(content.post)
+                is PostScreenContent.Task -> loadIndividualTaskSection(content.post)
+                else -> Unit
+            }
         }
     }
 

@@ -15,6 +15,7 @@
 
 package com.stuf.data.model
 
+import com.stuf.data.model.EvaluationDto
 import com.stuf.data.model.SolutionStatus
 
 import com.squareup.moshi.Json
@@ -26,6 +27,7 @@ import com.squareup.moshi.JsonClass
  * @param status 
  * @param score 
  * @param comment 
+ * @param evaluation 
  */
 
 
@@ -38,7 +40,10 @@ data class UpdateSolutionRequestDto (
     val score: kotlin.Int? = null,
 
     @Json(name = "comment")
-    val comment: kotlin.String? = null
+    val comment: kotlin.String? = null,
+
+    @Json(name = "evaluation")
+    val evaluation: EvaluationDto? = null
 
 ) {
 

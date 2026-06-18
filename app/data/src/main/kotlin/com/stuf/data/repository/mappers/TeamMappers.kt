@@ -22,6 +22,7 @@ import com.stuf.domain.model.TeamMemberRole
 import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
 import com.stuf.domain.model.UserRef
+import com.stuf.data.repository.mappers.toDomain
 
 internal fun TeamDto.toDomain(): Team =
     Team(
@@ -61,6 +62,8 @@ internal fun StudentTeamSolutionDetailsDto.toTeamTaskSolution(taskId: TaskId): T
                 id = UserId(submittedBy.id),
                 credentials = submittedBy.credentials,
             ),
+        memberSelfAssessments = selfAssessments.orEmpty().map { it.toDomain() },
+        gradeBreakdown = breakdown?.toDomain(),
     )
 }
 

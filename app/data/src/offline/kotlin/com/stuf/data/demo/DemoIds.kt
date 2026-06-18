@@ -15,6 +15,8 @@ internal object DemoIds {
     val courseWeb: CourseId = CourseId(UUID.fromString("22222222-2222-2222-2222-222222222202"))
     /** Курс, где демо-пользователь — преподаватель. */
     val courseTeacherClub: CourseId = CourseId(UUID.fromString("66666666-6666-6666-6666-666666666601"))
+    /** Четвёртый курс демо: мобильная разработка. */
+    val courseMobile: CourseId = CourseId(UUID.fromString("88888888-8888-8888-8888-888888888801"))
 
     val postWelcome: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333301"))
     val postHomework: PostId = PostId(UUID.fromString("33333333-3333-3333-3333-333333333302"))
@@ -28,6 +30,12 @@ internal object DemoIds {
     val postTeamOverdue: PostId = PostId(UUID.fromString("44444444-4444-4444-4444-444444444406"))
     val postWebLab: PostId = PostId(UUID.fromString("44444444-4444-4444-4444-444444444403"))
     val postClubWelcome: PostId = PostId(UUID.fromString("77777777-7777-7777-7777-777777777701"))
+    /** Командное задание: часть команды уже сдала самооценку. */
+    val postTeamMobilePartial: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888802"))
+    /** Командное задание без самооценки (studentScoreWeight = 0). */
+    val postTeamMobileNoSa: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888803"))
+    val postMobileLab: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888804"))
+    val postMobileWelcome: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888805"))
 
     val solutionHomework: SolutionId = SolutionId(UUID.fromString("55555555-5555-5555-5555-555555555501"))
 
@@ -51,4 +59,8 @@ internal object DemoIds {
     val teamWebUiCrew: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa10"))
     val teamWebCaptainSolo: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa11"))
     val teamWebOverdue: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa12"))
+    val teamMobilePartial: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa20"))
+
+    val solutionTeamMobilePartial: SolutionId =
+        SolutionId(UUID.fromString("99999999-9999-9999-9999-999999999920"))
 }

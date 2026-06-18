@@ -19,6 +19,7 @@ object ClassroomRoutes {
     const val COURSE = "course/{courseId}/{role}"
     const val POST = "post/{postId}/{role}"
     const val GRADE_DISTRIBUTION = "gradeDistribution/{teamId}/{postId}/{role}"
+    const val SELF_ASSESSMENT = "selfAssessment/{postId}/{role}"
 
     fun course(courseId: CourseId, role: CourseRole): String =
         "course/${courseId.value}/${role.toNavSegment()}"
@@ -28,4 +29,7 @@ object ClassroomRoutes {
 
     fun gradeDistribution(teamId: TeamId, postId: PostId, role: CourseRole): String =
         "gradeDistribution/${teamId.value}/${postId.value}/${role.toNavSegment()}"
+
+    fun selfAssessment(postId: PostId, role: CourseRole): String =
+        "selfAssessment/${postId.value}/${role.toNavSegment()}"
 }

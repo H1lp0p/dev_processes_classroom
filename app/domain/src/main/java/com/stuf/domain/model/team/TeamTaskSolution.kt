@@ -12,4 +12,6 @@ data class TeamTaskSolution(
     val updatedAt: OffsetDateTime,
     val team: Team,
     val submittedBy: UserRef,
+    val memberSelfAssessments: List<MemberSelfAssessment> = emptyList(),
+    val gradeBreakdown: GradeBreakdown? = null,
 )

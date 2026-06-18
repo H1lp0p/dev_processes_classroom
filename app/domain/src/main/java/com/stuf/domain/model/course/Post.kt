@@ -1,5 +1,6 @@
 package com.stuf.domain.model
 
+import com.stuf.grading.domain.model.TaskGradingRubric
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -50,6 +51,10 @@ data class TaskPost(
     val attachments: List<PostAttachment> = emptyList(),
     /** Оценка по решению пользователя ([PostDetailsDto.userSolution]). */
     val assignedScore: Score? = null,
+    /** Можно сдавать после дедлайна; влияет и на доступность самооценки. */
+    val solvableAfterDeadline: Boolean? = null,
+    /** Рубрика критериального оценивания; null — самооценка отключена. */
+    val gradingRubric: TaskGradingRubric? = null,
 ) : Post()
 
 data class TeamTaskPost(
@@ -72,6 +77,8 @@ data class TeamTaskPost(
     val allowStudentTransferCaptain: Boolean? = null,
     /** Оценка по решению команды ([PostDetailsDto.teamSolution]). */
     val assignedScore: Score? = null,
+    /** Рубрика критериального оценивания; null — самооценка отключена. */
+    val gradingRubric: TaskGradingRubric? = null,
 ) : Post()
 
 enum class TeamCaptainSelectionMode {
