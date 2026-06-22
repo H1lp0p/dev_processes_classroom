@@ -7,6 +7,7 @@ import com.stuf.data.api.CommentApi
 import com.stuf.data.api.CourseApi
 import com.stuf.data.api.FilesApi
 import com.stuf.data.api.GradeDistributionApi
+import com.stuf.data.api.PeerReviewApi
 import com.stuf.data.api.PostApi
 import com.stuf.data.api.SolutionApi
 import com.stuf.data.api.TeamApi
@@ -115,5 +116,11 @@ object NetworkModule {
     fun provideGradeDistributionApi(
         apiClient: ApiClient,
     ): GradeDistributionApi = apiClient.createService(GradeDistributionApi::class.java)
+
+    @Provides
+    @Singleton
+    fun providePeerReviewApi(
+        apiClient: ApiClient,
+    ): PeerReviewApi = apiClient.createService(PeerReviewApi::class.java)
 }
 
