@@ -18,6 +18,7 @@ package com.stuf.data.model
 import com.stuf.data.model.EvaluationDto
 import com.stuf.data.model.FileDto
 import com.stuf.data.model.GradeBreakdownDto
+import com.stuf.data.model.PeerReviewProgressDto
 import com.stuf.data.model.SolutionStatus
 
 import com.squareup.moshi.Json
@@ -35,6 +36,7 @@ import com.squareup.moshi.JsonClass
  * @param selfAssessment 
  * @param teacherEvaluation 
  * @param breakdown 
+ * @param peerReviewProgress 
  */
 
 
@@ -65,7 +67,10 @@ data class StudentSolutionDetailsDto (
     val teacherEvaluation: EvaluationDto? = null,
 
     @Json(name = "breakdown")
-    val breakdown: GradeBreakdownDto? = null
+    val breakdown: GradeBreakdownDto? = null,
+
+    @Json(name = "peerReviewProgress")
+    val peerReviewProgress: PeerReviewProgressDto? = null
 
 ) {
 

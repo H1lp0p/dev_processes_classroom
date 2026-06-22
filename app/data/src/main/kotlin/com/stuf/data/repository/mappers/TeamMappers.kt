@@ -64,6 +64,7 @@ internal fun StudentTeamSolutionDetailsDto.toTeamTaskSolution(taskId: TaskId): T
             ),
         memberSelfAssessments = selfAssessments.orEmpty().map { it.toDomain() },
         gradeBreakdown = breakdown?.toDomain(),
+        peerReviewProgress = peerReviewProgress?.toDomain(),
     )
 }
 

@@ -20,6 +20,7 @@ import com.stuf.classroom.courses.JoinCourseRoute
 import com.stuf.classroom.courses.UserCoursesRoute
 import com.stuf.classroom.courses.UserCoursesViewModel
 import com.stuf.classroom.grade.GradeDistributionRoute
+import com.stuf.classroom.peerreview.PeerReviewRoute
 import com.stuf.classroom.post.PostRoute
 import com.stuf.classroom.profile.ChangePasswordRoute
 import com.stuf.classroom.profile.EditProfileRoute
@@ -131,6 +132,20 @@ fun ClassroomNavHost(
                 ),
         ) { backStackEntry ->
             SelfAssessmentRoute(
+                navController = navController,
+                backStackEntry = backStackEntry,
+            )
+        }
+        composable(
+            route = ClassroomRoutes.PEER_REVIEW,
+            arguments =
+                listOf(
+                    navArgument("postId") { type = NavType.StringType },
+                    navArgument("role") { type = NavType.StringType },
+                    navArgument("teamSolutionId") { type = NavType.StringType },
+                ),
+        ) { backStackEntry ->
+            PeerReviewRoute(
                 navController = navController,
                 backStackEntry = backStackEntry,
             )

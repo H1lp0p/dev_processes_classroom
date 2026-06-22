@@ -183,6 +183,21 @@ fun PostRoute(
                     else -> Unit
                 }
             },
+            onOpenPeerReview = {
+                val st = viewModel.uiState.value
+                when (val c = st.content) {
+                    is PostScreenContent.Task ->
+                        navController.navigate(
+                            ClassroomRoutes.peerReview(c.post.id, st.currentUserRole),
+                        )
+                    is PostScreenContent.TeamTask ->
+                        navController.navigate(
+                            ClassroomRoutes.peerReview(c.post.id, st.currentUserRole),
+                        )
+                    else -> Unit
+                }
+            },
+            onFinishPeerReview = { viewModel.onFinishIndividualPeerReview() },
             onBackClick = { navController.popBackStack() },
         )
 

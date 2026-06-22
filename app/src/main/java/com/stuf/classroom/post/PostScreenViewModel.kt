@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stuf.classroom.di.MainDispatcher
+import com.stuf.domain.common.DomainError
 import com.stuf.domain.common.DomainResult
 import com.stuf.domain.model.Comment
 import com.stuf.domain.model.CommentId
@@ -31,6 +32,7 @@ import com.stuf.domain.usecase.CancelSolution
 import com.stuf.domain.usecase.CancelTeamTaskSolution
 import com.stuf.domain.usecase.DeleteComment
 import com.stuf.domain.usecase.EditComment
+import com.stuf.domain.usecase.FinishIndividualPeerReview
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
@@ -84,6 +86,7 @@ class PostScreenViewModel @Inject constructor(
     private val submitSolution: SubmitSolution,
     private val cancelSolution: CancelSolution,
     private val cancelTeamTaskSolution: CancelTeamTaskSolution,
+    private val finishIndividualPeerReview: FinishIndividualPeerReview,
     private val fileRepository: FileRepository,
     @ApiBaseUrl private val apiBaseUrl: String,
     private val currentUserRepository: CurrentUserRepository,
@@ -133,6 +136,20 @@ class PostScreenViewModel @Inject constructor(
                 is PostScreenContent.TeamTask -> loadTeamTaskSection(content.post)
                 is PostScreenContent.Task -> loadIndividualTaskSection(content.post)
                 else -> Unit
+            }
+        }
+    }
+
+    fun onFinishIndividualPeerReview() {
+        val post = (_uiState.value.content as? PostScreenContent.Task)?.post ?: return
+        viewModelScope.launch(dispatcher) {
+            when (val result = finishIndividualPeerReview(TaskId(post.id.value))) {
+                is DomainResult.Success -> refreshTaskSection()
+                is DomainResult.Failure -> {
+                    _transientEvents.emit(
+                        PostTransientUiEvent.ShowMessage(mapFinishPeerReviewError(result.error)),
+                    )
+                }
             }
         }
     }
@@ -1019,4 +1036,14 @@ class PostScreenViewModel @Inject constructor(
             isOwn = true,
         )
     }
+
+    private fun mapFinishPeerReviewError(error: DomainError): String =
+        when (error) {
+            DomainError.Unauthorized -> "Не авторизован"
+            DomainError.Forbidden -> "Доступ запрещён"
+            DomainError.NotFound -> "Не найдено"
+            is DomainError.Validation -> error.message
+            is DomainError.Network -> "Ошибка сети"
+            is DomainError.Unknown -> error.cause?.message ?: "Не удалось завершить оценивание"
+        }
 }

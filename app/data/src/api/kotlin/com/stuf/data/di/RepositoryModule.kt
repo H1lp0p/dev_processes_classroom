@@ -6,6 +6,7 @@ import com.stuf.data.repository.CourseRepositoryImpl
 import com.stuf.data.repository.CurrentUserRepositoryImpl
 import com.stuf.data.repository.FileRepositoryImpl
 import com.stuf.data.repository.GradeDistributionRepositoryImpl
+import com.stuf.data.repository.PeerReviewRepositoryImpl
 import com.stuf.data.repository.PostRepositoryImpl
 import com.stuf.data.repository.SolutionRepositoryImpl
 import com.stuf.data.repository.TeamRepositoryImpl
@@ -17,6 +18,7 @@ import com.stuf.domain.repository.CurrentUserRepository
 import com.stuf.domain.repository.CourseRepository
 import com.stuf.domain.repository.FileRepository
 import com.stuf.domain.repository.GradeDistributionRepository
+import com.stuf.domain.repository.PeerReviewRepository
 import com.stuf.domain.repository.PerformanceRepository
 import com.stuf.domain.repository.PostRepository
 import com.stuf.domain.repository.SolutionRepository
@@ -85,6 +87,12 @@ abstract class RepositoryModule {
     abstract fun bindGradeDistributionRepository(
         impl: GradeDistributionRepositoryImpl,
     ): GradeDistributionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPeerReviewRepository(
+        impl: PeerReviewRepositoryImpl,
+    ): PeerReviewRepository
 
     @Binds
     @Singleton

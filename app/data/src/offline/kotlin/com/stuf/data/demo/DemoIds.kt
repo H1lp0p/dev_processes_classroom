@@ -36,8 +36,20 @@ internal object DemoIds {
     val postTeamMobileNoSa: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888803"))
     val postMobileLab: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888804"))
     val postMobileWelcome: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888805"))
+    /** Индивидуальное задание в режиме P2P (курс «Мобильная разработка»). */
+    val postMobileP2p: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888806"))
+    /** Командное задание в режиме P2P. */
+    val postTeamMobileP2p: PostId = PostId(UUID.fromString("88888888-8888-8888-8888-888888888807"))
 
     val solutionHomework: SolutionId = SolutionId(UUID.fromString("55555555-5555-5555-5555-555555555501"))
+    val solutionMobileP2p: SolutionId = SolutionId(UUID.fromString("55555555-5555-5555-5555-555555555502"))
+    val solutionPeerAlexP2p: SolutionId = SolutionId(UUID.fromString("55555555-5555-5555-5555-555555555503"))
+    val solutionPeerMariaP2p: SolutionId = SolutionId(UUID.fromString("55555555-5555-5555-5555-555555555504"))
+    val solutionPeerOlegP2p: SolutionId = SolutionId(UUID.fromString("55555555-5555-5555-5555-555555555505"))
+    /** Вложения к демо-решениям однокурсников (P2P individual). */
+    val filePeerAlexP2pPdf: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb501")
+    val filePeerMariaP2pPdf: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb502")
+    val filePeerOlegP2pPdf: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb503")
 
     /** Решение командного задания «Веб-спринт» (приватные комментарии к нему в демо). */
     val solutionTeamWebSprint: SolutionId =
@@ -63,4 +75,15 @@ internal object DemoIds {
 
     val solutionTeamMobilePartial: SolutionId =
         SolutionId(UUID.fromString("99999999-9999-9999-9999-999999999920"))
+
+    val solutionTeamMobileP2pAlpha: SolutionId =
+        SolutionId(UUID.fromString("99999999-9999-9999-9999-999999999921"))
+    val solutionTeamMobileP2pBeta: SolutionId =
+        SolutionId(UUID.fromString("99999999-9999-9999-9999-999999999922"))
+    val solutionTeamMobileP2pGamma: SolutionId =
+        SolutionId(UUID.fromString("99999999-9999-9999-9999-999999999923"))
+
+    val teamMobileP2pAlpha: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa30"))
+    val teamMobileP2pBeta: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa31"))
+    val teamMobileP2pGamma: TeamId = TeamId(UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaa32"))
 }

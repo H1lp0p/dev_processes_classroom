@@ -5,6 +5,7 @@ import com.stuf.data.model.CaptainSelectionMode as ApiCaptainSelectionMode
 import com.stuf.data.model.PostDetailsDto
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
+import com.stuf.data.repository.mappers.toDomain
 import com.stuf.data.repository.mappers.toTaskGradingRubric
 import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.CourseId
@@ -74,6 +75,8 @@ internal fun mapPostDetailsDtoToPost(
                 assignedScore = dto.userSolution?.let { Score(it.score) },
                 solvableAfterDeadline = dto.solvableAfterDeadline,
                 gradingRubric = dto.toTaskGradingRubric(),
+                gradingMode = dto.gradingMode.toDomain(),
+                minPeerReviewsRequired = dto.minPeerReviewsRequired,
             )
         }
         // OpenAPI: teaM_TASK → доменное командное задание ([TeamTaskPost]); см. [ApiPostTypeTeamTask].
@@ -103,6 +106,7 @@ internal fun mapPostDetailsDtoToPost(
                 allowStudentTransferCaptain = dto.allowStudentTransferCaptain,
                 assignedScore = dto.teamSolution?.let { Score(it.score) },
                 gradingRubric = dto.toTaskGradingRubric(),
+                gradingMode = dto.gradingMode.toDomain(),
             )
         }
     }
