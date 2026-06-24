@@ -49,8 +49,12 @@ import com.stuf.classroom.post.components.PostCommentItem
 import com.stuf.classroom.post.components.PostFileAttachmentCard
 import com.stuf.classroom.post.components.PostScreenCommentsDivider
 import com.stuf.classroom.post.components.PostTaskGradingSection
+import com.stuf.classroom.post.components.PostTaskPeerReviewSection
 import com.stuf.classroom.post.components.resolveSavedSelfAssessmentDraft
+import com.stuf.domain.model.GradingMode
 import com.stuf.domain.model.SolutionStatus
+import com.stuf.domain.model.peerReviewPostInfo
+import com.stuf.domain.model.gradingSectionPeerReviewHint
 import com.stuf.classroom.post.components.PostScreenTaskSection
 import com.stuf.classroom.post.components.PostScreenTopBar
 import com.stuf.domain.model.CommentId
@@ -83,6 +87,8 @@ internal fun IndividualTaskPostScreen(
     onRemoveSavedIndividualSolutionFile: (String) -> Unit,
     onDownloadAttachment: (UUID) -> Unit = {},
     onOpenSelfAssessment: () -> Unit = {},
+    onOpenPeerReview: () -> Unit = {},
+    onFinishPeerReview: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val ind: IndividualTaskPostState = state.individualTask ?: IndividualTaskPostState()
@@ -187,8 +193,28 @@ internal fun IndividualTaskPostScreen(
                         onRemoveSavedFile = onRemoveSavedIndividualSolutionFile,
                         onDownloadAttachment = onDownloadAttachment,
                     )
+                    if (post.gradingMode == GradingMode.PEER_TO_PEER) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PostTaskPeerReviewSection(
+                            peerReviewInfo = post.peerReviewPostInfo(),
+                            progress = ind.solution?.peerReviewProgress,
+                            hasSolution = ind.solution != null,
+                            isTeamTask = false,
+                            onOpenPeerReview = onOpenPeerReview,
+                            onFinishPeerReview = onFinishPeerReview,
+                        )
+                    }
                     val selfAssessmentInfo = post.selfAssessmentPostInfo()
-                    if (selfAssessmentInfo.isConfigured) {
+                    val peerReviewInfoForGrading =
+                        if (post.gradingMode == GradingMode.PEER_TO_PEER) {
+                            post.peerReviewPostInfo()
+                        } else {
+                            null
+                        }
+                    if (
+                        selfAssessmentInfo.isConfigured ||
+                            peerReviewInfoForGrading?.gradingSectionPeerReviewHint() != null
+                    ) {
                         Spacer(modifier = Modifier.height(12.dp))
                         PostTaskGradingSection(
                             rubric = post.gradingRubric,
@@ -208,6 +234,7 @@ internal fun IndividualTaskPostScreen(
                             teamSelfAssessmentTotalCount = 0,
                             onOpenSelfAssessment = onOpenSelfAssessment,
                             onOpenGradeDistribution = {},
+                            peerReviewInfo = peerReviewInfoForGrading,
                         )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
@@ -241,6 +268,7 @@ internal fun IndividualTaskPostScreen(
                 item {
                     PostScreenTaskSection(
                         post = post,
+                        peerReviewProgress = ind.solution?.peerReviewProgress,
                         onAttachmentDownload = onDownloadAttachment,
                     )
                 }

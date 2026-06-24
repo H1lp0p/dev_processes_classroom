@@ -20,6 +20,7 @@ object ClassroomRoutes {
     const val POST = "post/{postId}/{role}"
     const val GRADE_DISTRIBUTION = "gradeDistribution/{teamId}/{postId}/{role}"
     const val SELF_ASSESSMENT = "selfAssessment/{postId}/{role}"
+    const val PEER_REVIEW = "peerReview/{postId}/{role}/{teamSolutionId}"
 
     fun course(courseId: CourseId, role: CourseRole): String =
         "course/${courseId.value}/${role.toNavSegment()}"
@@ -32,4 +33,14 @@ object ClassroomRoutes {
 
     fun selfAssessment(postId: PostId, role: CourseRole): String =
         "selfAssessment/${postId.value}/${role.toNavSegment()}"
+
+    fun peerReview(
+        postId: PostId,
+        role: CourseRole,
+        teamSolutionId: String = PeerReviewNavArgs.NO_TEAM_SOLUTION,
+    ): String = "peerReview/${postId.value}/${role.toNavSegment()}/$teamSolutionId"
+}
+
+object PeerReviewNavArgs {
+    const val NO_TEAM_SOLUTION = "_"
 }

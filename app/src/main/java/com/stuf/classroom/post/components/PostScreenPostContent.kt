@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.stuf.classroom.courses.components.UserCourseStyleCard
 import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.MaterialPost
+import com.stuf.domain.model.PeerReviewProgress
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.TaskPost
 import com.stuf.domain.model.SelfAssessmentPostInfo
@@ -55,6 +56,7 @@ import com.stuf.domain.model.TeamCaptainSelectionMode
 import com.stuf.domain.model.navigationBlockMessage
 import com.stuf.domain.model.TeamTaskPost
 import com.stuf.domain.model.detailLines
+import com.stuf.domain.model.peerReviewPostInfo
 import com.stuf.domain.model.selfAssessmentPostInfo
 import com.stuf.domain.model.typeLabelForScreen
 import java.time.OffsetDateTime
@@ -136,9 +138,11 @@ internal fun PostScreenMaterialSection(
 internal fun PostScreenTaskSection(
     post: TaskPost,
     modifier: Modifier = Modifier,
+    peerReviewProgress: PeerReviewProgress? = null,
     onAttachmentDownload: (fileId: UUID) -> Unit = {},
 ) {
     val selfAssessmentInfo = post.selfAssessmentPostInfo()
+    val peerReviewInfo = post.peerReviewPostInfo()
     Column(modifier = modifier) {
         PostHeaderUserCourseCard(
             title = post.title,
@@ -152,6 +156,7 @@ internal fun PostScreenTaskSection(
             teamCompositionLabel = null,
             maxScore = post.taskDetails.maxScore,
             selfAssessmentInfo = selfAssessmentInfo,
+            peerReviewDetailLines = peerReviewInfo.detailLines(peerReviewProgress),
         )
         Spacer(modifier = Modifier.height(16.dp))
         PostTaskScoreLine(
@@ -188,9 +193,11 @@ internal fun PostScreenTaskSection(
 internal fun PostScreenTeamTaskSection(
     post: TeamTaskPost,
     modifier: Modifier = Modifier,
+    peerReviewProgress: PeerReviewProgress? = null,
     onAttachmentDownload: (fileId: UUID) -> Unit = {},
 ) {
     val selfAssessmentInfo = post.selfAssessmentPostInfo()
+    val peerReviewInfo = post.peerReviewPostInfo()
     Column(modifier = modifier) {
         PostHeaderUserCourseCard(
             title = post.title,
@@ -205,6 +212,7 @@ internal fun PostScreenTeamTaskSection(
             maxScore = post.taskDetails.maxScore,
             extraDetails = teamTaskFlagsDetails(post),
             selfAssessmentInfo = selfAssessmentInfo,
+            peerReviewDetailLines = peerReviewInfo.detailLines(peerReviewProgress),
         )
         Spacer(modifier = Modifier.height(16.dp))
         PostTaskScoreLine(
@@ -289,6 +297,7 @@ private fun PostHeaderDetailsCollapsible(
     maxScore: Int?,
     extraDetails: List<String> = emptyList(),
     selfAssessmentInfo: SelfAssessmentPostInfo? = null,
+    peerReviewDetailLines: List<String> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     var expanded: Boolean by rememberSaveable { mutableStateOf(false) }
@@ -400,6 +409,20 @@ private fun PostHeaderDetailsCollapsible(
                             Text(
                                 text = line,
                                 modifier = Modifier.testTag("post_self_assessment_detail"),
+                                style = detailTextStyle,
+                                color = detailColor,
+                            )
+                        }
+                    }
+                    if (peerReviewDetailLines.isNotEmpty()) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                        peerReviewDetailLines.forEach { line ->
+                            Text(
+                                text = line,
+                                modifier = Modifier.testTag("post_peer_review_detail"),
                                 style = detailTextStyle,
                                 color = detailColor,
                             )

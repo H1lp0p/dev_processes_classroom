@@ -18,6 +18,7 @@ package com.stuf.data.model
 import com.stuf.data.model.CaptainSelectionMode
 import com.stuf.data.model.CriterionDto
 import com.stuf.data.model.FileDto
+import com.stuf.data.model.GradingMode
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
 import com.stuf.data.model.TeamSolutionDto
@@ -54,6 +55,8 @@ import com.squareup.moshi.JsonClass
  * @param penaltyPerDay 
  * @param maxDays 
  * @param criteria 
+ * @param gradingMode 
+ * @param minPeerReviewsRequired 
  */
 
 
@@ -132,7 +135,13 @@ data class PostDetailsDto (
     val maxDays: kotlin.Int? = null,
 
     @Json(name = "criteria")
-    val criteria: kotlin.collections.List<CriterionDto>? = null
+    val criteria: kotlin.collections.List<CriterionDto>? = null,
+
+    @Json(name = "gradingMode")
+    val gradingMode: GradingMode? = null,
+
+    @Json(name = "minPeerReviewsRequired")
+    val minPeerReviewsRequired: kotlin.Int? = null
 
 ) {
 

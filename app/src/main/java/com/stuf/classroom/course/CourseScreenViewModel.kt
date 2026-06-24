@@ -197,7 +197,7 @@ class CourseScreenViewModel @Inject constructor(
                 DomainError.NotFound -> "Не найдено"
                 is DomainError.Validation -> error.message
                 is DomainError.Network -> "Ошибка сети"
-                is DomainError.Unknown -> "Неизвестная ошибка"
+                is DomainError.Unknown -> error.cause?.message ?: "Неизвестная ошибка"
             }.also {
                 if (error is DomainError.Forbidden) {
                     Log.e("CourseScreenViewModel", error.toString())

@@ -13,6 +13,7 @@ import com.stuf.data.model.UpdateSolutionRequestDto
 import com.stuf.data.repository.mappers.toDomain
 import com.stuf.data.repository.mappers.toEvaluationDto
 import com.stuf.data.repository.mappers.toGradePreviewRequestDto
+import com.stuf.data.repository.mappers.toDomain
 import com.stuf.data.repository.mappers.toSelfAssessmentDraft
 import com.stuf.domain.model.GradeBreakdown
 import com.stuf.grading.domain.model.SelfAssessmentDraft
@@ -276,6 +277,7 @@ class SolutionRepositoryImpl @Inject constructor(
             status = domainStatus,
             updatedAt = updatedDate,
             selfAssessment = selfAssessment?.toSelfAssessmentDraft(),
+            peerReviewProgress = peerReviewProgress?.toDomain(),
         )
     }
 
