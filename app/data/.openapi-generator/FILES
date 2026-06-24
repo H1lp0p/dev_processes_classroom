@@ -17,9 +17,7 @@ src/main/kotlin/com/stuf/data/infrastructure/ByteArrayAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/CollectionFormats.kt
 src/main/kotlin/com/stuf/data/infrastructure/LocalDateAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/LocalDateTimeAdapter.kt
-src/main/kotlin/com/stuf/data/infrastructure/OffsetDateTimeAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/ResponseExt.kt
-src/main/kotlin/com/stuf/data/infrastructure/Serializer.kt
 src/main/kotlin/com/stuf/data/infrastructure/URIAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/UUIDAdapter.kt
 src/main/kotlin/com/stuf/data/model/AddCommentRequestDto.kt

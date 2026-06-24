@@ -231,11 +231,13 @@ class PostScreenViewModel @Inject constructor(
                         )
                 }
                 is DomainResult.Failure -> {
+                    val cause = (postResult.error as? DomainError.Unknown)?.cause
+                    Log.e("PostScreenViewModel", "Failed to load post", cause)
                     _uiState.value =
                         _uiState.value.copy(
                             isLoadingPost = false,
                             isLoadingComments = false,
-                            postLoadError = "Failed to load post",
+                            postLoadError = cause?.message ?: "Failed to load post",
                             content = null,
                         )
                 }

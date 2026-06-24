@@ -6,6 +6,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 object Serializer {
     @JvmStatic
     val moshiBuilder: Moshi.Builder = Moshi.Builder()
+        .add(OpenApiEnumJsonAdapterFactory())
         .add(OffsetDateTimeAdapter())
         .add(LocalDateTimeAdapter())
         .add(LocalDateAdapter())
