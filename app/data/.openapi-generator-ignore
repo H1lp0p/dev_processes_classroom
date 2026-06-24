@@ -29,3 +29,8 @@
 #docs/*.md
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
+
+# Customized: backend returns local date-time without timezone in feed.
+src/main/kotlin/com/stuf/data/infrastructure/OffsetDateTimeAdapter.kt
+src/main/kotlin/com/stuf/data/infrastructure/OpenApiEnumJsonAdapterFactory.kt
+src/main/kotlin/com/stuf/data/infrastructure/Serializer.kt

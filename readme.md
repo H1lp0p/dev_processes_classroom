@@ -1,5 +1,9 @@
 # Classroom Android
-Android-приложение учебной платформы (аналог Google Classroom).
+Android-приложение. Аналог Google Classroom.
+
+# Простая установка
+- [скачать apk](https://github.com/H1lp0p/dev_processes_classroom/releases/tag/1.0.0)
+- Установить
 
 ## Требования
 - Android Studio (рекомендуется актуальная stable-версия).

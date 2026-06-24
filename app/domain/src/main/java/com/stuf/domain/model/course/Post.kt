@@ -55,6 +55,9 @@ data class TaskPost(
     val solvableAfterDeadline: Boolean? = null,
     /** Рубрика критериального оценивания; null — самооценка отключена. */
     val gradingRubric: TaskGradingRubric? = null,
+    val gradingMode: GradingMode = GradingMode.TEACHER_REVIEW,
+    /** Обязателен при [gradingMode] = [GradingMode.PEER_TO_PEER]. */
+    val minPeerReviewsRequired: Int? = null,
 ) : Post()
 
 data class TeamTaskPost(
@@ -79,6 +82,7 @@ data class TeamTaskPost(
     val assignedScore: Score? = null,
     /** Рубрика критериального оценивания; null — самооценка отключена. */
     val gradingRubric: TaskGradingRubric? = null,
+    val gradingMode: GradingMode = GradingMode.TEACHER_REVIEW,
 ) : Post()
 
 enum class TeamCaptainSelectionMode {

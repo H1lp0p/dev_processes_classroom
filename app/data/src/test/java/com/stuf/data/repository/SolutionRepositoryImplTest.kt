@@ -94,6 +94,13 @@ private class FakeSolutionApi : SolutionApi {
         lastListStudentId = studentId
         return requireNotNull(listSolutionsResponse)
     }
+
+    override suspend fun apiSolutionSolutionIdPreviewPost(
+        solutionId: UUID,
+        gradePreviewRequestDto: com.stuf.data.model.GradePreviewRequestDto?,
+    ): Response<com.stuf.data.model.GradeBreakdownDtoApiResponse> {
+        error("Not used in tests")
+    }
 }
 
 class SolutionRepositoryImplTest {

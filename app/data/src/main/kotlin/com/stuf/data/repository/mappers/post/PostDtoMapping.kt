@@ -3,6 +3,7 @@ package com.stuf.data.repository
 import com.stuf.data.model.CreateUpdatePostDto
 import com.stuf.data.model.PostType
 import com.stuf.data.model.TaskType
+import com.stuf.data.repository.mappers.toApi
 import com.stuf.domain.model.AnnouncementPost
 import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
@@ -44,6 +45,8 @@ internal fun Post.toCreateUpdateDto(): CreateUpdatePostDto {
                 taskType = taskType,
                 solvableAfterDeadline = taskDetails.isMandatory,
                 files = attachments.mapNotNull { it.id },
+                gradingMode = gradingMode.toApi(),
+                minPeerReviewsRequired = minPeerReviewsRequired,
             )
         is TeamTaskPost ->
             CreateUpdatePostDto(
@@ -55,6 +58,7 @@ internal fun Post.toCreateUpdateDto(): CreateUpdatePostDto {
                 taskType = taskType,
                 solvableAfterDeadline = taskDetails.isMandatory,
                 files = attachments.mapNotNull { it.id },
+                gradingMode = gradingMode.toApi(),
             )
     }
 }

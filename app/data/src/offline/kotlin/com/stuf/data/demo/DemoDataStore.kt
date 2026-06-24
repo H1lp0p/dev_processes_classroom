@@ -7,6 +7,12 @@ import com.stuf.domain.model.CourseId
 import com.stuf.domain.model.CourseMember
 import com.stuf.domain.model.CourseRole
 import com.stuf.domain.model.FileInfo
+import com.stuf.domain.model.GradeBreakdown
+import com.stuf.domain.model.GradingMode
+import com.stuf.domain.model.PeerReviewId
+import com.stuf.domain.model.PeerReviewProgress
+import com.stuf.domain.model.PeerReviewTarget
+import com.stuf.domain.model.PeerReviewTeamTarget
 import com.stuf.domain.model.GradeDistribution
 import com.stuf.domain.model.GradeDistributionEntry
 import com.stuf.domain.model.GradeVote
@@ -295,14 +301,35 @@ class DemoDataStore @Inject constructor() {
                 allowStudentTransferCaptain = false,
                 assignedScore = Score(5),
             ).withGradingRubric()
-        val mobileWelcome =
-            AnnouncementPost(
-                id = DemoIds.postMobileWelcome,
+        val mobileP2p =
+            TaskPost(
+                id = DemoIds.postMobileP2p,
                 courseId = DemoIds.courseMobile,
-                title = "Мобильный курс — старт",
-                text = "Демо четвёртого курса: командные задания с разными сценариями самооценки.",
-                createdAt = t.minusHours(3),
-            )
+                title = "P2P: алгоритмы сортировки",
+                text =
+                    "Demo: режим PeerToPeer. Сдайте своё решение и оцените минимум 2 работы однокурсников, " +
+                        "затем завершите оценивание.",
+                createdAt = t.minusHours(1),
+                taskDetails = TaskDetails(deadline = t.plusDays(14), isMandatory = true, maxScore = 10),
+                gradingMode = GradingMode.PEER_TO_PEER,
+                minPeerReviewsRequired = 2,
+            ).withGradingRubric()
+        val teamMobileP2p =
+            TeamTaskPost(
+                id = DemoIds.postTeamMobileP2p,
+                courseId = DemoIds.courseMobile,
+                title = "P2P: командный прототип",
+                text =
+                    "Demo: командное задание в режиме PeerToPeer. Сдайте решение команды и оцените " +
+                        "хотя бы одну другую команду.",
+                createdAt = t,
+                taskDetails = TaskDetails(deadline = t.plusDays(10), isMandatory = true, maxScore = 10),
+                minTeamSize = 2,
+                maxTeamSize = 4,
+                allowJoinTeam = false,
+                allowLeaveTeam = false,
+                gradingMode = GradingMode.PEER_TO_PEER,
+            ).withGradingRubric()
         val mobileLab =
             TaskPost(
                 id = DemoIds.postMobileLab,
@@ -336,6 +363,14 @@ class DemoDataStore @Inject constructor() {
                 minTeamSize = 1,
                 maxTeamSize = 3,
             ).withGradingRubric()
+        val mobileWelcome =
+            AnnouncementPost(
+                id = DemoIds.postMobileWelcome,
+                courseId = DemoIds.courseMobile,
+                title = "Мобильный курс — старт",
+                text = "Демо четвёртого курса: командные задания с разными сценариями самооценки и P2P.",
+                createdAt = t.minusHours(3),
+            )
         val clubWelcome =
             AnnouncementPost(
                 id = DemoIds.postClubWelcome,
@@ -350,7 +385,7 @@ class DemoDataStore @Inject constructor() {
             mutableListOf(webLab, teamWebSprint, teamWebCaptainDraft, teamOverdue)
         postsByCourse[DemoIds.courseTeacherClub] = mutableListOf(clubWelcome)
         postsByCourse[DemoIds.courseMobile] =
-            mutableListOf(mobileWelcome, mobileLab, teamMobilePartial, teamMobileNoSa)
+            mutableListOf(mobileWelcome, mobileLab, mobileP2p, teamMobileP2p, teamMobilePartial, teamMobileNoSa)
         listOf(
             welcome,
             homework,
@@ -363,6 +398,8 @@ class DemoDataStore @Inject constructor() {
             clubWelcome,
             mobileWelcome,
             mobileLab,
+            mobileP2p,
+            teamMobileP2p,
             teamMobilePartial,
             teamMobileNoSa,
         ).forEach {
@@ -370,6 +407,7 @@ class DemoDataStore @Inject constructor() {
         }
 
         seedTeamTaskDemoState(t)
+        seedPeerReviewDemo(t)
 
         val taskHomework = TaskId(DemoIds.postHomework.value)
         solutionsByTask[taskHomework] = Solution(
@@ -614,6 +652,31 @@ class DemoDataStore @Inject constructor() {
             )
     }
 
+    private fun seedPeerReviewDemo(now: OffsetDateTime) {
+        DemoPeerReviewSupport.clear()
+        DemoPeerReviewSupport.seedIndividualP2p(now)
+        val teamSeed = DemoPeerReviewSupport.seedTeamP2p(now)
+
+        val taskMobileP2p = TaskId(DemoIds.postMobileP2p.value)
+        solutionsByTask[taskMobileP2p] =
+            Solution(
+                id = DemoIds.solutionMobileP2p,
+                taskId = taskMobileP2p,
+                authorId = DemoIds.userStudent,
+                text =
+                    "Bubble sort для маленьких массивов; insertion sort — для почти отсортированных данных.",
+                files = emptyList(),
+                score = null,
+                status = SolutionStatus.PENDING,
+                updatedAt = now.minusHours(2),
+            )
+
+        val postId = DemoIds.postTeamMobileP2p
+        teamsByAssignment[postId] = teamSeed.allTeams.toMutableList()
+        myTeamByAssignment[postId] = teamSeed.myTeam
+        teamTaskSolutionsByTask[TaskId(postId.value)] = enrichTeamSolution(teamSeed.myTeamSolution)
+    }
+
     private fun TaskPost.withGradingRubric(): TaskPost {
         val rubric = DemoGradingRubrics.rubricForPost(id.value.toString())
         return copy(gradingRubric = rubric.takeIf { it.studentScoreWeight > 0 })
@@ -639,6 +702,12 @@ class DemoDataStore @Inject constructor() {
 
     fun findTaskIdBySolutionId(solutionId: SolutionId): TaskId? =
         teamTaskSolutionsByTask.entries.firstOrNull { it.value.id == solutionId }?.key
+
+    fun findPeerReviewTaskId(reviewId: PeerReviewId): TaskId? =
+        DemoPeerReviewSupport.findTaskIdByReviewId(reviewId)
+
+    fun findPeerReviewTeamSolutionTaskId(teamSolutionId: SolutionId): TaskId? =
+        DemoPeerReviewSupport.findTaskIdByPeerTeamSolutionId(teamSolutionId)
 
     fun findGradingRubric(taskId: TaskId): com.stuf.grading.domain.model.TaskGradingRubric? {
         val post = postsById[PostId(taskId.value)]
@@ -672,7 +741,9 @@ class DemoDataStore @Inject constructor() {
 
     suspend fun getTeamTaskSolution(taskId: TaskId): TeamTaskSolution? =
         mutex.withLock {
-            teamTaskSolutionsByTask[taskId]?.let(::enrichTeamSolution)
+            val sol = teamTaskSolutionsByTask[taskId]?.let(::enrichTeamSolution) ?: return@withLock null
+            val post = postsById[PostId(taskId.value)] as? TeamTaskPost
+            DemoPeerReviewSupport.enrichTeamSolution(sol, post, DemoIds.userStudent)
         }
 
     suspend fun demoSubmitSelfAssessment(
@@ -1122,7 +1193,9 @@ class DemoDataStore @Inject constructor() {
     }
 
     suspend fun getUserSolution(taskId: TaskId): Solution? = mutex.withLock {
-        solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent }
+        val sol = solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent } ?: return@withLock null
+        val post = postsById[PostId(taskId.value)] as? TaskPost
+        DemoPeerReviewSupport.enrichIndividualSolution(sol, post)
     }
 
     suspend fun getTaskSolutions(
@@ -1376,5 +1449,81 @@ class DemoDataStore @Inject constructor() {
             }
             bucket.votes[voterId] = vote
             DomainResult.Success(Unit)
+        }
+
+    suspend fun demoGetNextPeerReview(taskId: TaskId): DomainResult<PeerReviewTarget?> =
+        mutex.withLock {
+            DemoPeerReviewSupport.getNextPeerReview(
+                taskId,
+                postsById[PostId(taskId.value)] as? TaskPost,
+                solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent },
+            )
+        }
+
+    suspend fun demoSubmitPeerReview(
+        reviewId: PeerReviewId,
+        draft: SelfAssessmentDraft,
+        taskId: TaskId,
+    ): DomainResult<PeerReviewProgress> =
+        mutex.withLock {
+            DemoPeerReviewSupport.submitPeerReview(
+                reviewId,
+                draft,
+                postsById[PostId(taskId.value)] as? TaskPost,
+            )
+        }
+
+    suspend fun demoGetIndividualPeerReviewProgress(taskId: TaskId): DomainResult<PeerReviewProgress> =
+        mutex.withLock {
+            DemoPeerReviewSupport.getIndividualProgress(
+                taskId,
+                postsById[PostId(taskId.value)] as? TaskPost,
+                solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent },
+            )
+        }
+
+    suspend fun demoFinishIndividualPeerReview(taskId: TaskId): DomainResult<PeerReviewProgress> =
+        mutex.withLock {
+            DemoPeerReviewSupport.finishIndividualPeerReview(
+                taskId,
+                postsById[PostId(taskId.value)] as? TaskPost,
+                solutionsByTask[taskId]?.takeIf { it.authorId == DemoIds.userStudent },
+            )
+        }
+
+    suspend fun demoGetAvailableTeamPeerReviews(taskId: TaskId): DomainResult<List<PeerReviewTeamTarget>> =
+        mutex.withLock {
+            val postId = PostId(taskId.value)
+            DemoPeerReviewSupport.getAvailableTeamPeerReviews(
+                taskId,
+                postsById[postId] as? TeamTaskPost,
+                myTeamByAssignment[postId],
+            )
+        }
+
+    suspend fun demoSubmitTeamPeerReview(
+        taskId: TaskId,
+        teamSolutionId: SolutionId,
+        draft: SelfAssessmentDraft,
+    ): DomainResult<PeerReviewProgress> =
+        mutex.withLock {
+            val postId = PostId(taskId.value)
+            DemoPeerReviewSupport.submitTeamPeerReview(
+                taskId,
+                teamSolutionId,
+                draft,
+                postsById[postId] as? TeamTaskPost,
+                myTeamByAssignment[postId],
+            )
+        }
+
+    suspend fun demoGetTeamPeerReviewProgress(taskId: TaskId): DomainResult<PeerReviewProgress> =
+        mutex.withLock {
+            val postId = PostId(taskId.value)
+            DemoPeerReviewSupport.getTeamPeerReviewProgress(
+                taskId,
+                postsById[postId] as? TeamTaskPost,
+                myTeamByAssignment[postId],
+            )
         }
 }

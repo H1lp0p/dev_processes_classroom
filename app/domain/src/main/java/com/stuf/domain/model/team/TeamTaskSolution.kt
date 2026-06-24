@@ -14,4 +14,5 @@ data class TeamTaskSolution(
     val submittedBy: UserRef,
     val memberSelfAssessments: List<MemberSelfAssessment> = emptyList(),
     val gradeBreakdown: GradeBreakdown? = null,
+    val peerReviewProgress: PeerReviewProgress? = null,
 )

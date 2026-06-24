@@ -13,4 +13,5 @@ data class Solution(
     val status: SolutionStatus,
     val updatedAt: OffsetDateTime,
     val selfAssessment: SelfAssessmentDraft? = null,
+    val peerReviewProgress: PeerReviewProgress? = null,
 )

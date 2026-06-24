@@ -21,6 +21,8 @@ internal object DemoGradingRubrics {
             DemoIds.postTeamOverdue.value.toString().lowercase() -> rubricTeamOverdue(id)
             DemoIds.postTeamMobilePartial.value.toString().lowercase() -> rubricTeamMobilePartial(id)
             DemoIds.postMobileLab.value.toString().lowercase() -> rubricMobileLab(id)
+            DemoIds.postMobileP2p.value.toString().lowercase() -> rubricMobileP2p(id)
+            DemoIds.postTeamMobileP2p.value.toString().lowercase() -> rubricTeamMobileP2p(id)
             DemoIds.postTeamMobileNoSa.value.toString().lowercase() -> rubricDisabled(id)
             else -> rubricGenericUnknown(id)
         }
@@ -164,6 +166,49 @@ internal object DemoGradingRubrics {
             taskId = taskId,
             title = "Самооценка: лабораторная (мобильный курс)",
             studentScoreWeight = 0.2,
+        )
+
+    /**
+     * Полная демо-рубрика для индивидуального P2P: все типы критериев и пороги задания.
+     *
+     * «Максимум» для проверки UI: все весовые слайдеры на макс., бонусы включены,
+     * штрафы и блокировки выключены → итог 10/10 (6 + 2 бонус + 2 коэфф. качества).
+     */
+    private fun rubricMobileP2p(taskId: String): TaskGradingRubric =
+        TaskGradingRubric(
+            taskId = taskId,
+            title = "P2P: алгоритмы сортировки",
+            assignmentMaxScore = 10.0,
+            failThreshold = 0.15,
+            successThreshold = 0.98,
+            studentScoreWeight = 0.25,
+            penaltyPerDay = 0.5,
+            maxPenaltyDays = 5,
+            criteria =
+                listOf(
+                    weighted(taskId, "p2p-correct", "Корректность реализации", 10.0, 0.4),
+                    weighted(taskId, "p2p-complex", "Анализ сложности", 10.0, 0.15),
+                    weighted(taskId, "p2p-style", "Оформление и ясность", 10.0, 0.05),
+                    bonus(taskId, "p2p-bonus", "Дополнительные примеры", 2.0),
+                    penalty(taskId, "p2p-pen", "Ошибки в краевых случаях", 1.5),
+                    quality(taskId, "p2p-q-add", "Высокая доля — дополнительный бонус", 0.79, 2.0),
+                    quality(
+                        taskId,
+                        "p2p-q-sub",
+                        "Низкая доля — дополнительный штраф",
+                        0.25,
+                        1.5,
+                        subtract = true,
+                    ),
+                    blocking(taskId, "p2p-block", "Плагиат / списывание", 4.0),
+                ),
+        )
+
+    private fun rubricTeamMobileP2p(taskId: String): TaskGradingRubric =
+        rubricTeamMobilePartial(taskId).copy(
+            taskId = taskId,
+            title = "P2P: командный прототип",
+            studentScoreWeight = 0.3,
         )
 
     private fun rubricGenericUnknown(taskId: String): TaskGradingRubric {

@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "API_BASE_URL", "\"http://176.209.147.7:5000\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://92.126.62.35:5000\"")
     }
 
     flavorDimensions += "backend"
@@ -84,7 +84,7 @@ openApiGenerate {
     generatorName.set("kotlin")
     library.set("jvm-retrofit2")
 
-    inputSpec.set("$projectDir/classroom_api_v6.json")
+    inputSpec.set("$projectDir/classroom_api_v7.json")
 
     outputDir.set("$projectDir")
 

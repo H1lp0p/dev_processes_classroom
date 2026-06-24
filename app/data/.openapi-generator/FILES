@@ -3,6 +3,7 @@ src/main/kotlin/com/stuf/data/api/CommentApi.kt
 src/main/kotlin/com/stuf/data/api/CourseApi.kt
 src/main/kotlin/com/stuf/data/api/FilesApi.kt
 src/main/kotlin/com/stuf/data/api/GradeDistributionApi.kt
+src/main/kotlin/com/stuf/data/api/PeerReviewApi.kt
 src/main/kotlin/com/stuf/data/api/PostApi.kt
 src/main/kotlin/com/stuf/data/api/SolutionApi.kt
 src/main/kotlin/com/stuf/data/api/TeamApi.kt
@@ -16,12 +17,11 @@ src/main/kotlin/com/stuf/data/infrastructure/ByteArrayAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/CollectionFormats.kt
 src/main/kotlin/com/stuf/data/infrastructure/LocalDateAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/LocalDateTimeAdapter.kt
-src/main/kotlin/com/stuf/data/infrastructure/OffsetDateTimeAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/ResponseExt.kt
-src/main/kotlin/com/stuf/data/infrastructure/Serializer.kt
 src/main/kotlin/com/stuf/data/infrastructure/URIAdapter.kt
 src/main/kotlin/com/stuf/data/infrastructure/UUIDAdapter.kt
 src/main/kotlin/com/stuf/data/model/AddCommentRequestDto.kt
+src/main/kotlin/com/stuf/data/model/AnonymizedSolutionDto.kt
 src/main/kotlin/com/stuf/data/model/ApiResponseType.kt
 src/main/kotlin/com/stuf/data/model/BooleanApiResponse.kt
 src/main/kotlin/com/stuf/data/model/CaptainSelectionMode.kt
@@ -59,6 +59,7 @@ src/main/kotlin/com/stuf/data/model/GradeDistributionUpdateRequestDto.kt
 src/main/kotlin/com/stuf/data/model/GradeDistributionVoteRequestDto.kt
 src/main/kotlin/com/stuf/data/model/GradePreviewRequestDto.kt
 src/main/kotlin/com/stuf/data/model/GradeVoteType.kt
+src/main/kotlin/com/stuf/data/model/GradingMode.kt
 src/main/kotlin/com/stuf/data/model/IdRequestDto.kt
 src/main/kotlin/com/stuf/data/model/IdRequestDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/JoinCourseRequestDto.kt
@@ -66,6 +67,13 @@ src/main/kotlin/com/stuf/data/model/JoinCourseResponseDto.kt
 src/main/kotlin/com/stuf/data/model/JoinCourseResponseDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/MemberSelfAssessmentDto.kt
 src/main/kotlin/com/stuf/data/model/ObjectApiResponse.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewProgressDto.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewProgressDtoApiResponse.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewTargetDto.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewTargetDtoApiResponse.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewTeamTargetDto.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewTeamTargetListDto.kt
+src/main/kotlin/com/stuf/data/model/PeerReviewTeamTargetListDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/PostDetailsDto.kt
 src/main/kotlin/com/stuf/data/model/PostDetailsDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/PostType.kt
@@ -78,6 +86,7 @@ src/main/kotlin/com/stuf/data/model/StudentSolutionDetailsDto.kt
 src/main/kotlin/com/stuf/data/model/StudentSolutionDetailsDtoApiResponse.kt
 src/main/kotlin/com/stuf/data/model/StudentTeamSolutionDetailsDto.kt
 src/main/kotlin/com/stuf/data/model/StudentTeamSolutionDetailsDtoApiResponse.kt
+src/main/kotlin/com/stuf/data/model/SubmitPeerReviewDto.kt
 src/main/kotlin/com/stuf/data/model/SubmitSelfAssessmentDto.kt
 src/main/kotlin/com/stuf/data/model/SubmitSolutionRequestDto.kt
 src/main/kotlin/com/stuf/data/model/SubmitTeamSolutionRequestDto.kt

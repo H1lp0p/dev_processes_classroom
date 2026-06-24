@@ -65,9 +65,13 @@ import com.stuf.classroom.post.components.PostCommentItem
 import com.stuf.classroom.post.components.PostScreenCommentsDivider
 import com.stuf.classroom.post.components.PostScreenTopBar
 import com.stuf.classroom.post.components.PostTaskGradingSection
+import com.stuf.classroom.post.components.PostTaskPeerReviewSection
 import com.stuf.classroom.post.components.resolveSavedSelfAssessmentDraft
 import com.stuf.classroom.post.components.teamSelfAssessmentProgress
+import com.stuf.domain.model.GradingMode
 import com.stuf.domain.model.SolutionStatus
+import com.stuf.domain.model.peerReviewPostInfo
+import com.stuf.domain.model.gradingSectionPeerReviewHint
 import com.stuf.classroom.post.components.PostScreenTeamTaskSection
 import com.stuf.domain.model.selfAssessmentPostInfo
 import com.stuf.domain.model.FileInfo
@@ -110,6 +114,7 @@ internal fun TeamTaskPostScreen(
     onRemoveSavedTeamSolutionFile: (String) -> Unit,
     onOpenGradeDistribution: () -> Unit,
     onOpenSelfAssessment: () -> Unit = {},
+    onOpenPeerReview: () -> Unit = {},
     onDownloadAttachment: (UUID) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -369,12 +374,30 @@ internal fun TeamTaskPostScreen(
                         onRemoveSavedFile = onRemoveSavedTeamSolutionFile,
                         onDownloadAttachment = onDownloadAttachment,
                     )
+                    if (post.gradingMode == GradingMode.PEER_TO_PEER) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PostTaskPeerReviewSection(
+                            peerReviewInfo = post.peerReviewPostInfo(),
+                            progress = teamTask.solution?.peerReviewProgress,
+                            hasSolution = teamTask.solution != null,
+                            isTeamTask = true,
+                            onOpenPeerReview = onOpenPeerReview,
+                            onFinishPeerReview = {},
+                        )
+                    }
                     val selfAssessmentInfo = post.selfAssessmentPostInfo()
+                    val peerReviewInfoForGrading =
+                        if (post.gradingMode == GradingMode.PEER_TO_PEER) {
+                            post.peerReviewPostInfo()
+                        } else {
+                            null
+                        }
                     val showGradingSection =
                         showStudentActions &&
                             (
                                 selfAssessmentInfo.isConfigured ||
-                                    (myTeam != null && teamTask.solution?.score != null)
+                                    (myTeam != null && teamTask.solution?.score != null) ||
+                                    peerReviewInfoForGrading?.gradingSectionPeerReviewHint() != null
                             )
                     if (showGradingSection) {
                         val (submittedCount, totalCount) = teamSelfAssessmentProgress(teamTask.solution)
@@ -397,6 +420,7 @@ internal fun TeamTaskPostScreen(
                             teamSelfAssessmentTotalCount = totalCount,
                             onOpenSelfAssessment = onOpenSelfAssessment,
                             onOpenGradeDistribution = onOpenGradeDistribution,
+                            peerReviewInfo = peerReviewInfoForGrading,
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -501,6 +525,7 @@ internal fun TeamTaskPostScreen(
             item {
                 PostScreenTeamTaskSection(
                     post = post,
+                    peerReviewProgress = teamTask.solution?.peerReviewProgress,
                     onAttachmentDownload = onDownloadAttachment,
                 )
             }

@@ -18,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.stuf.domain.model.PeerReviewPostInfo
 import com.stuf.domain.model.SelfAssessmentPostInfo
+import com.stuf.domain.model.gradingSectionPeerReviewHint
 import com.stuf.domain.model.TeamTaskSolution
 import com.stuf.domain.model.UserId
 import com.stuf.domain.model.Solution
@@ -46,10 +48,12 @@ internal fun PostTaskGradingSection(
     teamSelfAssessmentTotalCount: Int,
     onOpenSelfAssessment: () -> Unit,
     onOpenGradeDistribution: () -> Unit,
+    peerReviewInfo: PeerReviewPostInfo? = null,
     modifier: Modifier = Modifier,
 ) {
     val showSelfAssessment = selfAssessmentInfo.isConfigured
-    if (!showSelfAssessment && !showGradeDistribution) return
+    val peerReviewHint = peerReviewInfo?.gradingSectionPeerReviewHint()
+    if (!showSelfAssessment && !showGradeDistribution && peerReviewHint == null) return
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -61,6 +65,14 @@ internal fun PostTaskGradingSection(
             fontWeight = FontWeight.SemiBold,
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        peerReviewHint?.let { hint ->
+            Text(
+                text = hint,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         if (isTeamTask && teamSelfAssessmentTotalCount > 0) {
             PostTeamSelfAssessmentProgressCard(

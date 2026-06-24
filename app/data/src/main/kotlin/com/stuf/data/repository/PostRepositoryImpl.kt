@@ -1,5 +1,6 @@
 package com.stuf.data.repository
 
+import android.util.Log
 import com.stuf.data.api.PostApi
 import com.stuf.data.common.httpCodeToDomainError
 import com.stuf.domain.common.DomainError
@@ -92,8 +93,10 @@ class PostRepositoryImpl @Inject constructor(
         val response = try {
             block()
         } catch (e: IOException) {
+            Log.e(TAG, "Network error on request", e)
             return DomainResult.Failure(DomainError.Network(e))
         } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error on request", e)
             return DomainResult.Failure(DomainError.Unknown(e))
         }
 
@@ -101,9 +104,20 @@ class PostRepositoryImpl @Inject constructor(
             return DomainResult.Failure(httpCodeToDomainError(response.code()))
         }
 
-        val body = response.body()
-            ?: return DomainResult.Failure(DomainError.Unknown())
+        val body = try {
+            response.body()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse response body", e)
+            return DomainResult.Failure(DomainError.Unknown(e))
+        } ?: run {
+            Log.e(TAG, "Empty response body for ${response.raw().request.url}")
+            return DomainResult.Failure(DomainError.Unknown())
+        }
 
         return DomainResult.Success(body)
+    }
+
+    private companion object {
+        const val TAG = "PostRepository"
     }
 }
