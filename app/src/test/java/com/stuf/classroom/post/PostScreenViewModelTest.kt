@@ -12,6 +12,7 @@ import com.stuf.domain.model.MaterialPost
 import com.stuf.domain.model.Post
 import com.stuf.domain.model.PostAttachment
 import com.stuf.domain.model.PostId
+import com.stuf.domain.model.PeerReviewProgress
 import com.stuf.domain.model.Solution
 import com.stuf.domain.model.TaskDetails
 import com.stuf.domain.model.TaskId
@@ -30,6 +31,7 @@ import com.stuf.domain.usecase.CancelSolution
 import com.stuf.domain.usecase.CancelTeamTaskSolution
 import com.stuf.domain.usecase.DeleteComment
 import com.stuf.domain.usecase.EditComment
+import com.stuf.domain.usecase.FinishIndividualPeerReview
 import com.stuf.domain.usecase.GetCommentReplies
 import com.stuf.domain.usecase.GetMyTeamForTeamTask
 import com.stuf.domain.usecase.GetPost
@@ -245,6 +247,18 @@ class PostScreenViewModelTest {
         override suspend fun invoke(taskId: TaskId): DomainResult<Unit> = DomainResult.Success(Unit)
     }
 
+    private class FakeFinishIndividualPeerReview : FinishIndividualPeerReview {
+        override suspend fun invoke(taskId: TaskId): DomainResult<PeerReviewProgress> =
+            DomainResult.Success(
+                PeerReviewProgress(
+                    required = 1,
+                    completed = 1,
+                    canFinish = false,
+                    isCounted = true,
+                ),
+            )
+    }
+
     private class FakeEditComment : EditComment {
         override suspend fun invoke(commentId: CommentId, text: String): DomainResult<Unit> =
             DomainResult.Success(Unit)
@@ -311,6 +325,7 @@ class PostScreenViewModelTest {
                 submitSolution = FakeSubmitSolution(),
                 cancelSolution = FakeCancelSolution(),
                 cancelTeamTaskSolution = FakeCancelTeamTaskSolution(),
+                finishIndividualPeerReview = FakeFinishIndividualPeerReview(),
                 fileRepository = FakeFileRepository(),
                 apiBaseUrl = "http://localhost/",
                 currentUserRepository = FakeCurrentUserRepository(),
