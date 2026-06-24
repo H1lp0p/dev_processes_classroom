@@ -2,7 +2,7 @@
 Android-приложение. Аналог Google Classroom.
 
 # Простая установка
-- [скачать apk](https://github.com/H1lp0p/dev_processes_classroom/releases/tag/1.0.0)
+- [скачать apk](https://github.com/H1lp0p/dev_processes_classroom/releases/tag/3.0.0)
 - Установить
 
 ## Требования
